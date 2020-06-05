@@ -72,17 +72,23 @@
             (recur alt-schedule (inc iteration-count))
             (recur schedule (inc iteration-count))))))))
 
+(defn report [schedule availabilities]
+  {:score (schedule-score schedule availabilities)
+   :scores (->> availabilities
+                keys
+                (map (fn [guest-id]
+                       [guest-id (individual-score guest-id schedule availabilities)]))
+                (into {}))
+   :schedule schedule
+   :availabilities availabilities})
+
 #_(let [availabilities {"raf" {:monday #{1000 1100}}
                         "dh" {:monday #{1000 1100 1200}}
                         "berk" {:monday #{1100 1200}}}
         optimized-schedule (optimize-schedule
-                            (generate-initial-schedule availabilities)
-                            availabilities)]
-    {:score (schedule-score optimized-schedule availabilities)
-     :scores (->> availabilities
-                  keys
-                  (map (fn [guest-id] (individual-score guest-id optimized-schedule availabilities))))
-     :schedule optimized-schedule})
+                             (generate-initial-schedule availabilities)
+                             availabilities)]
+    (clojure.pprint/pprint (report optimized-schedule availabilities)))
 
 (defn -main []
   (println "hello world"))
