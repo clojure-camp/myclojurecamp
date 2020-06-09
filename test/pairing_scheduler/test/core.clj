@@ -72,6 +72,7 @@
               :day-of-week :monday
               :time-of-day 900}}
            (->> (ps/generate-initial-schedule
+                  1
                   {:availabilities
                    {"Raf" {}
                     "Berk" {}
@@ -94,7 +95,7 @@
               {"raf" {:monday #{1000 1100}}
                "dh" {:monday #{1000 1100 1200}}
                "berk" {:monday #{1100 1200}}}}
-             ps/generate-initial-schedule
+             (ps/generate-initial-schedule 1)
              ps/optimize-schedule
              :schedule
              set))))
