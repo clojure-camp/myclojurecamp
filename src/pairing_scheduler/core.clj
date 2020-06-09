@@ -50,29 +50,26 @@
 
 (defn individual-score
   [guest-id {:keys [schedule availabilities]}]
-  (cond
-    ;; no double-scheduling
-    (->> schedule
-         (filter (fn [event]
-                   (contains? (event :guest-ids) guest-id)))
-         (map (fn [event]
-                [(event :day-of-week) (event :time-of-day)]))
-         (apply distinct?)
-         not)
-    999
+  (+
+    ;; avoid double-scheduling
+    (let [daytimes (->> schedule
+                        (filter (fn [event]
+                                  (contains? (event :guest-ids) guest-id)))
+                        (map (fn [event]
+                               [(event :day-of-week) (event :time-of-day)])))
+          n (- (count daytimes)
+               (count (set daytimes)))]
+      (* 100 n))
 
-    ;; always within available times
+    ;; avoid scheduling outside available times
     (->> schedule
          (filter (fn [event]
                    (contains? (event :guest-ids) guest-id)))
-         (every? (fn [event]
+         (remove (fn [event]
                    (contains? (get-in availabilities [guest-id (event :day-of-week)])
                               (event :time-of-day))))
-         not)
-    999
-
-    :else
-    0))
+         count
+         (* 200))))
 
 (defn schedule-score
   [{:keys [schedule availabilities] :as context}]

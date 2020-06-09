@@ -25,7 +25,7 @@
 
 (deftest scheduler
   (testing "scoring-fn double-scheduling"
-    (is (= 999
+    (is (= 100
            (ps/individual-score
             "raf"
             {:schedule
@@ -35,10 +35,11 @@
               {:guest-ids #{"raf" "berk"}
                :day-of-week :wednesday
                :time-of-day 1500}]
-             :availabilities {}}))))
+             :availabilities
+             {"raf" {:wednesday #{1500}}}}))))
 
-  (testing "scoring-fn always-within-available-times"
-    (is (= 999
+  (testing "scoring-fn not within available times"
+    (is (= 200
            (ps/individual-score
             "raf"
             {:schedule
@@ -48,7 +49,7 @@
              :availabilities
              {"raf" {}}}))))
 
-  (testing "scoring-fn not-within-available-times"
+  (testing "scoring-fn within available times"
     (is (= 0
            (ps/individual-score
             "raf"
