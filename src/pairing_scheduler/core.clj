@@ -1,6 +1,17 @@
 (ns pairing-scheduler.core
   (:require
-   [clojure.math.combinatorics :as combo]))
+   [clojure.math.combinatorics :as combo]
+   [clojure.set :as set]))
+
+(defn ->daytimes
+  "Given map in the form {:monday [900 1000...] ...}
+  returns a set in the form #{[:monday 900] [:monday 1000] ...}"
+  [availability]
+  (->> availability
+       (mapcat (fn [[day-of-week hours]]
+                 (map (fn [hour]
+                           [day-of-week hour]) hours)))
+       set))
 
 (defn tweak-schedule
   [{:keys [schedule availabilities] :as context}]
@@ -12,9 +23,16 @@
       (let [event-index (rand-int (count schedule))]
         (update (vec schedule) event-index
                 (fn [event]
-                  (assoc event
-                    :day-of-week (rand-nth [:monday :tuesday :wednesday :thursday :friday])
-                    :time-of-day (rand-nth [900 1000 1100 1200 1300 1400 1500 1600 1700]))))))))
+                  ;; select a daytime where both guests have availability
+                  ;; (can still result in doublebooking)
+                  (let [shared-daytimes (->> (event :guest-ids)
+                                             (map availabilities)
+                                             (map ->daytimes)
+                                             (apply set/intersection))
+                        [day-of-week time-of-day] (rand-nth (vec shared-daytimes))]
+                    (assoc event
+                      :day-of-week day-of-week
+                      :time-of-day time-of-day))))))))
 
 (defn generate-initial-schedule
   [{:keys [availabilities] :as context}]

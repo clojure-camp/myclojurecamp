@@ -15,6 +15,14 @@
  "DH" {:monday #{900 1000 1100}
        :tuesday #{900}}}
 
+(deftest ->daytimes
+  (testing "simple conversion"
+    (is (= #{[:monday 900]
+             [:monday 1000]
+             [:friday 900]}
+           (ps/->daytimes {:monday #{900 1000}
+                           :friday #{900}})))))
+
 (deftest scheduler
   (testing "scoring-fn double-scheduling"
     (is (= 999
