@@ -3,16 +3,6 @@
    [clojure.math.combinatorics :as combo]
    [clojure.set :as set]))
 
-(defn ->daytimes
-  "Given map in the form {:monday [900 1000...] ...}
-  returns a set in the form #{[:monday 900] [:monday 1000] ...}"
-  [availability]
-  (->> availability
-       (mapcat (fn [[day-of-week hours]]
-                 (map (fn [hour]
-                           [day-of-week hour]) hours)))
-       set))
-
 (defn tweak-schedule
   [{:keys [schedule availabilities] :as context}]
   (assoc context
@@ -27,7 +17,9 @@
                   ;; (can still result in doublebooking)
                   (let [shared-daytimes (->> (event :guest-ids)
                                              (map availabilities)
-                                             (map ->daytimes)
+                                             (map (fn [availabilities]
+                                                    (set (map (fn [[day-of-week hour _]]
+                                                                [day-of-week hour]) availabilities))))
                                              (apply set/intersection))
                         [day-of-week time-of-day] (rand-nth (vec shared-daytimes))]
                     (assoc event
@@ -40,7 +32,9 @@
         pairs (combo/combinations guest-ids 2)]
     (assoc context
       :schedule
-      (->> (apply concat (repeat times-to-pair pairs))
+      (->> pairs
+           (repeat times-to-pair)
+           (apply concat)
            (map (fn [pair]
                   {:guest-ids (set pair)
                    :day-of-week :monday
@@ -64,8 +58,8 @@
          (filter (fn [event]
                    (contains? (event :guest-ids) guest-id)))
          (remove (fn [event]
-                   (contains? (get-in availabilities [guest-id (event :day-of-week)])
-                              (event :time-of-day))))
+                   (or (contains? (availabilities guest-id) [(event :day-of-week) (event :time-of-day) :available])
+                       (contains? (availabilities guest-id) [(event :day-of-week) (event :time-of-day) :preferred]))))
          count
          (* 200))))
 
@@ -105,9 +99,13 @@
                         [guest-id (individual-score guest-id context)]))
                  (into {}))))
 
-#_(->> {:availabilities {"raf" {:monday #{1000 1100}}
-                         "dh" {:monday #{1000 1100 1200}}
-                         "berk" {:monday #{1100 1200}}}}
+#_(->> {:availabilities {"raf" #{[:monday 1000 :preferred]
+                                 [:monday 1100 :preferred]}
+                         "dh" #{[:monday 1000 :available]
+                                [:monday 1100 :available]
+                                [:monday 1200 :available]}
+                         "berk" #{[:monday 1100 :available]
+                                  [:monday 1200 :available]}}}
        (generate-initial-schedule 1)
        optimize-schedule
        report

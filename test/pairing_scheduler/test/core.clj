@@ -10,18 +10,9 @@
 
 ;; availabilities
 
-{"Raf" {:monday #{900 1000 1100}
-        :tuesday #{900}}
- "DH" {:monday #{900 1000 1100}
-       :tuesday #{900}}}
-
-(deftest ->daytimes
-  (testing "simple conversion"
-    (is (= #{[:monday 900]
-             [:monday 1000]
-             [:friday 900]}
-           (ps/->daytimes {:monday #{900 1000}
-                           :friday #{900}})))))
+{"Raf" #{[:monday 900 :available]
+         [:monday 1000 :preferred]}
+ "DH" #{}}
 
 (deftest scheduler
   (testing "scoring-fn double-scheduling"
@@ -36,7 +27,7 @@
                :day-of-week :wednesday
                :time-of-day 1500}]
              :availabilities
-             {"raf" {:wednesday #{1500}}}}))))
+             {"raf" #{[:wednesday 1500 :available]}}}))))
 
   (testing "scoring-fn not within available times"
     (is (= 200
@@ -47,7 +38,7 @@
                :day-of-week :wednesday
                :time-of-day 1800}]
              :availabilities
-             {"raf" {}}}))))
+             {"raf" #{}}}))))
 
   (testing "scoring-fn within available times"
     (is (= 0
@@ -58,8 +49,8 @@
                :day-of-week :monday
                :time-of-day 900}]
              :availabilities
-             {"raf" {:monday #{900}}
-              "dh" {:monday #{900}}}}))))
+             {"raf" #{[:monday 900 :available]}
+              "dh" #{[:monday 900 :available]}}}))))
 
   (testing "generate-initial-schedule"
     (is (= #{{:guest-ids #{"Raf" "DH"}
@@ -74,9 +65,9 @@
            (->> (ps/generate-initial-schedule
                   1
                   {:availabilities
-                   {"Raf" {}
-                    "Berk" {}
-                    "DH" {}}})
+                   {"Raf" #{}
+                    "Berk" #{}
+                    "DH" #{}}})
                 :schedule
                 set))))
 
@@ -92,9 +83,13 @@
                 :day-of-week :monday
                 :time-of-day 1200}]))
         (->> {:availabilities
-              {"raf" {:monday #{1000 1100}}
-               "dh" {:monday #{1000 1100 1200}}
-               "berk" {:monday #{1100 1200}}}}
+              {"raf" #{[:monday 1000 :available]
+                       [:monday 1100 :available]}
+               "dh" #{[:monday 1000 :available]
+                      [:monday 1100 :available]
+                      [:monday 1200 :available]}
+               "berk" #{[:monday 1100 :avaiable]
+                        [:monday 1200 :available]}}}
              (ps/generate-initial-schedule 1)
              ps/optimize-schedule
              :schedule
