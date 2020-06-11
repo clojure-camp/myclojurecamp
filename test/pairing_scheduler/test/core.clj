@@ -27,7 +27,7 @@
                :day-of-week :wednesday
                :time-of-day 1500}]
              :availabilities
-             {"raf" #{[:wednesday 1500 :available]}}}))))
+             {"raf" #{[:wednesday 1500 :preferred]}}}))))
 
   (testing "scoring-fn not within available times"
     (is (= 200
@@ -41,7 +41,7 @@
              {"raf" #{}}}))))
 
   (testing "scoring-fn within available times"
-    (is (= 0
+    (is (= 1
            (ps/individual-score
             "raf"
             {:schedule
@@ -51,6 +51,18 @@
              :availabilities
              {"raf" #{[:monday 900 :available]}
               "dh" #{[:monday 900 :available]}}}))))
+
+  (testing "scoring-fn within preferred times"
+    (is (= 0
+           (ps/individual-score
+            "raf"
+            {:schedule
+             [{:guest-ids #{"raf" "dh"}
+               :day-of-week :monday
+               :time-of-day 900}]
+             :availabilities
+             {"raf" #{[:monday 900 :preferred]}
+              "dh" #{[:monday 900 :preferred]}}}))))
 
   (testing "generate-initial-schedule"
     (is (= #{{:guest-ids #{"Raf" "DH"}
@@ -63,17 +75,41 @@
               :day-of-week :monday
               :time-of-day 900}}
            (->> (ps/generate-initial-schedule
-                  1
-                  {:availabilities
-                   {"Raf" #{}
-                    "Berk" #{}
-                    "DH" #{}}})
+                 1
+                 {:availabilities
+                  {"Raf" #{}
+                   "Berk" #{}
+                   "DH" #{}}})
                 :schedule
                 set))))
 
   (testing "optimize-schedule"
-    (is (=
-         (set [{:guest-ids #{"raf" "dh"}
+    (testing "availables-only"
+      (is (=
+           (set [{:guest-ids #{"raf" "dh"}
+                  :day-of-week :monday
+                  :time-of-day 1000}
+                 {:guest-ids #{"raf" "berk"}
+                  :day-of-week :monday
+                  :time-of-day 1100}
+                 {:guest-ids #{"berk" "dh"}
+                  :day-of-week :monday
+                  :time-of-day 1200}]))
+          (->> {:availabilities
+                {"raf" #{[:monday 1000 :available]
+                         [:monday 1100 :available]}
+                 "dh" #{[:monday 1000 :available]
+                        [:monday 1100 :available]
+                        [:monday 1200 :available]}
+                 "berk" #{[:monday 1100 :available]
+                          [:monday 1200 :available]}}}
+               (ps/generate-initial-schedule 1)
+               ps/optimize-schedule
+               :schedule
+               set)))
+
+    (testing "available and preferred"
+      (is (= #{{:guest-ids #{"raf" "dh"}
                 :day-of-week :monday
                 :time-of-day 1000}
                {:guest-ids #{"raf" "berk"}
@@ -81,16 +117,18 @@
                 :time-of-day 1100}
                {:guest-ids #{"berk" "dh"}
                 :day-of-week :monday
-                :time-of-day 1200}]))
-        (->> {:availabilities
-              {"raf" #{[:monday 1000 :available]
-                       [:monday 1100 :available]}
-               "dh" #{[:monday 1000 :available]
-                      [:monday 1100 :available]
-                      [:monday 1200 :available]}
-               "berk" #{[:monday 1100 :avaiable]
-                        [:monday 1200 :available]}}}
-             (ps/generate-initial-schedule 1)
-             ps/optimize-schedule
-             :schedule
-             set))))
+                :time-of-day 1200}}
+             (->> {:availabilities
+                   {"raf" #{[:monday 1000 :preferred]
+                            [:monday 1100 :preferred]
+                            [:monday 1200 :available]}
+                    "dh" #{[:monday 1000 :preferred]
+                           [:monday 1100 :available]
+                           [:monday 1200 :preferred]}
+                    "berk" #{[:monday 1000 :available]
+                             [:monday 1100 :preferred]
+                             [:monday 1200 :preferred]}}}
+                  (ps/generate-initial-schedule 1)
+                  ps/optimize-schedule
+                  :schedule
+                  set))))))

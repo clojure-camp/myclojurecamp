@@ -42,26 +42,32 @@
 
 (defn individual-score
   [guest-id {:keys [schedule availabilities]}]
-  (+
-    ;; avoid double-scheduling
-    (let [daytimes (->> schedule
-                        (filter (fn [event]
-                                  (contains? (event :guest-ids) guest-id)))
-                        (map (fn [event]
-                               [(event :day-of-week) (event :time-of-day)])))
-          n (- (count daytimes)
-               (count (set daytimes)))]
-      (* 100 n))
+  (let [guest-events (->> schedule
+                          (filter (fn [event]
+                                    (contains? (event :guest-ids) guest-id))))]
+    (+
+     ;; penalize events that are double-scheduled for the guest
+     (let [daytimes (->> guest-events
+                         (map (fn [event]
+                                [(event :day-of-week) (event :time-of-day)])))
+           n (- (count daytimes)
+                (count (set daytimes)))]
+       (* 100 n))
 
-    ;; avoid scheduling outside available times
-    (->> schedule
-         (filter (fn [event]
-                   (contains? (event :guest-ids) guest-id)))
-         (remove (fn [event]
-                   (or (contains? (availabilities guest-id) [(event :day-of-week) (event :time-of-day) :available])
-                       (contains? (availabilities guest-id) [(event :day-of-week) (event :time-of-day) :preferred]))))
-         count
-         (* 200))))
+     ;; penalize events outside of guest's available times
+     (->> guest-events
+          (remove (fn [event]
+                    (or (contains? (availabilities guest-id) [(event :day-of-week) (event :time-of-day) :available])
+                        (contains? (availabilities guest-id) [(event :day-of-week) (event :time-of-day) :preferred]))))
+          count
+          (* 200))
+
+     ;; penalize events during available times slightly (to bias towards preferred times)
+     (->> guest-events
+          (filter (fn [event]
+                    (contains? (availabilities guest-id) [(event :day-of-week) (event :time-of-day) :available])))
+          count
+          (* 1)))))
 
 (defn schedule-score
   [{:keys [schedule availabilities] :as context}]
