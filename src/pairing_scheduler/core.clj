@@ -73,9 +73,14 @@
 
 (defn individual-score
   [guest-id {:keys [schedule availabilities]}]
-  (let [guest-events (->> schedule
+  (let [max-events-per-day 2
+        guest-events (->> schedule
                           (filter (fn [event]
                                     (contains? (event :guest-ids) guest-id))))
+        guest-open-times  (->> (availabilities guest-id)
+                               (map (fn [[day-of-week time-of-day _]]
+                                      [day-of-week time-of-day]))
+                               set)
         guest-event-times (->> guest-events
                                (map (fn [event]
                                       [(event :day-of-week) (event :time-of-day)])))]
@@ -89,15 +94,22 @@
                             (filter (partial = [(event :day-of-week) (event :time-of-day)]))
                             count))
                   200
+                  ;; outside of any available times
+                  (not (contains? guest-open-times [(event :day-of-week) (event :time-of-day)]))
+                  100
+                  ;; above max for day
+                  (< max-events-per-day
+                     (->> guest-event-times
+                          (filter (fn [[day-of-week _]]
+                                    (= day-of-week (event :day-of-week))))
+                          count))
+                  50
                   ;; at preferred time
                   (contains? (availabilities guest-id) [(event :day-of-week) (event :time-of-day) :preferred])
                   -5
                   ;; at available time
                   (contains? (availabilities guest-id) [(event :day-of-week) (event :time-of-day) :available])
-                  -1
-                  ;; outside-of-available-time
-                  :else
-                  100)))
+                  -1)))
          (reduce +))))
 
 (defn schedule-score

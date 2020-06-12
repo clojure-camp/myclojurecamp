@@ -40,6 +40,28 @@
              :availabilities
              {"raf" #{}}}))))
 
+  (testing "above max-events-per-day"
+    (is (= 150
+           (ps/individual-score
+            "raf"
+            {:schedule
+             [{:guest-ids #{"raf" "dh"}
+               :day-of-week :monday
+               :time-of-day 900}
+              {:guest-ids #{"raf" "dh"}
+               :day-of-week :monday
+               :time-of-day 1000}
+              {:guest-ids #{"raf" "dh"}
+               :day-of-week :monday
+               :time-of-day 1100}]
+             :availabilities
+             {"raf" #{[:monday 900 :available]
+                      [:monday 1000 :available]
+                      [:monday 1100 :available]}
+              "dh" #{[:monday 900 :available]
+                     [:monday 1000 :available]
+                     [:monday 1100 :available]}}}))))
+
   (testing "within available times"
     (is (= -1
            (ps/individual-score
