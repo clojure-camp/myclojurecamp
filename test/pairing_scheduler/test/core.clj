@@ -108,6 +108,20 @@
                :schedule
                set)))
 
+    (testing "don't explode if no overlap possible between guests"
+      ;; for now, it will keep the initial schedule
+      (is (= #{{:guest-ids #{"dh" "raf"}
+                :day-of-week :monday
+                :time-of-day 900}}
+             (->> {:availabilities
+                   {"raf" #{}
+                    "dh" #{[:monday 1000 :preferred]
+                           [:monday 1200 :preferred]}}}
+                  (ps/generate-initial-schedule 1)
+                  ps/optimize-schedule
+                  :schedule
+                  set))))
+
     (testing "available and preferred"
       (is (= #{{:guest-ids #{"raf" "dh"}
                 :day-of-week :monday

@@ -17,14 +17,18 @@
                   ;; (can still result in doublebooking)
                   (let [shared-daytimes (->> (event :guest-ids)
                                              (map availabilities)
-                                             (map (fn [availabilities]
-                                                    (set (map (fn [[day-of-week hour _]]
-                                                                [day-of-week hour]) availabilities))))
-                                             (apply set/intersection))
-                        [day-of-week time-of-day] (rand-nth (vec shared-daytimes))]
-                    (assoc event
-                      :day-of-week day-of-week
-                      :time-of-day time-of-day))))))))
+                                                  (map (fn [availabilities]
+                                                         (set (map (fn [[day-of-week hour _]]
+                                                                     [day-of-week hour]) availabilities))))
+                                                  (apply set/intersection))]
+                         (if (seq shared-daytimes)
+                           (let [[day-of-week time-of-day] (rand-nth (vec shared-daytimes))]
+                             (assoc event
+                                    :day-of-week day-of-week
+                                    :time-of-day time-of-day))
+                           (assoc event
+                                  :day-of-week :impossible
+                                  :time-of-day 0)))))))))
 
 (defn generate-initial-schedule
   [times-to-pair {:keys [availabilities] :as context}]
