@@ -12,27 +12,48 @@
                           [day-of-week hour]) availabilities))))
        (apply set/intersection)))
 
+(defn random-event
+  [guest-ids {:keys [availabilities] :as context}]
+  (let [possible-times (overlapping-daytimes guest-ids context)]
+    (if (seq possible-times)
+      (let [[day-of-week time-of-day] (rand-nth (vec possible-times))]
+        {:guest-ids (set guest-ids)
+         :day-of-week day-of-week
+         :time-of-day time-of-day})
+      {:guest-ids (set guest-ids)
+       :day-of-week :impossible
+       :time-of-day -1})))
+
+(defn remove-from-vec
+  [pos coll]
+  (vec (concat (subvec coll 0 pos) (subvec coll (inc pos)))))
+
 (defn tweak-schedule
   [{:keys [schedule availabilities] :as context}]
-  (assoc context
-    :schedule
-    (if (empty? schedule)
-      schedule
-      ;; move one event to another time
-      (let [event-index (rand-int (count schedule))]
-        (update (vec schedule) event-index
-                     (fn [event]
-                       ;; select a daytime where both guests have availability
-                       ;; (can still result in doublebooking)
-                       (let [possible-times (overlapping-daytimes (event :guest-ids) context)]
-                         (if (seq possible-times)
-                           (let [[day-of-week time-of-day] (rand-nth (vec possible-times))]
-                             (assoc event
-                                    :day-of-week day-of-week
-                                    :time-of-day time-of-day))
-                           (assoc event
-                                  :day-of-week :impossible
-                                  :time-of-day 0)))))))))
+  (case (if (empty? schedule)
+          :create-event
+          (rand-nth [:move-event :drop-event :create-event]))
+    :create-event
+    (update context
+            :schedule
+            conj (let [guest-ids (take 2 (shuffle (keys availabilities)))]
+                   (random-event guest-ids context)))
+
+    :drop-event
+    (update context
+            :schedule
+            (fn [schedule]
+              (let [event-index (rand-int (count schedule))]
+                (remove-from-vec event-index (vec schedule)))))
+
+    :move-event
+    (update context
+            :schedule
+            (fn [schedule]
+              (let [event-index (rand-int (count schedule))]
+                (update (vec schedule) event-index
+                        (fn [event]
+                          (random-event (event :guest-ids) context))))))))
 
 (defn generate-initial-schedule
   [times-to-pair {:keys [availabilities] :as context}]
@@ -54,30 +75,30 @@
   [guest-id {:keys [schedule availabilities]}]
   (let [guest-events (->> schedule
                           (filter (fn [event]
-                                    (contains? (event :guest-ids) guest-id))))]
-    (+
-     ;; penalize events that are double-scheduled for the guest
-     (let [daytimes (->> guest-events
-                         (map (fn [event]
-                                [(event :day-of-week) (event :time-of-day)])))
-           n (- (count daytimes)
-                (count (set daytimes)))]
-       (* 100 n))
-
-     ;; penalize events outside of guest's available times
-     (->> guest-events
-          (remove (fn [event]
-                    (or (contains? (availabilities guest-id) [(event :day-of-week) (event :time-of-day) :available])
-                        (contains? (availabilities guest-id) [(event :day-of-week) (event :time-of-day) :preferred]))))
-          count
-          (* 200))
-
-     ;; penalize events during available times slightly (to bias towards preferred times)
-     (->> guest-events
-          (filter (fn [event]
-                    (contains? (availabilities guest-id) [(event :day-of-week) (event :time-of-day) :available])))
-          count
-          (* 1)))))
+                                    (contains? (event :guest-ids) guest-id))))
+        guest-event-times (->> guest-events
+                               (map (fn [event]
+                                      [(event :day-of-week) (event :time-of-day)])))]
+    (->> guest-events
+         (map (fn [event]
+                ;; using negatives for ok events, to promote more events rather than fewer
+                ;; b/c otherwise, an empty schedule would always be a perfect schedule
+                (cond
+                  ;; double-scheduled
+                  (< 1 (->> guest-event-times
+                            (filter (partial = [(event :day-of-week) (event :time-of-day)]))
+                            count))
+                  200
+                  ;; at preferred time
+                  (contains? (availabilities guest-id) [(event :day-of-week) (event :time-of-day) :preferred])
+                  -5
+                  ;; at available time
+                  (contains? (availabilities guest-id) [(event :day-of-week) (event :time-of-day) :available])
+                  -1
+                  ;; outside-of-available-time
+                  :else
+                  100)))
+         (reduce +))))
 
 (defn schedule-score
   [{:keys [schedule availabilities] :as context}]

@@ -16,7 +16,7 @@
 
 (deftest individual-score
   (testing "double-scheduling"
-    (is (= 100
+    (is (= 400
            (ps/individual-score
             "raf"
             {:schedule
@@ -30,7 +30,7 @@
              {"raf" #{[:wednesday 1500 :preferred]}}}))))
 
   (testing "not within available times"
-    (is (= 200
+    (is (= 100
            (ps/individual-score
             "raf"
             {:schedule
@@ -41,7 +41,7 @@
              {"raf" #{}}}))))
 
   (testing "within available times"
-    (is (= 1
+    (is (= -1
            (ps/individual-score
             "raf"
             {:schedule
@@ -53,7 +53,7 @@
               "dh" #{[:monday 900 :available]}}}))))
 
   (testing "within preferred times"
-    (is (= 0
+    (is (= -5
            (ps/individual-score
             "raf"
             {:schedule
@@ -103,34 +103,30 @@
 
 (deftest optimize-schedule
   (testing "availables-only"
-    (is (=
-         (set [{:guest-ids #{"raf" "dh"}
-                :day-of-week :monday
-                :time-of-day 1000}
-               {:guest-ids #{"raf" "berk"}
-                :day-of-week :monday
-                :time-of-day 1100}
-               {:guest-ids #{"berk" "dh"}
-                :day-of-week :monday
-                :time-of-day 1200}])
-         (->> {:availabilities
-               {"raf" #{[:monday 1000 :available]
-                        [:monday 1100 :available]}
-                "dh" #{[:monday 1000 :available]
-                       [:monday 1100 :available]
-                       [:monday 1200 :available]}
-                "berk" #{[:monday 1100 :available]
-                         [:monday 1200 :available]}}}
-              (ps/generate-initial-schedule 1)
-              ps/optimize-schedule
-              :schedule
-              set))))
+    (is (= (set [{:guest-ids #{"raf" "dh"}
+                  :day-of-week :monday
+                  :time-of-day 1000}
+                 {:guest-ids #{"raf" "berk"}
+                  :day-of-week :monday
+                  :time-of-day 1100}
+                 {:guest-ids #{"berk" "dh"}
+                  :day-of-week :monday
+                  :time-of-day 1200}])
+           (->> {:availabilities
+                 {"raf" #{[:monday 1000 :available]
+                          [:monday 1100 :available]}
+                  "dh" #{[:monday 1000 :available]
+                         [:monday 1100 :available]
+                         [:monday 1200 :available]}
+                  "berk" #{[:monday 1100 :available]
+                           [:monday 1200 :available]}}}
+                (ps/generate-initial-schedule 1)
+                ps/optimize-schedule
+                :schedule
+                set))))
 
-  (testing "don't explode if no overlap possible between guests"
-    ;; for now, it will keep the initial schedule
-    (is (= #{{:guest-ids #{"dh" "raf"}
-              :day-of-week :monday
-              :time-of-day 900}}
+  (testing "empty schedule if no overlap possible between guests"
+    (is (= #{}
            (->> {:availabilities
                  {"raf" #{}
                   "dh" #{[:monday 1000 :preferred]
