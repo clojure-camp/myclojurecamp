@@ -3,6 +3,15 @@
    [clojure.math.combinatorics :as combo]
    [clojure.set :as set]))
 
+(defn overlapping-daytimes
+  [guest-ids {:keys [availabilities]}]
+  (->> guest-ids
+       (map availabilities)
+       (map (fn [availabilities]
+              (set (map (fn [[day-of-week hour _]]
+                          [day-of-week hour]) availabilities))))
+       (apply set/intersection)))
+
 (defn tweak-schedule
   [{:keys [schedule availabilities] :as context}]
   (assoc context
@@ -12,17 +21,12 @@
       ;; move one event to another time
       (let [event-index (rand-int (count schedule))]
         (update (vec schedule) event-index
-                (fn [event]
-                  ;; select a daytime where both guests have availability
-                  ;; (can still result in doublebooking)
-                  (let [shared-daytimes (->> (event :guest-ids)
-                                             (map availabilities)
-                                                  (map (fn [availabilities]
-                                                         (set (map (fn [[day-of-week hour _]]
-                                                                     [day-of-week hour]) availabilities))))
-                                                  (apply set/intersection))]
-                         (if (seq shared-daytimes)
-                           (let [[day-of-week time-of-day] (rand-nth (vec shared-daytimes))]
+                     (fn [event]
+                       ;; select a daytime where both guests have availability
+                       ;; (can still result in doublebooking)
+                       (let [possible-times (overlapping-daytimes (event :guest-ids) context)]
+                         (if (seq possible-times)
+                           (let [[day-of-week time-of-day] (rand-nth (vec possible-times))]
                              (assoc event
                                     :day-of-week day-of-week
                                     :time-of-day time-of-day))
@@ -36,13 +40,15 @@
         pairs (combo/combinations guest-ids 2)]
     (assoc context
       :schedule
-      (->> pairs
-           (repeat times-to-pair)
-           (apply concat)
-           (map (fn [pair]
-                  {:guest-ids (set pair)
-                   :day-of-week :monday
-                   :time-of-day 900}))))))
+           (->> pairs
+                (repeat times-to-pair)
+                (apply concat)
+                (map (fn [guest-ids]
+                       (when-let [[day-of-week time-of-day] (first (overlapping-daytimes guest-ids context))]
+                         {:guest-ids (set guest-ids)
+                          :day-of-week :monday
+                          :time-of-day 900})))
+                (remove nil?)))))
 
 (defn individual-score
   [guest-id {:keys [schedule availabilities]}]

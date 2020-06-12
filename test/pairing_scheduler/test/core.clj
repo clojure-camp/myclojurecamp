@@ -64,6 +64,23 @@
              {"raf" #{[:monday 900 :preferred]}
               "dh" #{[:monday 900 :preferred]}}})))))
 
+(deftest overlapping-daytimes
+  (testing "some overlap"
+    (is (= #{[:monday 900]}
+           (ps/overlapping-daytimes
+            #{"Raf" "Berk"}
+            {:availabilities
+             {"Raf" #{[:monday 900 :available]}
+              "Berk" #{[:monday 900 :preferred]}}}))))
+
+  (testing "no overlap"
+    (is (= #{}
+           (ps/overlapping-daytimes
+            #{"Raf" "Berk"}
+            {:availabilities
+             {"Raf" #{[:monday 900 :available]}
+              "Berk" #{[:tuesday 900 :preferred]}}})))))
+
 (deftest generate-initial-schedule
   (testing "generate-initial-schedule"
     (is (= #{{:guest-ids #{"Raf" "DH"}
@@ -78,9 +95,9 @@
            (->> (ps/generate-initial-schedule
                  1
                  {:availabilities
-                  {"Raf" #{}
-                   "Berk" #{}
-                   "DH" #{}}})
+                  {"Raf" #{[:monday 900 :available]}
+                   "Berk" #{[:monday 900 :available]}
+                   "DH" #{[:monday 900 :available]}}})
                 :schedule
                 set)))))
 
@@ -95,19 +112,19 @@
                 :time-of-day 1100}
                {:guest-ids #{"berk" "dh"}
                 :day-of-week :monday
-                :time-of-day 1200}]))
-        (->> {:availabilities
-              {"raf" #{[:monday 1000 :available]
-                       [:monday 1100 :available]}
-               "dh" #{[:monday 1000 :available]
-                      [:monday 1100 :available]
-                      [:monday 1200 :available]}
-               "berk" #{[:monday 1100 :available]
-                        [:monday 1200 :available]}}}
-             (ps/generate-initial-schedule 1)
-             ps/optimize-schedule
-             :schedule
-             set)))
+                :time-of-day 1200}])
+         (->> {:availabilities
+               {"raf" #{[:monday 1000 :available]
+                        [:monday 1100 :available]}
+                "dh" #{[:monday 1000 :available]
+                       [:monday 1100 :available]
+                       [:monday 1200 :available]}
+                "berk" #{[:monday 1100 :available]
+                         [:monday 1200 :available]}}}
+              (ps/generate-initial-schedule 1)
+              ps/optimize-schedule
+              :schedule
+              set))))
 
   (testing "don't explode if no overlap possible between guests"
     ;; for now, it will keep the initial schedule
@@ -117,8 +134,10 @@
            (->> {:availabilities
                  {"raf" #{}
                   "dh" #{[:monday 1000 :preferred]
-                         [:monday 1200 :preferred]}}}
-                (ps/generate-initial-schedule 1)
+                         [:monday 1200 :preferred]}}
+                 :schedule [{:guest-ids #{"raf" "dh"}
+                             :day-of-week :monday
+                             :time-of-day 900}]}
                 ps/optimize-schedule
                 :schedule
                 set))))
