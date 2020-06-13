@@ -117,13 +117,13 @@
                           (random-event (event :guest-ids) context))))))))
 
 (defn optimize-schedule
-  [{:keys [schedule availabilities] :as context}]
+  [{:keys [schedule availabilities report-fn] :as context}]
   (let [max-iterations 5000
-        max-tweaks-per-iteration 2]
+        max-tweaks-per-iteration 4]
     (loop [context context
            iteration-count 0]
-      (when (= 0 (mod iteration-count 1000))
-        (println (double (schedule-score context))))
+      (when report-fn
+        (report-fn iteration-count (schedule-score context)))
       (if (> iteration-count max-iterations)
         context
         (let [tweak-count (+ 1 (rand-int max-tweaks-per-iteration))
