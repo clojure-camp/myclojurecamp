@@ -28,49 +28,6 @@
   [pos coll]
   (vec (concat (subvec coll 0 pos) (subvec coll (inc pos)))))
 
-(defn tweak-schedule
-  [{:keys [schedule availabilities] :as context}]
-  (case (if (empty? schedule)
-          :create-event
-          (rand-nth [:move-event :drop-event :create-event]))
-    :create-event
-    (update context
-            :schedule
-            conj (let [guest-ids (take 2 (shuffle (keys availabilities)))]
-                   (random-event guest-ids context)))
-
-    :drop-event
-    (update context
-            :schedule
-            (fn [schedule]
-              (let [event-index (rand-int (count schedule))]
-                (remove-from-vec event-index (vec schedule)))))
-
-    :move-event
-    (update context
-            :schedule
-            (fn [schedule]
-              (let [event-index (rand-int (count schedule))]
-                (update (vec schedule) event-index
-                        (fn [event]
-                          (random-event (event :guest-ids) context))))))))
-
-(defn generate-initial-schedule
-  [times-to-pair {:keys [availabilities] :as context}]
-  (let [guest-ids (keys availabilities)
-        pairs (combo/combinations guest-ids 2)]
-    (assoc context
-           :schedule
-           (->> pairs
-                (repeat times-to-pair)
-                (apply concat)
-                (map (fn [guest-ids]
-                       (when-let [[day-of-week time-of-day] (first (overlapping-daytimes guest-ids context))]
-                         {:guest-ids (set guest-ids)
-                          :day-of-week :monday
-                          :time-of-day 900})))
-                (remove nil?)))))
-
 (defn individual-score
   [guest-id {:keys [schedule availabilities]}]
   (let [max-events-per-day 2
@@ -132,6 +89,33 @@
                    other-guest-count))))
        (reduce +)))
 
+(defn tweak-schedule
+  [{:keys [schedule availabilities] :as context}]
+  (case (if (empty? schedule)
+          :create-event
+          (rand-nth [:move-event :drop-event :create-event]))
+    :create-event
+    (update context
+            :schedule
+            conj (let [guest-ids (take 2 (shuffle (keys availabilities)))]
+                   (random-event guest-ids context)))
+
+    :drop-event
+    (update context
+            :schedule
+            (fn [schedule]
+              (let [event-index (rand-int (count schedule))]
+                (remove-from-vec event-index (vec schedule)))))
+
+    :move-event
+    (update context
+            :schedule
+            (fn [schedule]
+              (let [event-index (rand-int (count schedule))]
+                (update (vec schedule) event-index
+                        (fn [event]
+                          (random-event (event :guest-ids) context))))))))
+
 (defn optimize-schedule
   [{:keys [schedule availabilities] :as context}]
   (let [max-iterations 5000
@@ -149,6 +133,22 @@
                  (schedule-score context))
             (recur alt-context (inc iteration-count))
             (recur context (inc iteration-count))))))))
+
+(defn generate-initial-schedule
+  [times-to-pair {:keys [availabilities] :as context}]
+  (let [guest-ids (keys availabilities)
+        pairs (combo/combinations guest-ids 2)]
+    (assoc context
+           :schedule
+           (->> pairs
+                (repeat times-to-pair)
+                (apply concat)
+                (map (fn [guest-ids]
+                       (when-let [[day-of-week time-of-day] (first (overlapping-daytimes guest-ids context))]
+                         {:guest-ids (set guest-ids)
+                          :day-of-week :monday
+                          :time-of-day 900})))
+                (remove nil?)))))
 
 (defn report
   [{:keys [schedule availabilities] :as context}]
