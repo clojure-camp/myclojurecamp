@@ -134,10 +134,8 @@
     (loop [context context
            iteration-count 0]
       (when (= 0 (mod iteration-count 1000))
-        (println (schedule-score context)))
-      (if (or
-           (= 0 (schedule-score context))
-           (> iteration-count max-iterations))
+        (println (double (schedule-score context))))
+      (if (> iteration-count max-iterations)
         context
         (let [tweak-count (+ 1 (rand-int max-tweaks-per-iteration))
               tweak-n-times (apply comp (repeat tweak-count tweak-schedule))
