@@ -60,7 +60,7 @@
   (let [guest-ids (keys availabilities)
         pairs (combo/combinations guest-ids 2)]
     (assoc context
-      :schedule
+           :schedule
            (->> pairs
                 (repeat times-to-pair)
                 (apply concat)
@@ -155,45 +155,4 @@
                        [guest-id (double (individual-score guest-id context))]))
                 (into {}))})
 
-#_(->> {:availabilities {"raf" #{[:monday 1000 :preferred]
-                                 [:monday 1100 :preferred]}
-                         "dh" #{[:monday 1000 :available]
-                                [:monday 1100 :available]
-                                [:monday 1200 :available]}
-                         "berk" #{[:monday 1100 :available]
-                                  [:monday 1200 :available]}}}
-       (generate-initial-schedule 1)
-       optimize-schedule
-       report
-       clojure.pprint/pprint)
-
-(defn -main []
-  (println "hello world"))
-
-#_(do
-    (def context
-      {:availabilities
-       {"raf" {:monday #{1300 1400 1500}
-               :tuesday #{}
-               :wednesday #{1000 1100 1200 1300 1400 1500 1600}
-               :thursday #{1000 1100 1200 1300 1400 1500 1600}
-               :friday #{1000 1100 1200 1300 1400 1500 1600}}
-        "dh" {:monday #{1300 1400 1500 1600}
-              :tuesday #{1300 1400 1500 1600}
-              :wednesday #{1300 1400 1500 1600}
-              :thursday #{1300 1400 1500 1600}
-              :friday #{1300 1400 1500 1600}}
-        "berk" {:monday #{900 1000 1100 1200 1300 1400 1500 1600}
-                :tuesday #{900 1000 1100 1200 1300 1400 1500 1600}
-                :wednesday #{900 1000 1100 1200 1300 1400 1500 1600}
-                :thursday #{900 1000 1100 1200 1300 1400 1500 1600}
-                :friday #{900 1000 1100 1200 1300 1400 1500 1600}}
-        "james" {:monday #{1200 1300 1400 1500 1600}
-                 :tuesday #{1000 1100}
-                 :wednesday #{1000 1100 1200 1300 1400 1500 1600}
-                 :thursday #{1000 1100}
-                 :friday #{1000 1100}}}})
-    (def context (generate-initial-schedule 2 context))
-    (do
-      (def context (optimize-schedule context))
-      (clojure.pprint/pprint (report context))))
+(defn -main [])
