@@ -147,13 +147,13 @@
 
 (defn report
   [{:keys [schedule availabilities] :as context}]
-  (assoc context
-    :score (schedule-score context)
-    :scores (->> availabilities
-                 keys
-                 (map (fn [guest-id]
-                        [guest-id (individual-score guest-id context)]))
-                 (into {}))))
+  {:schedule schedule
+   :score (double (schedule-score context))
+   :scores (->> availabilities
+                keys
+                (map (fn [guest-id]
+                       [guest-id (double (individual-score guest-id context))]))
+                (into {}))})
 
 #_(->> {:availabilities {"raf" #{[:monday 1000 :preferred]
                                  [:monday 1100 :preferred]}
