@@ -117,7 +117,14 @@
   (->> availabilities
        keys
        (map (fn [guest-id]
-               (individual-score guest-id context)))
+              ;; create a non-linearity, to prefer scheduling an event for someone with fewer events than someone with many
+              (let [event-count (->> schedule
+                                     (filter (fn [event]
+                                               (contains? (event :guest-ids) guest-id)))
+                                     count)]
+                (* (individual-score guest-id context)
+                   (/ (inc event-count))
+                   (Math/pow event-count 0.5)))))
        (reduce +)))
 
 (defn optimize-schedule

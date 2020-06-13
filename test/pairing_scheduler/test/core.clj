@@ -123,8 +123,44 @@
                 :schedule
                 set)))))
 
+(deftest schedule-score
+  (testing "prefer distributing events amongst users"
+    (let [availabilities {"raf" #{[:monday 1000 :available]
+                                  [:tuesday 1000 :available]
+                                  [:thursday 1000 :available]}
+                          "dh" #{[:monday 1000 :available]
+                                 [:tuesday 1000 :available]
+                                 [:thursday 1000 :available]}
+                          "berk" #{[:monday 1000 :available]
+                                   [:tuesday 1000 :available]
+                                   [:thursday 1000 :available]}}]
+      (is (< (ps/schedule-score
+              {:availabilities availabilities
+               :schedule
+               [{:guest-ids #{"dh" "berk"}
+                 :day-of-week :monday
+                 :time-of-day 1000}
+                {:guest-ids #{"raf" "berk"}
+                 :day-of-week :tuesday
+                 :time-of-day 1000}
+                {:guest-ids #{"dh" "raf"}
+                 :day-of-week :thursday
+                 :time-of-day 1000}]})
+             (ps/schedule-score
+              {:availabilities availabilities
+               :schedule
+               [{:guest-ids #{"dh" "berk"}
+                 :day-of-week :monday
+                 :time-of-day 1000}
+                {:guest-ids #{"dh" "berk"}
+                 :day-of-week :thursday
+                 :time-of-day 1000}
+                {:guest-ids #{"dh" "berk"}
+                 :day-of-week :tuesday
+                 :time-of-day 1000}]}))))))
+
 (deftest optimize-schedule
-  (testing "availables-only"
+  (testing "basic"
     (is (= (set [{:guest-ids #{"raf" "dh"}
                   :day-of-week :monday
                   :time-of-day 1000}
@@ -160,7 +196,7 @@
                 :schedule
                 set))))
 
-  (testing "available and preferred"
+  (testing "prefer scheduling during preferred times"
     (is (= #{{:guest-ids #{"raf" "dh"}
               :day-of-week :monday
               :time-of-day 1000}
@@ -183,4 +219,27 @@
                 (ps/generate-initial-schedule 1)
                 ps/optimize-schedule
                 :schedule
-                set)))))
+                set))))
+
+  (testing "prefer evenly spreading events amongst users"
+    (let [schedule (->> {:availabilities
+                         {"raf" #{[:monday 1000 :available]
+                                  [:tuesday 1000 :available]
+                                  [:thursday 1000 :available]}
+                          "dh" #{[:monday 1000 :available]
+                                 [:tuesday 1000 :available]
+                                 [:thursday 1000 :available]}
+                          "berk" #{[:monday 1000 :available]
+                                   [:tuesday 1000 :available]
+                                   [:thursday 1000 :available]}}}
+                        (ps/generate-initial-schedule 1)
+                        ps/optimize-schedule
+                        :schedule)
+          events-per-person (reduce (fn [memo guest-id]
+                                      (assoc memo guest-id
+                                             (count (filter (fn [event]
+                                                              (contains? (event :guest-ids) guest-id)) schedule)))) {} ["raf" "dh" "berk"])]
+      (is (= {"raf" 2
+              "dh" 2
+              "berk" 2}
+             events-per-person)))))
