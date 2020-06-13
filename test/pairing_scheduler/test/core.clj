@@ -157,7 +157,47 @@
                  :time-of-day 1000}
                 {:guest-ids #{"dh" "berk"}
                  :day-of-week :tuesday
-                 :time-of-day 1000}]}))))))
+                 :time-of-day 1000}]})))))
+
+  (testing "prefer a variety of guests per guest"
+    (let [availabilities {"raf" #{[:monday 1000 :available]
+                                  [:monday 1100 :available]}
+                          "dh" #{[:monday 1000 :available]
+                                 [:monday 1100 :available]}
+                          "berk" #{[:monday 1000 :available]
+                                   [:monday 1100 :available]}
+                          "james" #{[:monday 1000 :available]
+                                    [:monday 1100 :available]}}]
+      (is (< (ps/schedule-score
+              {:availabilities availabilities
+               :schedule
+               [{:guest-ids #{"raf" "dh"}
+                 :day-of-week :monday
+                 :time-of-day 1000}
+                {:guest-ids #{"raf" "berk"}
+                 :day-of-week :monday
+                 :time-of-day 1100}
+                {:guest-ids #{"james" "berk"}
+                 :day-of-week :monday
+                 :time-of-day 1000}
+                {:guest-ids #{"james" "dh"}
+                 :day-of-week :monday
+                 :time-of-day 1100}]})
+             (ps/schedule-score
+              {:availabilities availabilities
+               :schedule
+               [{:guest-ids #{"raf" "dh"}
+                 :day-of-week :monday
+                 :time-of-day 1000}
+                {:guest-ids #{"raf" "dh"}
+                 :day-of-week :monday
+                 :time-of-day 1100}
+                {:guest-ids #{"james" "berk"}
+                 :day-of-week :monday
+                 :time-of-day 1000}
+                {:guest-ids #{"james" "berk"}
+                 :day-of-week :monday
+                 :time-of-day 1100}]}))))))
 
 (deftest optimize-schedule
   (testing "basic"

@@ -118,13 +118,18 @@
        keys
        (map (fn [guest-id]
               ;; create a non-linearity, to prefer scheduling an event for someone with fewer events than someone with many
-              (let [event-count (->> schedule
-                                     (filter (fn [event]
-                                               (contains? (event :guest-ids) guest-id)))
-                                     count)]
-                (* (individual-score guest-id context)
-                   (/ (inc event-count))
-                   (Math/pow event-count 0.5)))))
+              (let [guest-events (->> schedule
+                                      (filter (fn [event]
+                                                (contains? (event :guest-ids) guest-id))))
+                    other-guest-count (->> guest-events
+                                           (mapcat :guest-ids)
+                                           set
+                                           count
+                                           dec)]
+                (- (* (individual-score guest-id context)
+                      (/ (inc (count guest-events)))
+                      (Math/pow (count guest-events) 0.5))
+                   other-guest-count))))
        (reduce +)))
 
 (defn optimize-schedule
@@ -149,10 +154,15 @@
   [{:keys [schedule availabilities] :as context}]
   {:schedule schedule
    :score (double (schedule-score context))
-   :scores (->> availabilities
+   :guests (->> availabilities
                 keys
                 (map (fn [guest-id]
-                       [guest-id (double (individual-score guest-id context))]))
+                       [guest-id (let [guest-events (->> schedule
+                                                         (filter (fn [event]
+                                                                   (contains? (event :guest-ids) guest-id))))]
+                                   {:score (double (individual-score guest-id context))
+                                    :count (count guest-events)
+                                    :unique (count (disj (set (mapcat :guest-ids guest-events)) guest-id))})]))
                 (into {}))})
 
 (defn -main [])
