@@ -144,10 +144,7 @@
                 (repeat times-to-pair)
                 (apply concat)
                 (map (fn [guest-ids]
-                       (when-let [[day-of-week time-of-day] (first (overlapping-daytimes guest-ids context))]
-                         {:guest-ids (set guest-ids)
-                          :day-of-week :monday
-                          :time-of-day 900})))
+                       (random-event guest-ids context)))
                 (remove nil?)))))
 
 (defn report
