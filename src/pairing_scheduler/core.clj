@@ -150,6 +150,7 @@
 (defn report
   [{:keys [schedule availabilities] :as context}]
   {:schedule schedule
+   :event-count (count schedule)
    :score (double (schedule-score context))
    :guests (->> availabilities
                 keys
