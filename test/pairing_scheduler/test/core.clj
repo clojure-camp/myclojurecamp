@@ -1,6 +1,7 @@
 (ns pairing-scheduler.test.core
   (:require
    [pairing-scheduler.core :as ps]
+   [pairing-scheduler.import :as ps.import]
    [clojure.test :refer [deftest testing is]]))
 
 ;; schedule
@@ -283,3 +284,50 @@
               "dh" 2
               "berk" 2}
              events-per-person)))))
+
+(deftest update-available-to-preferred
+  (testing "user has all timeslots set to available"
+    (is (= {:availabilities
+            {"raf" #{[:monday 1000 :available]
+                     [:tuesday 1000 :available]
+                     [:thursday 1000 :preferred]}
+             "dh" #{[:monday 1000 :preferred]
+                    [:tuesday 1000 :preferred]
+                    [:thursday 1000 :preferred]}
+             "berk" #{[:monday 1000 :preferred]
+                      [:tuesday 1000 :available]
+                      [:thursday 1000 :available]}}}
+           (ps.import/update-available-to-preferred
+             {:availabilities
+              {"raf" #{[:monday 1000 :available]
+                       [:tuesday 1000 :available]
+                       [:thursday 1000 :preferred]}
+               "dh" #{[:monday 1000 :available]
+                      [:tuesday 1000 :available]
+                      [:thursday 1000 :available]}
+               "berk" #{[:monday 1000 :preferred]
+                        [:tuesday 1000 :available]
+                        [:thursday 1000 :available]}}}))))
+
+  (testing "all users have no preferred time"
+    (is (= {:availabilities
+            {"raf" #{[:monday 1000 :preferred]
+                     [:tuesday 1000 :preferred]
+                     [:thursday 1000 :preferred]}
+             "dh" #{[:monday 1000 :preferred]
+                    [:tuesday 1000 :preferred]
+                    [:thursday 1000 :preferred]}
+             "berk" #{[:monday 1000 :preferred]
+                      [:tuesday 1000 :preferred]
+                      [:thursday 1000 :preferred]}}}
+           (ps.import/update-available-to-preferred
+             {:availabilities
+              {"raf" #{[:monday 1000 :available]
+                       [:tuesday 1000 :available]
+                       [:thursday 1000 :available]}
+               "dh" #{[:monday 1000 :available]
+                      [:tuesday 1000 :available]
+                      [:thursday 1000 :available]}
+               "berk" #{[:monday 1000 :available]
+                        [:tuesday 1000 :available]
+                        [:thursday 1000 :available]}}})))))

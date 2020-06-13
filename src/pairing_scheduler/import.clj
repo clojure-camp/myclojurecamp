@@ -4,6 +4,25 @@
    [clojure.data.csv :as csv]
    [clojure.java.io :as io]))
 
+(defn update-available-to-preferred
+  "If the user has only :available timeslots, change all to :preferred"
+  [context]
+  (update context
+          :availabilities
+          (fn [availabilities]
+            (->> availabilities
+                 (map (fn [[guest-id guest-availabilities]]
+                        (if (->> guest-availabilities
+                                 (map last)
+                                 (some (partial = :preferred)))
+                          [guest-id guest-availabilities]
+                          [guest-id
+                           (->> guest-availabilities
+                                (map (fn [daily-availability]
+                                       (assoc daily-availability 2 :preferred)))
+                                set)])))
+                 (into {})))))
+
 (defn read-csv [file-path]
   (with-open [reader (io/reader file-path)]
     (doall
