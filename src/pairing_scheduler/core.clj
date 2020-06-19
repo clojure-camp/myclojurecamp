@@ -29,9 +29,8 @@
   (vec (concat (subvec coll 0 pos) (subvec coll (inc pos)))))
 
 (defn individual-score
-  [guest-id {:keys [schedule availabilities]}]
-  (let [max-events-per-day 2
-        guest-events (->> schedule
+  [guest-id {:keys [schedule availabilities max-events-per-day]}]
+  (let [guest-events (->> schedule
                           (filter (fn [event]
                                     (contains? (event :guest-ids) guest-id))))
         guest-open-times  (->> (availabilities guest-id)
@@ -55,7 +54,7 @@
                   (not (contains? guest-open-times [(event :day-of-week) (event :time-of-day)]))
                   100
                   ;; above max for day
-                  (< max-events-per-day
+                  (< (max-events-per-day guest-id)
                      (->> guest-event-times
                           (filter (fn [[day-of-week _]]
                                     (= day-of-week (event :day-of-week))))

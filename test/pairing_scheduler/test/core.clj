@@ -55,6 +55,9 @@
               {:guest-ids #{"raf" "dh"}
                :day-of-week :monday
                :time-of-day 1100}]
+             :max-events-per-day
+             {"raf" 2
+              "dh" 2}
              :availabilities
              {"raf" #{[:monday 900 :available]
                       [:monday 1000 :available]
@@ -71,6 +74,9 @@
              [{:guest-ids #{"raf" "dh"}
                :day-of-week :monday
                :time-of-day 900}]
+             :max-events-per-day
+             {"raf" 2
+              "dh" 2}
              :availabilities
              {"raf" #{[:monday 900 :available]}
               "dh" #{[:monday 900 :available]}}}))))
@@ -83,6 +89,9 @@
              [{:guest-ids #{"raf" "dh"}
                :day-of-week :monday
                :time-of-day 900}]
+             :max-events-per-day
+             {"raf" 2
+              "dh" 2}
              :availabilities
              {"raf" #{[:monday 900 :preferred]}
               "dh" #{[:monday 900 :preferred]}}})))))
@@ -125,80 +134,102 @@
                 set)))))
 
 (deftest schedule-score
-  (testing "prefer distributing events amongst users"
-    (let [availabilities {"raf" #{[:monday 1000 :available]
-                                  [:tuesday 1000 :available]
-                                  [:thursday 1000 :available]}
-                          "dh" #{[:monday 1000 :available]
-                                 [:tuesday 1000 :available]
-                                 [:thursday 1000 :available]}
-                          "berk" #{[:monday 1000 :available]
-                                   [:tuesday 1000 :available]
-                                   [:thursday 1000 :available]}}]
+  (testing "prefers empty schedule to overlap"
+    (let [context {:max-events-per-day
+                   {"raf" 2
+                    "dh" 2}
+                   :availabilities
+                   {"raf" #{}
+                    "dh" #{[:monday 1000 :preferred]
+                           [:monday 1200 :preferred]}}}]
       (is (< (ps/schedule-score
-              {:availabilities availabilities
-               :schedule
-               [{:guest-ids #{"dh" "berk"}
-                 :day-of-week :monday
-                 :time-of-day 1000}
-                {:guest-ids #{"raf" "berk"}
-                 :day-of-week :tuesday
-                 :time-of-day 1000}
-                {:guest-ids #{"dh" "raf"}
-                 :day-of-week :thursday
-                 :time-of-day 1000}]})
+              (assoc context :schedule []))
              (ps/schedule-score
-              {:availabilities availabilities
-               :schedule
-               [{:guest-ids #{"dh" "berk"}
-                 :day-of-week :monday
-                 :time-of-day 1000}
-                {:guest-ids #{"dh" "berk"}
-                 :day-of-week :thursday
-                 :time-of-day 1000}
-                {:guest-ids #{"dh" "berk"}
-                 :day-of-week :tuesday
-                 :time-of-day 1000}]})))))
+              (assoc context :schedule [{:guest-ids #{"raf" "dh"}
+                                         :day-of-week :monday
+                                         :time-of-day 900}]))))))
+
+  (testing "prefer distributing events amongst users"
+    (let [context {:availabilities
+                   {"raf" #{[:monday 1000 :available]
+                            [:tuesday 1000 :available]
+                            [:thursday 1000 :available]}
+                    "dh" #{[:monday 1000 :available]
+                           [:tuesday 1000 :available]
+                           [:thursday 1000 :available]}
+                    "berk" #{[:monday 1000 :available]
+                             [:tuesday 1000 :available]
+                             [:thursday 1000 :available]}}
+                   :max-events-per-day
+                   {"raf" 2
+                    "dh" 2
+                    "berk" 2}}]
+      (is (< (ps/schedule-score
+              (assoc context :schedule
+                     [{:guest-ids #{"dh" "berk"}
+                       :day-of-week :monday
+                       :time-of-day 1000}
+                      {:guest-ids #{"raf" "berk"}
+                       :day-of-week :tuesday
+                       :time-of-day 1000}
+                      {:guest-ids #{"dh" "raf"}
+                       :day-of-week :thursday
+                       :time-of-day 1000}]))
+             (ps/schedule-score
+              (assoc context :schedule
+                     [{:guest-ids #{"dh" "berk"}
+                       :day-of-week :monday
+                       :time-of-day 1000}
+                      {:guest-ids #{"dh" "berk"}
+                       :day-of-week :thursday
+                       :time-of-day 1000}
+                      {:guest-ids #{"dh" "berk"}
+                       :day-of-week :tuesday
+                       :time-of-day 1000}]))))))
 
   (testing "prefer a variety of guests per guest"
-    (let [availabilities {"raf" #{[:monday 1000 :available]
-                                  [:monday 1100 :available]}
-                          "dh" #{[:monday 1000 :available]
-                                 [:monday 1100 :available]}
-                          "berk" #{[:monday 1000 :available]
-                                   [:monday 1100 :available]}
-                          "james" #{[:monday 1000 :available]
-                                    [:monday 1100 :available]}}]
+    (let [context {:availabilities
+                   {"raf" #{[:monday 1000 :available]
+                            [:monday 1100 :available]}
+                    "dh" #{[:monday 1000 :available]
+                           [:monday 1100 :available]}
+                    "berk" #{[:monday 1000 :available]
+                             [:monday 1100 :available]}
+                    "james" #{[:monday 1000 :available]
+                              [:monday 1100 :available]}}
+                   :max-events-per-day
+                   {"raf" 2
+                    "dh" 2
+                    "berk" 2
+                    "james" 2}}]
       (is (< (ps/schedule-score
-              {:availabilities availabilities
-               :schedule
-               [{:guest-ids #{"raf" "dh"}
-                 :day-of-week :monday
-                 :time-of-day 1000}
-                {:guest-ids #{"raf" "berk"}
-                 :day-of-week :monday
-                 :time-of-day 1100}
-                {:guest-ids #{"james" "berk"}
-                 :day-of-week :monday
-                 :time-of-day 1000}
-                {:guest-ids #{"james" "dh"}
-                 :day-of-week :monday
-                 :time-of-day 1100}]})
+              (assoc context :schedule
+                     [{:guest-ids #{"raf" "dh"}
+                       :day-of-week :monday
+                       :time-of-day 1000}
+                      {:guest-ids #{"raf" "berk"}
+                       :day-of-week :monday
+                       :time-of-day 1100}
+                      {:guest-ids #{"james" "berk"}
+                       :day-of-week :monday
+                       :time-of-day 1000}
+                      {:guest-ids #{"james" "dh"}
+                       :day-of-week :monday
+                       :time-of-day 1100}]))
              (ps/schedule-score
-              {:availabilities availabilities
-               :schedule
-               [{:guest-ids #{"raf" "dh"}
-                 :day-of-week :monday
-                 :time-of-day 1000}
-                {:guest-ids #{"raf" "dh"}
-                 :day-of-week :monday
-                 :time-of-day 1100}
-                {:guest-ids #{"james" "berk"}
-                 :day-of-week :monday
-                 :time-of-day 1000}
-                {:guest-ids #{"james" "berk"}
-                 :day-of-week :monday
-                 :time-of-day 1100}]}))))))
+              (assoc context :schedule
+                     [{:guest-ids #{"raf" "dh"}
+                       :day-of-week :monday
+                       :time-of-day 1000}
+                      {:guest-ids #{"raf" "dh"}
+                       :day-of-week :monday
+                       :time-of-day 1100}
+                      {:guest-ids #{"james" "berk"}
+                       :day-of-week :monday
+                       :time-of-day 1000}
+                      {:guest-ids #{"james" "berk"}
+                       :day-of-week :monday
+                       :time-of-day 1100}])))))))
 
 (deftest optimize-schedule
   (testing "basic"
@@ -211,7 +242,11 @@
                  {:guest-ids #{"berk" "dh"}
                   :day-of-week :monday
                   :time-of-day 1200}])
-           (->> {:availabilities
+           (->> {:max-events-per-day
+                 {"raf" 2
+                  "dh" 2
+                  "berk" 2}
+                 :availabilities
                  {"raf" #{[:monday 1000 :available]
                           [:monday 1100 :available]}
                   "dh" #{[:monday 1000 :available]
@@ -222,45 +257,35 @@
                 (ps/generate-initial-schedule 1)
                 ps/optimize-schedule
                 :schedule
-                set))))
+                set)))) (testing "prefer scheduling during preferred times"
+                          (is (= #{{:guest-ids #{"raf" "dh"}
+                                    :day-of-week :monday
+                                    :time-of-day 1000}
+                                   {:guest-ids #{"raf" "berk"}
+                                    :day-of-week :monday
+                                    :time-of-day 1100}
+                                   {:guest-ids #{"berk" "dh"}
+                                    :day-of-week :monday
+                                    :time-of-day 1200}}
+                                 (->> {:availabilities
+                                       {"raf" #{[:monday 1000 :preferred]
+                                                [:monday 1100 :preferred]
+                                                [:monday 1200 :available]}
 
-  (testing "empty schedule if no overlap possible between guests"
-    (is (= #{}
-           (->> {:availabilities
-                 {"raf" #{}
-                  "dh" #{[:monday 1000 :preferred]
-                         [:monday 1200 :preferred]}}
-                 :schedule [{:guest-ids #{"raf" "dh"}
-                             :day-of-week :monday
-                             :time-of-day 900}]}
-                ps/optimize-schedule
-                :schedule
-                set))))
-
-  (testing "prefer scheduling during preferred times"
-    (is (= #{{:guest-ids #{"raf" "dh"}
-              :day-of-week :monday
-              :time-of-day 1000}
-             {:guest-ids #{"raf" "berk"}
-              :day-of-week :monday
-              :time-of-day 1100}
-             {:guest-ids #{"berk" "dh"}
-              :day-of-week :monday
-              :time-of-day 1200}}
-           (->> {:availabilities
-                 {"raf" #{[:monday 1000 :preferred]
-                          [:monday 1100 :preferred]
-                          [:monday 1200 :available]}
-                  "dh" #{[:monday 1000 :preferred]
-                         [:monday 1100 :available]
-                         [:monday 1200 :preferred]}
-                  "berk" #{[:monday 1000 :available]
-                           [:monday 1100 :preferred]
-                           [:monday 1200 :preferred]}}}
-                (ps/generate-initial-schedule 1)
-                ps/optimize-schedule
-                :schedule
-                set))))
+                                        "dh" #{[:monday 1000 :preferred]
+                                               [:monday 1100 :available]
+                                               [:monday 1200 :preferred]}
+                                        "berk" #{[:monday 1000 :available]
+                                                 [:monday 1100 :preferred]
+                                                 [:monday 1200 :preferred]}}
+                                       :max-events-per-day
+                                       {"raf" 2
+                                        "dh" 2
+                                        "berk" 2}}
+                                      (ps/generate-initial-schedule 1)
+                                      ps/optimize-schedule
+                                      :schedule
+                                      set))))
 
   (testing "prefer evenly spreading events amongst users"
     (let [schedule (->> {:availabilities
@@ -272,7 +297,11 @@
                                  [:thursday 1000 :available]}
                           "berk" #{[:monday 1000 :available]
                                    [:tuesday 1000 :available]
-                                   [:thursday 1000 :available]}}}
+                                   [:thursday 1000 :available]}}
+                         :max-events-per-day
+                         {"raf" 2
+                          "dh" 2
+                          "berk" 2}}
                         (ps/generate-initial-schedule 1)
                         ps/optimize-schedule
                         :schedule)
@@ -287,47 +316,43 @@
 
 (deftest update-available-to-preferred
   (testing "user has all timeslots set to available"
-    (is (= {:availabilities
+    (is (= {"raf" #{[:monday 1000 :available]
+                    [:tuesday 1000 :available]
+                    [:thursday 1000 :preferred]}
+            "dh" #{[:monday 1000 :preferred]
+                   [:tuesday 1000 :preferred]
+                   [:thursday 1000 :preferred]}
+            "berk" #{[:monday 1000 :preferred]
+                     [:tuesday 1000 :available]
+                     [:thursday 1000 :available]}}
+           (ps.import/update-available-to-preferred
             {"raf" #{[:monday 1000 :available]
                      [:tuesday 1000 :available]
                      [:thursday 1000 :preferred]}
-             "dh" #{[:monday 1000 :preferred]
-                    [:tuesday 1000 :preferred]
-                    [:thursday 1000 :preferred]}
+             "dh" #{[:monday 1000 :available]
+                    [:tuesday 1000 :available]
+                    [:thursday 1000 :available]}
              "berk" #{[:monday 1000 :preferred]
                       [:tuesday 1000 :available]
-                      [:thursday 1000 :available]}}}
-           (ps.import/update-available-to-preferred
-             {:availabilities
-              {"raf" #{[:monday 1000 :available]
-                       [:tuesday 1000 :available]
-                       [:thursday 1000 :preferred]}
-               "dh" #{[:monday 1000 :available]
-                      [:tuesday 1000 :available]
-                      [:thursday 1000 :available]}
-               "berk" #{[:monday 1000 :preferred]
-                        [:tuesday 1000 :available]
-                        [:thursday 1000 :available]}}}))))
+                      [:thursday 1000 :available]}}))))
 
   (testing "all users have no preferred time"
-    (is (= {:availabilities
-            {"raf" #{[:monday 1000 :preferred]
-                     [:tuesday 1000 :preferred]
-                     [:thursday 1000 :preferred]}
-             "dh" #{[:monday 1000 :preferred]
+    (is (= {"raf" #{[:monday 1000 :preferred]
                     [:tuesday 1000 :preferred]
                     [:thursday 1000 :preferred]}
-             "berk" #{[:monday 1000 :preferred]
-                      [:tuesday 1000 :preferred]
-                      [:thursday 1000 :preferred]}}}
+            "dh" #{[:monday 1000 :preferred]
+                   [:tuesday 1000 :preferred]
+                   [:thursday 1000 :preferred]}
+            "berk" #{[:monday 1000 :preferred]
+                     [:tuesday 1000 :preferred]
+                     [:thursday 1000 :preferred]}}
            (ps.import/update-available-to-preferred
-             {:availabilities
-              {"raf" #{[:monday 1000 :available]
-                       [:tuesday 1000 :available]
-                       [:thursday 1000 :available]}
-               "dh" #{[:monday 1000 :available]
+            {"raf" #{[:monday 1000 :available]
+                     [:tuesday 1000 :available]
+                     [:thursday 1000 :available]}
+             "dh" #{[:monday 1000 :available]
+                    [:tuesday 1000 :available]
+                    [:thursday 1000 :available]}
+             "berk" #{[:monday 1000 :available]
                       [:tuesday 1000 :available]
-                      [:thursday 1000 :available]}
-               "berk" #{[:monday 1000 :available]
-                        [:tuesday 1000 :available]
-                        [:thursday 1000 :available]}}})))))
+                      [:thursday 1000 :available]}})))))

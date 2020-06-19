@@ -6,22 +6,19 @@
 
 (defn update-available-to-preferred
   "If the user has only :available timeslots, change all to :preferred"
-  [context]
-  (update context
-          :availabilities
-          (fn [availabilities]
-            (->> availabilities
-                 (map (fn [[guest-id guest-availabilities]]
-                        (if (->> guest-availabilities
+  [availabilities]
+  (->> availabilities
+       (map (fn [[guest-id guest-availabilities]]
+              (if (->> guest-availabilities
                                  (map last)
                                  (some (partial = :preferred)))
                           [guest-id guest-availabilities]
                           [guest-id
                            (->> guest-availabilities
-                                (map (fn [daily-availability]
-                                       (assoc daily-availability 2 :preferred)))
-                                set)])))
-                 (into {})))))
+                      (map (fn [daily-availability]
+                             (assoc daily-availability 2 :preferred)))
+                      set)])))
+       (into {})))
 
 (defn read-csv [file-path]
   (with-open [reader (io/reader file-path)]
@@ -44,14 +41,22 @@
 
 (defn read-schedule
   [file-path]
-  (->> (read-csv file-path)
-       (drop 2)
-       (map (fn [row]
-              {:name (row 0)
-               :max-pair-hours-per-day (if (string/blank? (row 2))
-                                         nil
-                                         (Integer. (row 2)))
-               :availabilities (->availabilities (drop 3 row))}))
-       (map (fn [{:keys [name availabilities]}]
-              [name availabilities]))
-       (into {})))
+  (let [default-max-hours-per-day 2
+        stuff (->> (read-csv file-path)
+                   (drop 3)
+                   (map (fn [row]
+                          {:name (row 0)
+                           :max-hours-per-day (if (string/blank? (row 2))
+                                                default-max-hours-per-day
+                                                (Integer. (row 2)))
+                           :availabilities (->availabilities (drop 3 row))})))]
+    {:availabilities (->> stuff
+                          (map (fn [{:keys [name availabilities]}]
+                                 [name availabilities]))
+                          update-available-to-preferred
+                          (into {}))
+     :max-events-per-day (->> stuff
+                              (map (fn [{:keys [name max-hours-per-day]}]
+                                     [name max-hours-per-day]))
+                              (into {}))}))
+
