@@ -5,4 +5,7 @@
                  [io.bloomventures/commons "0.10.5"]
                  [hiccup "1.0.5"]]
   :main dojo.core
-  :repl-options {:init-ns dojo.core})
+  :repl-options {:init-ns dojo.core}
+  :profiles {:uberjar
+             {:aot :all
+              :prep-tasks ["compile"]}})
