@@ -1,4 +1,5 @@
 (ns dojo.core
+  (:gen-class)
   (:require
     [chime.core :as chime]
     [postal.core :as postal]
