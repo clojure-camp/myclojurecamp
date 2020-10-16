@@ -41,13 +41,29 @@
                      :available "A"
                      nil "")])]))]))]]))
 
-(defn app-view []
-  [:div
-   [:pre (str @(subscribe [:user]))]
+(defn login-view []
+  [:form.login
+   {:on-submit (fn [e]
+                 (.preventDefault e)
+                 (dispatch [:log-in! (.. e -target -elements -email -value)]))}
+   [:label
+    "Enter your email:"
+    [:input {:name "email"
+             :type "email"}]
+    [:button "Go"]]])
+
+(defn main-view []
+  [:div.main
    [:label
     [:input {:type "checkbox"}]
     "Pair this week?"]
    [availability-view]])
+
+(defn app-view []
+  [:<>
+   (if-let [user @(subscribe [:user])]
+     [main-view]
+     [login-view])])
 
 (defn render []
   (rdom/render

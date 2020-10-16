@@ -1,13 +1,26 @@
 (ns dojo.server.routes
   (:require
-    [dojo.db :as db]))
+    [dojo.db :as db]
+    [bloom.omni.auth.token :as token]
+    [dojo.config :refer [config]]))
+
+(defn login-email-template [user-id]
+  (println
+    (str "/?" (token/login-query-string user-id (config :auth-token-secret)))))
 
 (def routes
   [
    [[:get "/api/auth"]
     (fn [_]
       {:body {:ok 1}
-       :session {:user-id #uuid "4c884a18-95a8-4e9e-b69b-754f7773e93a"}})]
+       :session {:user-id user-id}})]
+
+   [[:put "/api/request-login-link-email"]
+    (fn [request]
+      (let [email (get-in request [:body-params :email])
+            user (or (db/get-user-by-email email)
+                     (db/create-user! email))]
+        (login-email-template (:user/id user))))]
 
    [[:get "/api/user"]
     (fn [request]

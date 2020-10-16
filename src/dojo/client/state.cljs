@@ -20,6 +20,16 @@
                           (dispatch [::handle-user-data data]))}}))
 
 (reg-event-fx
+  :log-in!
+  (fn [_ [_ email]]
+    {:ajax {:method :put
+            :uri "/api/request-login-link-email"
+            :params {:email email}
+            :on-success (fn [data]
+
+                          )}}))
+
+(reg-event-fx
   ::handle-user-data
   (fn [{db :db} [_ data]]
     {:db (assoc db :db/user data)}))
