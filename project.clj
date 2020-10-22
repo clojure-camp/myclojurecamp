@@ -3,7 +3,7 @@
                  [jarohen/chime "0.3.2"]
                  [com.draines/postal "2.0.3"]
                  [io.bloomventures/omni "0.26.2"]
-                 [io.bloomventures/commons "0.10.5"]
+                 [io.bloomventures/commons "0.10.7"]
 
                  [re-frame "0.10.5"]
                  [reagent "0.10.0"]

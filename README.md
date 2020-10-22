@@ -16,7 +16,8 @@ WIP.
 
 `git clone`
 
-create a `config.edn` (see `dojo.core` for expected values)
-
 `lein repl`
 
+run `(dojo.config/generate "config.edn" dojo.config/schema)` to generate a starter config (change the values)
+
+after you've filled in the `config.edn` either, restart the repl (`lein repl`) or `(require 'dojo.core :reload-all)`
