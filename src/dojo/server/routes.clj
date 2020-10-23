@@ -10,11 +10,6 @@
 
 (def routes
   [
-   [[:get "/api/auth"]
-    (fn [_]
-      {:body {:ok 1}
-       :session {:user-id user-id}})]
-
    [[:put "/api/request-login-link-email"]
     (fn [request]
       (let [email (get-in request [:body-params :email])
