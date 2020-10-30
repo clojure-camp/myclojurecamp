@@ -5,6 +5,9 @@
 (def schema
   [:map
    [:http-port integer?]
+   [:app-domain [:and
+                 string?
+                 [:re #"^https?://.*$"]]]
    [:environment [:enum :dev :prod]]
    [:auth-cookie-secret string?]
    [:auth-token-secret string?]

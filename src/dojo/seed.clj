@@ -7,5 +7,6 @@
 (defn seed! []
   (db/save-user!
     {:user/id (uuid/random)
+     :user/name "Alice"
      :user/email "alice@example.com"
      :user/availability (model/random-availability)}))
