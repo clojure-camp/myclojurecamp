@@ -42,15 +42,21 @@
                      nil "")])]))]))]]))
 
 (defn login-view []
-  [:form.login
-   {:on-submit (fn [e]
-                 (.preventDefault e)
-                 (dispatch [:log-in! (.. e -target -elements -email -value)]))}
-   [:label
-    "Enter your email:"
-    [:input {:name "email"
-             :type "email"}]
-    [:button "Go"]]])
+  (let [sent-email (r/atom nil)]
+    (fn []
+      [:form.login
+       {:on-submit (fn [e]
+                     (let [email (.. e -target -elements -email -value)]
+                       (.preventDefault e)
+                       (dispatch [:log-in! email])
+                       (reset! sent-email email)))}
+       [:label
+        "Enter your email:"
+        [:input {:name "email"
+                 :type "email"}]]
+       [:button "Go"]
+       (when @sent-email
+         [:div "An email with a login-link was sent to " @sent-email])])))
 
 (defn main-view []
   [:div.main
