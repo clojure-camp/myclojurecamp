@@ -17,7 +17,7 @@
     {:ajax {:method :get
             :uri "/api/user"
             :on-success (fn [data]
-                          (dispatch [::handle-user-data data]))}}))
+                          (dispatch [::handle-user-data! data]))}}))
 
 (reg-event-fx
   :log-in!
@@ -30,7 +30,20 @@
                           )}}))
 
 (reg-event-fx
-  ::handle-user-data
+  :log-out!
+  (fn [_ _]
+    {:ajax {:method :delete
+            :uri "/api/session"
+            :on-success (fn []
+                          (dispatch [::remove-user!]))}}))
+
+(reg-event-fx
+  ::remove-user!
+  (fn [{db :db} _]
+    {:db (dissoc db :db/user)}))
+
+(reg-event-fx
+  ::handle-user-data!
   (fn [{db :db} [_ data]]
     {:db (assoc db :db/user data)}))
 

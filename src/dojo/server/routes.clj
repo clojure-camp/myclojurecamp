@@ -25,4 +25,9 @@
         (-> (db/get-user (get-in request [:session :user-id]))
             (assoc-in [:user/availability [day hour]] value)
             db/save-user!))
-      {:status 200})]])
+      {:status 200})]
+
+   [[:delete "/api/session"]
+    (fn [request]
+      {:status 200
+       :session nil})]])

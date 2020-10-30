@@ -54,6 +54,8 @@
 
 (defn main-view []
   [:div.main
+   [:button {:on-click (fn []
+                         (dispatch [:log-out!]))} "Log Out"]
    [:label
     [:input {:type "checkbox"}]
     "Pair this week?"]
