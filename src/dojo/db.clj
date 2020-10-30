@@ -16,7 +16,8 @@
 
 (defn get-user
   [user-id]
-  (parse (->path user-id)))
+  (when user-id
+    (parse (->path user-id))))
 
 (defn save-user! [user]
   (io/spit (->path (:user/id user)) user))
