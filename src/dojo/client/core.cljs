@@ -8,6 +8,23 @@
     [dojo.client.state]
     [dojo.model :as model]))
 
+(defn topics-view []
+  [:div.topics-view
+   (let [user-topic-ids @(subscribe [:user-topic-ids])]
+     (for [topic @(subscribe [:topics])
+           :let [checked? (contains? user-topic-ids (:topic/id topic))]]
+       ^{:key (:topic/id topic)}
+       [:div.topic
+        [:label
+         [:input {:type "checkbox"
+                  :checked checked?
+                  :on-change
+                  (fn []
+                    (if checked?
+                      (dispatch [:remove-user-topic! (:topic/id topic)])
+                      (dispatch [:add-user-topic! (:topic/id topic)])))}]
+         (:topic/name topic)]]))])
+
 (defn availability-view []
   (when-let [availability (:user/availability @(subscribe [:user]))]
     [:table
@@ -65,6 +82,7 @@
    [:label
     [:input {:type "checkbox"}]
     "Pair this week?"]
+   [topics-view]
    [availability-view]])
 
 (defn app-view []

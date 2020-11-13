@@ -8,8 +8,9 @@
 (reg-event-fx
   :initialize!
   (fn [_ _]
-    {:db {:db/whatever "something"}
-     :dispatch-n [[:fetch-user!]]}))
+    {:db {}
+     :dispatch-n [[:fetch-user!]
+                  [::fetch-topics!]]}))
 
 (reg-event-fx
   :fetch-user!
@@ -18,6 +19,19 @@
             :uri "/api/user"
             :on-success (fn [data]
                           (dispatch [::handle-user-data! data]))}}))
+
+(reg-event-fx
+  ::fetch-topics!
+  (fn [_ _]
+    {:ajax {:method :get
+            :uri "/api/topics"
+            :on-success (fn [topics]
+                          (dispatch [::store-topics! topics]))}}))
+
+(reg-event-fx
+  ::store-topics!
+  (fn [{db :db} [_ topics]]
+    {:db (assoc db :db/topics topics)}))
 
 (reg-event-fx
   :log-in!
@@ -57,7 +71,33 @@
                      :hour hour
                      :value value}}}))
 
+(reg-event-fx
+  :add-user-topic!
+  (fn [{db :db} [_ topic-id]]
+    {:db (update-in db [:db/user :user/topic-ids] conj topic-id)
+     :ajax {:method :put
+            :uri "/api/user/add-topic"
+            :params {:topic-id topic-id}}}))
+
+(reg-event-fx
+  :remove-user-topic!
+  (fn [{db :db} [_ topic-id]]
+    {:db (update-in db [:db/user :user/topic-ids] disj topic-id)
+     :ajax {:method :put
+            :uri "/api/user/remove-topic"
+            :params {:topic-id topic-id}}}))
+
 (reg-sub
   :user
   (fn [db _]
     (db :db/user)))
+
+(reg-sub
+  :topics
+  (fn [db _]
+    (db :db/topics)))
+
+(reg-sub
+  :user-topic-ids
+  (fn [db _]
+    (get-in db [:db/user :user/topic-ids])))

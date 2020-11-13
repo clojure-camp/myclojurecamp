@@ -19,12 +19,30 @@
       {:body (db/get-user
                (get-in request [:session :user-id]))})]
 
+   [[:get "/api/topics"]
+    (fn [_]
+      {:body (db/get-topics)})]
+
+   [[:put "/api/user/add-topic"]
+    (fn [request]
+      (some-> (db/get-user (get-in request [:session :user-id]))
+              (update :user/topic-ids conj (get-in request [:body-params :topic-id]))
+              db/save-user!)
+      {:status 200})]
+
+   [[:put "/api/user/remove-topic"]
+    (fn [request]
+      (some-> (db/get-user (get-in request [:session :user-id]))
+              (update :user/topic-ids disj (get-in request [:body-params :topic-id]))
+              db/save-user!)
+      {:status 200})]
+
    [[:put "/api/user/update-availability"]
     (fn [request]
       (let [{:keys [hour day value]} (request :body-params)]
-        (-> (db/get-user (get-in request [:session :user-id]))
-            (assoc-in [:user/availability [day hour]] value)
-            db/save-user!))
+        (some-> (db/get-user (get-in request [:session :user-id]))
+                (assoc-in [:user/availability [day hour]] value)
+                db/save-user!))
       {:status 200})]
 
    [[:delete "/api/session"]
