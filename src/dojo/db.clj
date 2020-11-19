@@ -19,13 +19,28 @@
   (when user-id
     (parse (->path :user user-id))))
 
-(defn get-topics
-  []
-  (->> (java.io/file (str @data-path "/topic"))
+(defn get-users []
+  (->> (java.io/file (str @data-path "/user"))
        file-seq
        (filter (fn [f]
                  (.isFile f)))
        (map parse)))
+
+(defn get-topics
+  []
+  (let [topic-id->count (->> (get-users)
+                             (map :user/topic-ids)
+                             (apply concat)
+                             frequencies)]
+    (->> (java.io/file (str @data-path "/topic"))
+         file-seq
+         (filter (fn [f]
+                   (.isFile f)))
+         (map parse)
+         (map (fn [topic]
+                (assoc topic :topic/user-count
+                  (or (topic-id->count (:topic/id topic))
+                      0)))))))
 
 (defn save-user! [user]
   (io/spit (->path :user (:user/id user)) user))

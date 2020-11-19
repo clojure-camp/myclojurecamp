@@ -23,7 +23,8 @@
                     (if checked?
                       (dispatch [:remove-user-topic! (:topic/id topic)])
                       (dispatch [:add-user-topic! (:topic/id topic)])))}]
-         (:topic/name topic)]]))])
+         [:span.name (:topic/name topic)] " "
+         [:span.count (:topic/user-count topic)]]]))])
 
 (defn availability-view []
   (when-let [availability (:user/availability @(subscribe [:user]))]
