@@ -11,7 +11,12 @@
         users [{:user/id (uuid/random)
                 :user/name "Alice"
                 :user/email "alice@example.com"
-                :user/topic-ids (set (map :topic/id (take 2 topics)))
+                :user/topic-ids (set (take 2 (shuffle (map :topic/id topics))))
+                :user/availability (model/random-availability)}
+               {:user/id (uuid/random)
+                :user/name "Bob"
+                :user/email "bob@example.com"
+                :user/topic-ids (set (take 2 (shuffle (map :topic/id topics))))
                 :user/availability (model/random-availability)}]]
     (doseq [topic topics]
       (db/save-topic! topic))
