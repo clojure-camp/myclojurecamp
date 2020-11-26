@@ -48,6 +48,12 @@
 (defn save-topic! [topic]
   (io/spit (->path :topic (:topic/id topic)) topic))
 
+(defn create-topic! [name]
+  (let [topic {:topic/id (uuid/random)
+               :topic/name name}]
+    (save-topic! topic)
+    topic))
+
 (defn get-user-by-email
   [email]
   (->> (java.io/file @data-path)

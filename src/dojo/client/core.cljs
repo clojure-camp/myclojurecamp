@@ -24,7 +24,13 @@
                       (dispatch [:remove-user-topic! (:topic/id topic)])
                       (dispatch [:add-user-topic! (:topic/id topic)])))}]
          [:span.name (:topic/name topic)] " "
-         [:span.count (:topic/user-count topic)]]]))])
+         [:span.count (:topic/user-count topic)]]]))
+   [:button
+    {:on-click (fn [_]
+                 (let [value (js/prompt "Enter a new topic:")]
+                   (when (not (string/blank? value))
+                     (dispatch [:new-topic! (string/trim value)]))))}
+    "+"]])
 
 (defn availability-view []
   (when-let [availability (:user/availability @(subscribe [:user]))]

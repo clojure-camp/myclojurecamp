@@ -3,12 +3,16 @@
     [bloom.commons.ajax :as ajax]
     [re-frame.core :refer [reg-event-fx reg-fx reg-sub dispatch]]))
 
+(defn key-by [f coll]
+  (zipmap (map f coll)
+          coll))
+
 (reg-fx :ajax ajax/request)
 
 (reg-event-fx
   :initialize!
   (fn [_ _]
-    {:db {}
+    {:db {:db/topics {}}
      :dispatch-n [[:fetch-user!]
                   [::fetch-topics!]]}))
 
@@ -31,7 +35,17 @@
 (reg-event-fx
   ::store-topics!
   (fn [{db :db} [_ topics]]
-    {:db (assoc db :db/topics topics)}))
+    {:db (update db :db/topics merge (key-by :topic/id topics))}))
+
+(reg-event-fx
+  :new-topic!
+  (fn [_ [_ topic-name]]
+    {:ajax {:method :put
+            :uri "/api/topics"
+            :params {:name topic-name}
+            :on-success (fn [topic]
+                          (dispatch [::store-topics! [topic]])
+                          (dispatch [:add-user-topic! (:topic/id topic)]))}}))
 
 (reg-event-fx
   :log-in!
@@ -74,15 +88,20 @@
 (reg-event-fx
   :add-user-topic!
   (fn [{db :db} [_ topic-id]]
-    {:db (update-in db [:db/user :user/topic-ids] conj topic-id)
+    {:db (-> db
+             (update-in [:db/user :user/topic-ids] conj topic-id)
+             (update-in [:db/topics topic-id :topic/user-count] (fnil inc 0)))
      :ajax {:method :put
             :uri "/api/user/add-topic"
             :params {:topic-id topic-id}}}))
 
+
 (reg-event-fx
   :remove-user-topic!
   (fn [{db :db} [_ topic-id]]
-    {:db (update-in db [:db/user :user/topic-ids] disj topic-id)
+    {:db (-> db
+             (update-in [:db/user :user/topic-ids] disj topic-id)
+             (update-in [:db/topics topic-id :topic/user-count] dec))
      :ajax {:method :put
             :uri "/api/user/remove-topic"
             :params {:topic-id topic-id}}}))
@@ -95,7 +114,7 @@
 (reg-sub
   :topics
   (fn [db _]
-    (db :db/topics)))
+    (vals (db :db/topics))))
 
 (reg-sub
   :user-topic-ids

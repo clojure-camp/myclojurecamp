@@ -23,6 +23,10 @@
     (fn [_]
       {:body (db/get-topics)})]
 
+   [[:put "/api/topics"]
+    (fn [request]
+      {:body (db/create-topic! (get-in request [:body-params :name]))})]
+
    [[:put "/api/user/add-topic"]
     (fn [request]
       (some-> (db/get-user (get-in request [:session :user-id]))
