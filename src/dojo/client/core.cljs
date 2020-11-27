@@ -2,10 +2,12 @@
   dojo.client.core
   (:require
     [clojure.string :as string]
+    [garden.core :as garden]
     [re-frame.core :refer [dispatch subscribe]]
     [reagent.dom :as rdom]
     [reagent.core :as r]
     [dojo.client.state]
+    [dojo.client.styles :refer [styles]]
     [dojo.model :as model]))
 
 (defn topics-view []
@@ -84,8 +86,10 @@
 
 (defn main-view []
   [:div.main
-   [:button {:on-click (fn []
-                         (dispatch [:log-out!]))} "Log Out"]
+   [:button.log-out
+    {:on-click (fn []
+                 (dispatch [:log-out!]))}
+    "Log Out"]
    [:label
     [:input {:type "checkbox"}]
     "Pair this week?"]
@@ -94,6 +98,8 @@
 
 (defn app-view []
   [:<>
+   [:style
+    (garden/css styles)]
    (if-let [user @(subscribe [:user])]
      [main-view]
      [login-view])])

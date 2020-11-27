@@ -5,6 +5,7 @@
                  [io.bloomventures/omni "0.26.2"]
                  [io.bloomventures/commons "0.10.7"]
 
+                 [garden "1.3.10"]
                  [re-frame "0.10.5"]
                  [reagent "0.10.0"]
                  [org.clojure/clojurescript "1.10.764"]
