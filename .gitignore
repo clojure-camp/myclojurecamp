@@ -11,3 +11,6 @@ pom.xml.asc
 /.nrepl-port
 config.edn
 /external
+.DS_Store
+lock
+output.*
