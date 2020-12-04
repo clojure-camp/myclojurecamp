@@ -36,7 +36,7 @@
 
 (defn availability-view []
   (when-let [availability (:user/availability @(subscribe [:user]))]
-    [:table
+    [:table.availability
      [:thead
       [:tr
        [:th]
@@ -55,13 +55,18 @@
                ^{:key day}
                [:td
                 (let [value (availability [day hour])]
-                  [:button {:on-click (fn [_]
-                                        (dispatch [:set-availability!
-                                                   [day hour]
-                                                   (case value
-                                                     :preferred nil
-                                                     :available :preferred
-                                                     nil :available)]))}
+                  [:button
+                   {:class (case value
+                             :preferred "preferred"
+                             :available "available"
+                             nil "empty")
+                    :on-click (fn [_]
+                                (dispatch [:set-availability!
+                                           [day hour]
+                                           (case value
+                                             :preferred nil
+                                             :available :preferred
+                                             nil :available)]))}
                    (case value
                      :preferred "P"
                      :available "A"
