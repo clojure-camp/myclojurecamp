@@ -49,6 +49,14 @@
                 db/save-user!))
       {:status 200})]
 
+   [[:put "/api/user/opt-in-for-pairing"]
+    (fn [request]
+      (let [{:keys [value]} (request :body-params)]
+        (some-> (db/get-user (get-in request [:session :user-id]))
+                (assoc :user/pair-next-week? value)
+                db/save-user!))
+      {:status 200})]
+
    [[:delete "/api/session"]
     (fn [request]
       {:status 200

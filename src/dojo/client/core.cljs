@@ -96,7 +96,12 @@
                  (dispatch [:log-out!]))}
     "Log Out"]
    [:label
-    [:input {:type "checkbox"}]
+    (let [checked? @(subscribe [:user-pair-next-week?])]
+      [:input {:type "checkbox"
+               :checked checked?
+               :on-change (fn []
+                            (dispatch
+                              [:opt-in-for-pairing! (not checked?)]))}])
     "Pair this week?"]
    [topics-view]
    [availability-view]])

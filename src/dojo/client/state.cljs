@@ -106,10 +106,23 @@
             :uri "/api/user/remove-topic"
             :params {:topic-id topic-id}}}))
 
+(reg-event-fx
+  :opt-in-for-pairing!
+  (fn [{db :db} [_ bool]]
+    {:db (assoc-in db [:db/user :user/pair-next-week?] bool)
+     :ajax {:method :put
+            :uri "/api/user/opt-in-for-pairing"
+            :params {:value bool}}}))
+
 (reg-sub
   :user
   (fn [db _]
     (db :db/user)))
+
+(reg-sub
+  :user-pair-next-week?
+  (fn [db _]
+    (get-in db [:db/user :user/pair-next-week?])))
 
 (reg-sub
   :topics

@@ -68,6 +68,7 @@
   "Create, save and return a new user"
   [email]
   (let [user {:user/id (uuid/random)
+              :user/pair-next-week? false
               :user/email email
               :user/topic-ids #{}
               :user/availability {}}]
