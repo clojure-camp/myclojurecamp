@@ -11,6 +11,9 @@ pom.xml.asc
 /.nrepl-port
 config.edn
 /external
+/.clj-kondo
+/.calva
+/.lsp
 .DS_Store
 lock
 output.*
