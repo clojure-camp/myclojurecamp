@@ -5,6 +5,7 @@
     [dojo.config :refer [config]]))
 
 (defn send! [{:keys [to subject body]}]
+  (println body)
   (postal/send-message
     (:smtp-credentials config)
     {:from (:from (:smtp-credentials config))
