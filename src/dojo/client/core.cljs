@@ -6,6 +6,7 @@
    [re-frame.core :refer [dispatch subscribe]]
    [reagent.dom :as rdom]
    [reagent.core :as r]
+   [bloom.commons.fontawesome :as fa]
    [dojo.client.state]
    [dojo.client.styles :refer [styles]]
    [dojo.model :as model]))
@@ -43,12 +44,13 @@
 
 (defn topics-view []
   [:div.topics-view
+   [:h1 "Topics"]
    (let [user-topic-ids @(subscribe [:user-topic-ids])]
-     (for [topic (sort-by :topic/name @(subscribe [:topics]))
-           :let [checked? (contains? user-topic-ids (:topic/id topic))]]
-       ^{:key (:topic/id topic)}
-       [:div.topic
-        [:label
+     [:div.topics
+      (for [topic (sort-by :topic/name @(subscribe [:topics]))
+            :let [checked? (contains? user-topic-ids (:topic/id topic))]]
+        ^{:key (:topic/id topic)}
+        [:label.topic
          [:input {:type "checkbox"
                   :checked checked?
                   :on-change
@@ -57,13 +59,13 @@
                       (dispatch [:remove-user-topic! (:topic/id topic)])
                       (dispatch [:add-user-topic! (:topic/id topic)])))}]
          [:span.name (:topic/name topic)] " "
-         [:span.count (:topic/user-count topic)]]]))
+         [:span.count (:topic/user-count topic)]])])
    [:button
     {:on-click (fn [_]
                  (let [value (js/prompt "Enter a new topic:")]
                    (when (not (string/blank? value))
                      (dispatch [:new-topic! (string/trim value)]))))}
-    "+"]])
+    "+ Add Topic"]])
 
 (defn availability-view []
   (when-let [availability (:user/availability @(subscribe [:user]))]
@@ -73,14 +75,17 @@
        [:th]
        (let [next-monday (next-day-of-week (js/Date.) :monday)]
          (for [[i day] (map-indexed (fn [i d] [i d]) model/days)]
+          (let [[day-of-week date] (string/split (format-date (add-days next-monday i)) #",")]
            ^{:key day}
-           [:th (format-date (add-days next-monday i))]))]]
+           [:th.day
+            [:span.day-of-week day-of-week]
+            [:span.date date]])))]]
      [:tbody
       (doall
        (for [hour model/hours]
          ^{:key hour}
          [:tr
-          [:td
+          [:td.hour
            hour]
           (doall
            (for [day model/days]
@@ -122,14 +127,17 @@
          [:div "An email with a login-link was sent to " @sent-email])])))
 
 (defn opt-in-view []
-  [:label
-   (let [checked? @(subscribe [:user-pair-next-week?])]
-     [:input {:type "checkbox"
-              :checked checked?
-              :on-change (fn []
-                           (dispatch
-                            [:opt-in-for-pairing! (not checked?)]))}])
-   "Pair next week?"])
+  (let [checked? @(subscribe [:user-pair-next-week?])]
+   [:label.opt-in
+    (if checked?
+      [fa/fa-check-square-regular]
+      [fa/fa-square-regular])
+    [:input {:type "checkbox"
+             :checked checked?
+             :on-change (fn []
+                          (dispatch
+                           [:opt-in-for-pairing! (not checked?)]))}]
+    "Pair next week?"]))
 
 (defn main-view []
   [:div.main
