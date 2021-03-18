@@ -44,7 +44,7 @@
 (defn topics-view []
   [:div.topics-view
    (let [user-topic-ids @(subscribe [:user-topic-ids])]
-     (for [topic @(subscribe [:topics])
+     (for [topic (sort-by :topic/name @(subscribe [:topics]))
            :let [checked? (contains? user-topic-ids (:topic/id topic))]]
        ^{:key (:topic/id topic)}
        [:div.topic
