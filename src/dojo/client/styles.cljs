@@ -3,7 +3,9 @@
     [garden.stylesheet :refer [at-import]]
     [garden.color :refer [darken]]))
 
-(def accent-color "blue")
+(def accent-light "#45c077")
+(def accent-dark "#2b8d53")
+(def gray "#f3f3f3")
 
 (defn button [])
 
@@ -36,12 +38,22 @@
       {:display "flex"
        :align-items "center"
        :font-size "2rem"
-       :background "#f3f3f3"
+       :background gray
+       :border [["1px" "solid" (darken gray 10)]]
        :padding "1rem"
-       :border "1px solid #e1e1e1"
        :border-radius "0.5rem"
        :font-weight "bold"
        :cursor "pointer"}
+
+      [:&:hover
+       {:background (darken gray 5)}]
+
+      [:&.active
+       {:background accent-light
+        :border [["1px" "solid" (darken accent-light 10)]]}
+
+       [:&:hover
+        {:background (darken accent-light 5)}]]
 
       [:>svg
        {:width "2rem"
@@ -58,10 +70,14 @@
        [:>.topic
         {:display "block"
          :margin-bottom "0.5rem"
+         :cursor "pointer"
          :vertical-align "center"}
 
         [:>.count
-         {:color "#ccc"}]]]]
+         {:color "#ccc"}]]]
+
+      [:>button
+       {:cursor "pointer"}]]
 
      [:>table.availability
       {:border-spacing 0
@@ -97,13 +113,13 @@
           {:background (darken "#fff" 5)}]]
 
         [:&.preferred
-         {:background "#2b8d53"}
+         {:background accent-dark}
 
          [:&:hover
-          {:background (darken "#2b8d53" 5)}]]
+          {:background (darken accent-dark 5)}]]
 
         [:&.available
-         {:background "#45c077"}
+         {:background accent-light}
 
          [:&:hover
-          {:background (darken "#45c077" 5)}]]]]]]]])
+          {:background (darken accent-light 5)}]]]]]]]])

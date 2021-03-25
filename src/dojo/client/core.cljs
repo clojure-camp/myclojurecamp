@@ -128,7 +128,7 @@
 
 (defn opt-in-view []
   (let [checked? @(subscribe [:user-pair-next-week?])]
-   [:label.opt-in
+   [:label.opt-in {:class (when checked? "active")}
     (if checked?
       [fa/fa-check-square-regular]
       [fa/fa-square-regular])
