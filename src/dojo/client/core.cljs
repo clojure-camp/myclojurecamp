@@ -78,8 +78,8 @@
           (let [[day-of-week date] (string/split (format-date (add-days next-monday i)) #",")]
            ^{:key day}
            [:th.day
-            [:span.day-of-week day-of-week]
-            [:span.date date]])))]]
+            [:div.day-of-week day-of-week]
+            [:div.date date]])))]]
      [:tbody
       (doall
        (for [hour model/hours]
