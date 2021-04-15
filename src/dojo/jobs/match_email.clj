@@ -88,11 +88,17 @@
 #_(let [[user-id events] (first (group-by-guests (generate-schedule!)))]
    (email/send! (sunday-email-template user-id events)))
 
+(defn reset-opt-in! [user-id]
+  (-> (db/get-user user-id)
+      (assoc :user/pair-next-week? false)
+      db/save-user!))
+
 (defn send-sunday-emails! []
   (let [user-id->events (->> (generate-schedule!)
                              group-by-guests)]
    (doseq [[user-id events] user-id->events]
-     (email/send! (sunday-email-template user-id events)))))
+     (email/send! (sunday-email-template user-id events))
+     (reset-opt-in! user-id))))
 
 (defn schedule-email-job! []
   (chime/chime-at
