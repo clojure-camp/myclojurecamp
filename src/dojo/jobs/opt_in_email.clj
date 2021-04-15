@@ -5,12 +5,12 @@
     [dojo.email :as email])
   (:import
     (java.time Period DayOfWeek ZonedDateTime ZoneId LocalTime)
-    (java.time.format DateTimeFormatter)))
+    (java.time.format DateTimeFormatter)
+    (java.time.temporal TemporalAdjusters)))
 
 (defn datetime->next-monday-string [zoned-datetime]
-  ;; assume we send on Fridays
-  ;; TODO instead, adjust date into 'next Monday'
-  (.format (.plusDays zoned-datetime 3)
+  (.format (.with zoned-datetime
+            (TemporalAdjusters/next DayOfWeek/MONDAY))
            (DateTimeFormatter/ofPattern "MMM dd")))
 
 (defn friday-email-template [email]
