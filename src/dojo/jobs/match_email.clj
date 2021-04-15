@@ -25,30 +25,29 @@
     [{:guest-ids #{123 456}
       :day-of-week :monday
       :time-of-day 1200} ...]"
-  []
-  (let [users (db/get-users)]
-    (->> {:max-events-per-day (->> users
-                                   (map (fn [user]
-                                         [(:user/id user) 1]))
-                                   (into {}))
-          :availabilities (->> users
-                               (map (fn [user]
-                                     [(:user/id user)
-                                      ;; stored as {[:monday 10] :available
-                                      ;;            [:tuesday 10] :preferred
-                                      ;;            [:wednesday 10] nil)
-                                      ;; but need #{[:monday 10 :available]
-                                      ;;            [:tuesday 10 :preferred]}
-                                      ;; also, remove when value is nil
-                                      (->> (:user/availability user)
-                                           (filter (fn [[k v]] v))
-                                           (map (fn [[k v]]
-                                                  (conj k v)))
-                                           set)]))
-                               (into {}))}
-         (ps/generate-initial-schedule 1)
-         ps/optimize-schedule
-         :schedule)))
+  [users]
+  (->> {:max-events-per-day (->> users
+                                 (map (fn [user]
+                                       [(:user/id user) 1]))
+                                 (into {}))
+        :availabilities (->> users
+                             (map (fn [user]
+                                   [(:user/id user)
+                                    ;; stored as {[:monday 10] :available
+                                    ;;            [:tuesday 10] :preferred
+                                    ;;            [:wednesday 10] nil)
+                                    ;; but need #{[:monday 10 :available]
+                                    ;;            [:tuesday 10 :preferred]}
+                                    ;; also, remove when value is nil
+                                    (->> (:user/availability user)
+                                         (filter (fn [[k v]] v))
+                                         (map (fn [[k v]]
+                                                (conj k v)))
+                                         set)]))
+                             (into {}))}
+       (ps/generate-initial-schedule 1)
+       ps/optimize-schedule
+       :schedule))
 
 (defn group-by-guests
   [schedule]
@@ -85,7 +84,7 @@
               " (" (:user/email partner) ")"]])
            [:p "If you can't make a session, be sure to let your partner know!"]]}))
 
-#_(let [[user-id events] (first (group-by-guests (generate-schedule!)))]
+#_(let [[user-id events] (first (group-by-guests (generate-schedule! (db/get-users))))]
    (email/send! (sunday-email-template user-id events)))
 
 (defn reset-opt-in! [user-id]
@@ -94,12 +93,15 @@
       db/save-user!))
 
 (defn send-sunday-emails! []
-  (let [user-id->events (->> (generate-schedule!)
+  (let [users-to-match (filter :user/pair-next-week? (db/get-users))
+        user-id->events (->> users-to-match
+                             generate-schedule!
                              group-by-guests)]
    (doseq [[user-id events] user-id->events]
      (email/send! (sunday-email-template user-id events))
      (reset-opt-in! user-id))))
 
+#_(send-sunday-emails!)
 (defn schedule-email-job! []
   (chime/chime-at
     (->> (chime/periodic-seq
