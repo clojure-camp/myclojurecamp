@@ -19,7 +19,7 @@
    :saturday DayOfWeek/SATURDAY
    :sunday DayOfWeek/SUNDAY})
 
-(defn generate-schedule!
+(defn generate-schedule
   "Returns a list of maps, with :guest-ids, :day-of-week and :Time-of-day,
     ex.
     [{:guest-ids #{123 456}
@@ -84,7 +84,7 @@
               " (" (:user/email partner) ")"]])
            [:p "If you can't make a session, be sure to let your partner know!"]]}))
 
-#_(let [[user-id events] (first (group-by-guests (generate-schedule! (db/get-users))))]
+#_(let [[user-id events] (first (group-by-guests (generate-schedule (db/get-users))))]
    (email/send! (sunday-email-template user-id events)))
 
 (defn reset-opt-in! [user-id]
@@ -95,8 +95,8 @@
 (defn send-sunday-emails! []
   (let [users-to-match (filter :user/pair-next-week? (db/get-users))
         user-id->events (->> users-to-match
-                             generate-schedule!
                              group-by-guests)]
+                             generate-schedule
    (doseq [[user-id events] user-id->events]
      (email/send! (sunday-email-template user-id events))
      (reset-opt-in! user-id))))
