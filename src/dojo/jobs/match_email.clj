@@ -1,6 +1,7 @@
 (ns dojo.jobs.match-email
   (:require
     [clojure.string :as string]
+    [clojure.set :as set]
     [chime.core :as chime]
     [pairing-scheduler.core :as ps]
     [dojo.email :as email]
@@ -59,7 +60,18 @@
                (update (last (:guest-ids event)) (fnil conj #{}) event)))
      {} schedule))
 
-(defn sunday-email-template
+
+(defn unmatched-email-template
+  [user-id]
+  (let [user (db/get-user user-id)]
+    {:to (:user/email user)
+     :subject "ClojoDojo - Your Matches for this Week"
+     :body [:div
+            [:p "Hi " (:user/name user) ","]
+            [:p "Unfortunately, we couldn't match you with anyone this week. :("]
+            [:p "- DojoBot"]]}))
+
+(defn matched-email-template
   [user-id events]
   (let [get-user (memoize db/get-user)
         user (db/get-user user-id)
@@ -84,7 +96,8 @@
              [:span.guest
               (:user/name partner)
               " (" (:user/email partner) ")"]])
-           [:p "If you can't make a session, be sure to let your partner know!"]]}))
+           [:p "If you can't make a session, be sure to let your partner know!"]
+           [:p "- DojoBot"]]}))
 
 #_(let [[user-id events] (first (group-by-guests (generate-schedule (db/get-users))))]
    (email/send! (sunday-email-template user-id events)))
@@ -97,10 +110,18 @@
 (defn send-sunday-emails! []
   (let [users-to-match (filter :user/pair-next-week? (db/get-users))
         user-id->events (->> users-to-match
-                             group-by-guests)]
                              generate-schedule
+                             group-by-guests)
+        opted-in-user-ids (set (map :user/id users-to-match))
+        matched-user-ids (set (keys user-id->events))
+        unmatched-user-ids (set/difference opted-in-user-ids
+                                           matched-user-ids)]
+   (doseq [user-id unmatched-user-ids]
+     (email/send! (unmatched-email-template user-id))
+     (reset-opt-in! user-id))
+
    (doseq [[user-id events] user-id->events]
-     (email/send! (sunday-email-template user-id events))
+     (email/send! (matched-email-template user-id events))
      (reset-opt-in! user-id))))
 
 #_(send-sunday-emails!)
