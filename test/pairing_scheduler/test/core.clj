@@ -257,35 +257,37 @@
                 (ps/generate-initial-schedule 1)
                 ps/optimize-schedule
                 :schedule
-                set)))) (testing "prefer scheduling during preferred times"
-                          (is (= #{{:guest-ids #{"raf" "dh"}
-                                    :day-of-week :monday
-                                    :time-of-day 1000}
-                                   {:guest-ids #{"raf" "berk"}
-                                    :day-of-week :monday
-                                    :time-of-day 1100}
-                                   {:guest-ids #{"berk" "dh"}
-                                    :day-of-week :monday
-                                    :time-of-day 1200}}
-                                 (->> {:availabilities
-                                       {"raf" #{[:monday 1000 :preferred]
-                                                [:monday 1100 :preferred]
-                                                [:monday 1200 :available]}
+                set))))
 
-                                        "dh" #{[:monday 1000 :preferred]
-                                               [:monday 1100 :available]
-                                               [:monday 1200 :preferred]}
-                                        "berk" #{[:monday 1000 :available]
-                                                 [:monday 1100 :preferred]
-                                                 [:monday 1200 :preferred]}}
-                                       :max-events-per-day
-                                       {"raf" 2
-                                        "dh" 2
-                                        "berk" 2}}
-                                      (ps/generate-initial-schedule 1)
-                                      ps/optimize-schedule
-                                      :schedule
-                                      set))))
+  (testing "prefer scheduling during preferred times"
+   (is (= #{{:guest-ids #{"raf" "dh"}
+             :day-of-week :monday
+             :time-of-day 1000}
+            {:guest-ids #{"raf" "berk"}
+             :day-of-week :monday
+             :time-of-day 1100}
+            {:guest-ids #{"berk" "dh"}
+             :day-of-week :monday
+             :time-of-day 1200}}
+          (->> {:availabilities
+                {"raf" #{[:monday 1000 :preferred]
+                         [:monday 1100 :preferred]
+                         [:monday 1200 :available]}
+
+                 "dh" #{[:monday 1000 :preferred]
+                        [:monday 1100 :available]
+                        [:monday 1200 :preferred]}
+                 "berk" #{[:monday 1000 :available]
+                          [:monday 1100 :preferred]
+                          [:monday 1200 :preferred]}}
+                :max-events-per-day
+                {"raf" 2
+                 "dh" 2
+                 "berk" 2}}
+               (ps/generate-initial-schedule 1)
+               ps/optimize-schedule
+               :schedule
+               set))))
 
   (testing "prefer evenly spreading events amongst users"
     (let [schedule (->> {:availabilities
