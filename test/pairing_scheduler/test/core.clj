@@ -42,7 +42,7 @@
              {"raf" #{}}}))))
 
   (testing "above max-events-per-day"
-    (is (= 150
+    (is (= 47
            (ps/individual-score
             "raf"
             {:schedule
@@ -56,6 +56,31 @@
                :day-of-week :monday
                :time-of-day 1100}]
              :max-events-per-day
+             {"raf" 2
+              "dh" 2}
+             :availabilities
+             {"raf" #{[:monday 900 :available]
+                      [:monday 1000 :available]
+                      [:monday 1100 :available]}
+              "dh" #{[:monday 900 :available]
+                     [:monday 1000 :available]
+                     [:monday 1100 :available]}}}))))
+
+  (testing "above max-events-per-week"
+    (is (= 97
+           (ps/individual-score
+            "raf"
+            {:schedule
+             [{:guest-ids #{"raf" "dh"}
+               :day-of-week :monday
+               :time-of-day 900}
+              {:guest-ids #{"raf" "dh"}
+               :day-of-week :monday
+               :time-of-day 1000}
+              {:guest-ids #{"raf" "dh"}
+               :day-of-week :monday
+               :time-of-day 1100}]
+             :max-events-per-week
              {"raf" 2
               "dh" 2}
              :availabilities
@@ -407,6 +432,19 @@
                  :availabilities {"alice" #{[:monday 1000 :available]}
                                   "bob" #{[:monday 1000 :available]}
                                   "cathy" #{[:monday 1000 :available]}}
+                 :times-to-pair 1}
+                ps/schedule
+                :schedule
+                set
+                count))))
+
+  (testing "does not schedule more than per-week-limit"
+    (is (= 1
+           (->> {:max-events-per-week {"alice" 1}
+                 :availabilities {"alice" #{[:monday 1000 :available]
+                                            [:tuesday 1000 :available]}
+                                  "bob" #{[:monday 1000 :available]}
+                                  "cathy" #{[:tuesday 1000 :available]}}
                  :times-to-pair 1}
                 ps/schedule
                 :schedule

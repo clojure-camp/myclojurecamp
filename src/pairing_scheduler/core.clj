@@ -28,8 +28,9 @@
   [pos coll]
   (vec (concat (subvec coll 0 pos) (subvec coll (inc pos)))))
 
+
 (defn individual-score
-  [guest-id {:keys [schedule availabilities max-events-per-day]}]
+  [guest-id {:keys [schedule availabilities max-events-per-day max-events-per-week]}]
   (let [guest-events (->> schedule
                           (filter (fn [event]
                                     (contains? (event :guest-ids) guest-id))))
@@ -40,33 +41,51 @@
         guest-event-times (->> guest-events
                                (map (fn [event]
                                       [(event :day-of-week) (event :time-of-day)])))]
-    (->> guest-events
-         (map (fn [event]
-                ;; using negatives for ok events, to promote more events rather than fewer
-                ;; b/c otherwise, an empty schedule would always be a perfect schedule
-                (cond
-                  ;; double-scheduled
-                  (< 1 (->> guest-event-times
-                            (filter (partial = [(event :day-of-week) (event :time-of-day)]))
-                            count))
-                  200
-                  ;; outside of any available times
-                  (not (contains? guest-open-times [(event :day-of-week) (event :time-of-day)]))
-                  100
-                  ;; above max for day
-                  (< (max-events-per-day guest-id)
-                     (->> guest-event-times
-                          (filter (fn [[day-of-week _]]
-                                    (= day-of-week (event :day-of-week))))
-                          count))
-                  50
-                  ;; at preferred time
-                  (contains? (availabilities guest-id) [(event :day-of-week) (event :time-of-day) :preferred])
-                  -5
-                  ;; at available time
-                  (contains? (availabilities guest-id) [(event :day-of-week) (event :time-of-day) :available])
-                  -1)))
-         (reduce +))))
+    (+ ;; above max for day
+      (if (and max-events-per-day (max-events-per-day guest-id))
+        (->> [:monday :tuesday :wednesday :thursday :friday]
+             (map (fn [target-day-of-week]
+                    (< (max-events-per-day guest-id)
+                       (->> guest-event-times
+                            (filter (fn [[day-of-week _]]
+                                      (= day-of-week target-day-of-week)))
+                            count))))
+             (map (fn [over?]
+                    (if over?
+                      50
+                      0)))
+             (reduce +))
+        0)
+
+      ;; above max for week
+      (if (and max-events-per-week
+               (max-events-per-week guest-id)
+               (< (max-events-per-week guest-id)
+                  (count guest-events)))
+       100
+       0)
+
+      ;; per event
+      (->> guest-events
+           (map (fn [event]
+                  ;; using negatives for ok events, to promote more events rather than fewer
+                  ;; b/c otherwise, an empty schedule would always be a perfect schedule
+                  (cond
+                    ;; double-scheduled
+                    (< 1 (->> guest-event-times
+                              (filter (partial = [(event :day-of-week) (event :time-of-day)]))
+                              count))
+                    200
+                    ;; outside of any available times
+                    (not (contains? guest-open-times [(event :day-of-week) (event :time-of-day)]))
+                    100
+                    ;; at preferred time
+                    (contains? (availabilities guest-id) [(event :day-of-week) (event :time-of-day) :preferred])
+                    -5
+                    ;; at available time
+                    (contains? (availabilities guest-id) [(event :day-of-week) (event :time-of-day) :available])
+                    -1)))
+           (reduce +)))))
 
 (defn schedule-score
   [{:keys [schedule availabilities] :as context}]
