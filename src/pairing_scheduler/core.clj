@@ -146,6 +146,13 @@
                        (random-event guest-ids context)))
                 (remove nil?)))))
 
+(defn schedule
+  [{:keys [availabilities times-to-pair] :as context}]
+  (if (<= (count availabilities) 1)
+   (assoc context :schedule [])
+   (-> (generate-initial-schedule times-to-pair context)
+       optimize-schedule)))
+
 (defn report
   [{:keys [schedule availabilities] :as context}]
   {:schedule schedule

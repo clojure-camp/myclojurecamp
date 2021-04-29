@@ -358,3 +358,57 @@
              "berk" #{[:monday 1000 :available]
                       [:tuesday 1000 :available]
                       [:thursday 1000 :available]}})))))
+
+(deftest schedule
+  (testing "when no users, returns empty schedule"
+    (is (= #{}
+           (->> {:max-events-per-day {}
+                 :availabilities {}
+                 :times-to-pair 1}
+                ps/schedule
+                :schedule
+                set))))
+  (testing "when single user, returns empty schedule"
+   (is (= #{}
+          (->> {:max-events-per-day {"alice" 1}
+                :availabilities {"alice" #{}}
+                :times-to-pair 1}
+               ps/schedule
+               :schedule
+               set))))
+
+  (testing "when no available times, returns empty schedule"
+   (is (= #{}
+          (->> {:max-events-per-day {"alice" 1
+                                     "bob" 1}
+                :availabilities {"alice" #{}
+                                 "bob" #{}}
+                :times-to-pair 1}
+               ps/schedule
+               :schedule
+               set))))
+
+  (testing "when no overlapping times, returns empty schedule"
+   (is (= #{}
+          (->> {:max-events-per-day {"alice" 1
+                                     "bob" 1}
+                :availabilities {"alice" #{[:monday 1000 :available]}
+                                 "bob" #{[:monday 1100 :available]}}
+                :times-to-pair 1}
+               ps/schedule
+               :schedule
+               set))))
+
+  (testing "when 3 users with limited availability, pairs 2 of them, and not 3rd"
+    (is (= 1
+           (->> {:max-events-per-day {"alice" 1
+                                      "bob" 1
+                                      "cathy" 1}
+                 :availabilities {"alice" #{[:monday 1000 :available]}
+                                  "bob" #{[:monday 1000 :available]}
+                                  "cathy" #{[:monday 1000 :available]}}
+                 :times-to-pair 1}
+                ps/schedule
+                :schedule
+                set
+                count)))))
