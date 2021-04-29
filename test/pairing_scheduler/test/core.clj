@@ -99,9 +99,6 @@
              [{:guest-ids #{"raf" "dh"}
                :day-of-week :monday
                :time-of-day 900}]
-             :max-events-per-day
-             {"raf" 2
-              "dh" 2}
              :availabilities
              {"raf" #{[:monday 900 :available]}
               "dh" #{[:monday 900 :available]}}}))))
@@ -114,9 +111,6 @@
              [{:guest-ids #{"raf" "dh"}
                :day-of-week :monday
                :time-of-day 900}]
-             :max-events-per-day
-             {"raf" 2
-              "dh" 2}
              :availabilities
              {"raf" #{[:monday 900 :preferred]}
               "dh" #{[:monday 900 :preferred]}}})))))
@@ -160,10 +154,7 @@
 
 (deftest schedule-score
   (testing "prefers empty schedule to overlap"
-    (let [context {:max-events-per-day
-                   {"raf" 2
-                    "dh" 2}
-                   :availabilities
+    (let [context {:availabilities
                    {"raf" #{}
                     "dh" #{[:monday 1000 :preferred]
                            [:monday 1200 :preferred]}}}]
@@ -184,11 +175,7 @@
                            [:thursday 1000 :available]}
                     "berk" #{[:monday 1000 :available]
                              [:tuesday 1000 :available]
-                             [:thursday 1000 :available]}}
-                   :max-events-per-day
-                   {"raf" 2
-                    "dh" 2
-                    "berk" 2}}]
+                             [:thursday 1000 :available]}}}]
       (is (< (ps/schedule-score
               (assoc context :schedule
                      [{:guest-ids #{"dh" "berk"}
@@ -221,12 +208,7 @@
                     "berk" #{[:monday 1000 :available]
                              [:monday 1100 :available]}
                     "james" #{[:monday 1000 :available]
-                              [:monday 1100 :available]}}
-                   :max-events-per-day
-                   {"raf" 2
-                    "dh" 2
-                    "berk" 2
-                    "james" 2}}]
+                              [:monday 1100 :available]}}}]
       (is (< (ps/schedule-score
               (assoc context :schedule
                      [{:guest-ids #{"raf" "dh"}
@@ -267,11 +249,7 @@
                  {:guest-ids #{"berk" "dh"}
                   :day-of-week :monday
                   :time-of-day 1200}])
-           (->> {:max-events-per-day
-                 {"raf" 2
-                  "dh" 2
-                  "berk" 2}
-                 :availabilities
+           (->> {:availabilities
                  {"raf" #{[:monday 1000 :available]
                           [:monday 1100 :available]}
                   "dh" #{[:monday 1000 :available]
@@ -304,11 +282,7 @@
                         [:monday 1200 :preferred]}
                  "berk" #{[:monday 1000 :available]
                           [:monday 1100 :preferred]
-                          [:monday 1200 :preferred]}}
-                :max-events-per-day
-                {"raf" 2
-                 "dh" 2
-                 "berk" 2}}
+                          [:monday 1200 :preferred]}}}
                (ps/generate-initial-schedule 1)
                ps/optimize-schedule
                :schedule
@@ -324,11 +298,7 @@
                                  [:thursday 1000 :available]}
                           "berk" #{[:monday 1000 :available]
                                    [:tuesday 1000 :available]
-                                   [:thursday 1000 :available]}}
-                         :max-events-per-day
-                         {"raf" 2
-                          "dh" 2
-                          "berk" 2}}
+                                   [:thursday 1000 :available]}}}
                         (ps/generate-initial-schedule 1)
                         ps/optimize-schedule
                         :schedule)
@@ -387,16 +357,15 @@
 (deftest schedule
   (testing "when no users, returns empty schedule"
     (is (= #{}
-           (->> {:max-events-per-day {}
-                 :availabilities {}
+           (->> {:availabilities {}
                  :times-to-pair 1}
                 ps/schedule
                 :schedule
                 set))))
+
   (testing "when single user, returns empty schedule"
    (is (= #{}
-          (->> {:max-events-per-day {"alice" 1}
-                :availabilities {"alice" #{}}
+          (->> {:availabilities {"alice" #{}}
                 :times-to-pair 1}
                ps/schedule
                :schedule
@@ -404,9 +373,7 @@
 
   (testing "when no available times, returns empty schedule"
    (is (= #{}
-          (->> {:max-events-per-day {"alice" 1
-                                     "bob" 1}
-                :availabilities {"alice" #{}
+          (->> {:availabilities {"alice" #{}
                                  "bob" #{}}
                 :times-to-pair 1}
                ps/schedule
@@ -415,9 +382,7 @@
 
   (testing "when no overlapping times, returns empty schedule"
    (is (= #{}
-          (->> {:max-events-per-day {"alice" 1
-                                     "bob" 1}
-                :availabilities {"alice" #{[:monday 1000 :available]}
+          (->> {:availabilities {"alice" #{[:monday 1000 :available]}
                                  "bob" #{[:monday 1100 :available]}}
                 :times-to-pair 1}
                ps/schedule
