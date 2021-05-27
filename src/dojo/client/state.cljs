@@ -53,9 +53,9 @@
     {:ajax {:method :put
             :uri "/api/request-login-link-email"
             :params {:email email}
-            :on-success (fn [data]
+            :on-success (fn [data])}}))
 
-                          )}}))
+
 
 (reg-event-fx
   :log-out!
@@ -114,10 +114,24 @@
             :uri "/api/user/opt-in-for-pairing"
             :params {:value bool}}}))
 
+(reg-event-fx
+  :set-user-value!
+  (fn [{db :db} [_ k v]]
+    {:db (assoc-in db [:db/user k] v)
+     :ajax {:method :put
+            :uri "/api/user/set-profile-value"
+            :params {:k k
+                     :v v}}}))
+
 (reg-sub
   :user
   (fn [db _]
     (db :db/user)))
+
+(reg-sub
+  :user-profile-value
+  (fn [db [_ k]]
+    (get-in db [:db/user k])))
 
 (reg-sub
   :user-pair-next-week?

@@ -57,6 +57,14 @@
                 db/save-user!))
       {:status 200})]
 
+   [[:put "/api/user/set-profile-value"]
+    (fn [request]
+      (let [{:keys [k v]} (request :body-params)]
+        (some-> (db/get-user (get-in request [:session :user-id]))
+                (assoc k v)
+                db/save-user!))
+      {:status 200})]
+
    [[:delete "/api/session"]
     (fn [request]
       {:status 200

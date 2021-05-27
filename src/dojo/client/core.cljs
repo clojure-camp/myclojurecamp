@@ -11,6 +11,15 @@
    [dojo.client.styles :refer [styles]]
    [dojo.model :as model]))
 
+(defn max-limit-preferences-view []
+  [:div "Max pair per day"
+   [:input {:type "number"
+            :value @(subscribe [:user-profile-value :user/max-pair-per-day])
+            :on-change (fn [e]
+                          (dispatch [:set-user-value!
+                                     :user/max-pair-per-day
+                                     (.. e -target -value)]))}]])
+
 (defn next-day-of-week
   "Calculates next date with day of week as given"
   [now target-day-of-week]
@@ -147,6 +156,7 @@
     "Log Out"]
    [opt-in-view]
    [topics-view]
+   [max-limit-preferences-view]
    [availability-view]])
 
 (defn app-view []
