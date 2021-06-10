@@ -134,16 +134,6 @@
     (get-in db [:db/user k])))
 
 (reg-sub
-  :user-pair-next-week?
-  (fn [db _]
-    (get-in db [:db/user :user/pair-next-week?])))
-
-(reg-sub
   :topics
   (fn [db _]
     (vals (db :db/topics))))
-
-(reg-sub
-  :user-topic-ids
-  (fn [db _]
-    (get-in db [:db/user :user/topic-ids])))
