@@ -59,11 +59,14 @@
 
    [[:put "/api/user/set-profile-value"]
     (fn [request]
-      (let [{:keys [k v]} (request :body-params)]
-        (some-> (db/get-user (get-in request [:session :user-id]))
-                (assoc k v)
-                db/save-user!))
-      {:status 200})]
+      (if (not (contains? #{:user/max-pair-per-day}
+                          (get-in request [:body-params :k])))
+        {:status 400}
+        (let [{:keys [k v]} (request :body-params)]
+          (some-> (db/get-user (get-in request [:session :user-id]))
+                  (assoc k v)
+                  db/save-user!)
+          {:status 200})))]
 
    [[:delete "/api/session"]
     (fn [request]
