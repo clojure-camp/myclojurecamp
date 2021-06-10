@@ -1,8 +1,9 @@
 (ns dojo.seed
   (:require
-    [bloom.commons.uuid :as uuid]
-    [dojo.model :as model]
-    [dojo.db :as db]))
+   [clojure.java.io :as io]
+   [bloom.commons.uuid :as uuid]
+   [dojo.model :as model]
+   [dojo.db :as db]))
 
 (defn seed! []
   (let [topics (for [topic ["react" "clojure" "reagent" "re-frame" "javascript"]]
