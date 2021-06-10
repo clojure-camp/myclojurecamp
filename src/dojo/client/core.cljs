@@ -54,7 +54,7 @@
 (defn topics-view []
   [:div.topics-view
    [:h1 "Topics"]
-   (let [user-topic-ids @(subscribe [:user-topic-ids])]
+   (let [user-topic-ids @(subscribe [:user-profile-value :user/topic-ids])]
      [:div.topics
       (for [topic (sort-by :topic/name @(subscribe [:topics]))
             :let [checked? (contains? user-topic-ids (:topic/id topic))]]
@@ -136,7 +136,7 @@
          [:div "An email with a login-link was sent to " @sent-email])])))
 
 (defn opt-in-view []
-  (let [checked? @(subscribe [:user-pair-next-week?])]
+  (let [checked? @(subscribe [:user-profile-value :user/pair-next-week?])]
    [:label.opt-in {:class (when checked? "active")}
     (if checked?
       [fa/fa-check-square-regular]
