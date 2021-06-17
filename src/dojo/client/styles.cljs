@@ -79,6 +79,15 @@
       [:>button
        {:cursor "pointer"}]]
 
+     [:>.max-limit-preferences
+
+      [:>label
+       {:display "block"
+        :padding "0.5rem"}
+
+       [:>input
+        {:margin-left "0.5rem"}]]]
+
      [:>table.availability
       {:border-spacing 0
        :width "100%"}
