@@ -8,7 +8,7 @@
     [dojo.seed :as seed]))
 
 (defn start! []
-  (omni/start! omni/system omni-config)
+  (omni/start! omni/system @omni-config)
   (jobs.opt-in-email/schedule-email-job!)
   (jobs.match-email/schedule-email-job!))
 
