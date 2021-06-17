@@ -27,7 +27,7 @@
           [:p "R"]]})
 
 (defn send-friday-emails! []
-  (doseq [email (config :emails)]
+  (doseq [email (@config :emails)]
     (email/send! (friday-email-template email))))
 
 (defn schedule-email-job! []

@@ -23,7 +23,7 @@
      [:pass string?]]]])
 
 (def config
-  (config/read "config.edn" schema))
+  (delay (config/read "config.edn" schema)))
 
 #_(config/generate "config.edn" schema)
 

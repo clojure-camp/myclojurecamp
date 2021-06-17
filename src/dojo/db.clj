@@ -6,7 +6,7 @@
     [bloom.commons.thread-safe-io :as io]
     [dojo.config :refer [config]]))
 
-(def data-path (delay (config :data-path)))
+(def data-path (delay (@config :data-path)))
 
 (defn parse [f]
   (edn/read-string (io/slurp f)))
