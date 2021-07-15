@@ -6,13 +6,11 @@
     [bloom.commons.thread-safe-io :as io]
     [dojo.config :refer [config]]))
 
-(def data-path (delay (@config :data-path)))
-
 (defn parse [f]
   (edn/read-string (io/slurp f)))
 
 (defn ->path [entity-type entity-id]
-  (str @data-path "/" (name entity-type) "/" entity-id ".edn"))
+  (str (:data-path @config) "/" (name entity-type) "/" entity-id ".edn"))
 
 (defn get-user
   [user-id]
@@ -20,7 +18,7 @@
     (parse (->path :user user-id))))
 
 (defn get-users []
-  (->> (java.io/file (str @data-path "/user"))
+  (->> (java.io/file (str (:data-path @config) "/user"))
        file-seq
        (filter (fn [f]
                  (.isFile f)))
@@ -32,7 +30,7 @@
                              (map :user/topic-ids)
                              (apply concat)
                              frequencies)]
-    (->> (java.io/file (str @data-path "/topic"))
+    (->> (java.io/file (str (:data-path @config) "/topic"))
          file-seq
          (filter (fn [f]
                    (.isFile f)))
@@ -56,7 +54,7 @@
 
 (defn get-user-by-email
   [email]
-  (->> (java.io/file @data-path)
+  (->> (java.io/file (:data-path @config))
        file-seq
        (filter (fn [f] (.isFile f)))
        (map parse)
