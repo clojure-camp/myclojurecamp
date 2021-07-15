@@ -10,7 +10,8 @@
   :lein-tools-deps/config {:config-files [:install :user :project]}
 
   :main dojo.core
-  :repl-options {:init-ns dojo.core}
+  :repl-options {:init-ns dojo.core
+                 :timeout 200000}
 
   :profiles {:uberjar
              {:aot :all
