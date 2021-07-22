@@ -12,7 +12,8 @@
             user (or (db/get-user-by-email email)
                      (db/create-user! email))]
         (email/send!
-          (emails.login-link/login-email-template user))))]
+          (emails.login-link/login-email-template user))
+        {:status 200}))]
 
    [[:get "/api/user"]
     (fn [request]
