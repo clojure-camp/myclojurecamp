@@ -2,6 +2,7 @@
   (:require
     [clojure.edn :as edn]
     [clojure.java.io :as java.io]
+    [clojure.string :as string]
     [bloom.commons.uuid :as uuid]
     [bloom.commons.thread-safe-io :as io]
     [dojo.config :refer [config]]))
@@ -52,6 +53,13 @@
     (save-topic! topic)
     topic))
 
+(defn normalize-email [email]
+  (-> email
+     (string/replace #"\s" "")
+     (string/lower-case)))
+
+#_(normalize-email "\nfOO@example .com")
+
 (defn get-user-by-email
   [email]
   (->> (java.io/file (:data-path @config))
@@ -59,7 +67,8 @@
        (filter (fn [f] (.isFile f)))
        (map parse)
        (filter (fn [u]
-                 (= email (:user/email u))))
+                 (= (normalize-email email)
+                    (:user/email u))))
        first))
 
 (defn create-user!
@@ -67,7 +76,7 @@
   [email]
   (let [user {:user/id (uuid/random)
               :user/pair-next-week? false
-              :user/email email
+              :user/email (normalize-email email)
               :user/topic-ids #{}
               :user/availability {}}]
     (save-user! user)
