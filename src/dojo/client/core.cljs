@@ -22,7 +22,7 @@
              :on-change (fn [e]
                            (dispatch [:set-user-value!
                                       :user/max-pair-per-day
-                                      (.. e -target -value)]))}]]
+                                      (js/parseInt (.. e -target -value) 10)]))}]]
    [:label
     "Max pair per week"
     [:input {:type "number"
@@ -32,7 +32,7 @@
              :on-change (fn [e]
                            (dispatch [:set-user-value!
                                       :user/max-pair-per-week
-                                      (.. e -target -value)]))}]]])
+                                      (js/parseInt (.. e -target -value) 10)]))}]]])
 (defn next-day-of-week
   "Calculates next date with day of week as given"
   [now target-day-of-week]
