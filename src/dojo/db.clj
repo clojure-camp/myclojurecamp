@@ -77,6 +77,8 @@
   (let [user {:user/id (uuid/random)
               :user/pair-next-week? false
               :user/email (normalize-email email)
+              :user/max-pair-per-day 0 
+              :user/max-pair-per-week 0
               :user/topic-ids #{}
               :user/availability {}}]
     (save-user! user)
