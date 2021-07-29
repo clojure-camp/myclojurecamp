@@ -2,7 +2,8 @@
   (:require
     [chime.core :as chime]
     [dojo.config :refer [config]]
-    [dojo.email :as email])
+    [dojo.email :as email]
+    [dojo.db :as db])
   (:import
     (java.time Period DayOfWeek ZonedDateTime ZoneId LocalTime)
     (java.time.format DateTimeFormatter)
@@ -17,17 +18,15 @@
   {:to email
    :subject "ClojoDojo - Pair Next Week?"
    :body [:div
-          [:p
-           "If you want to pair next week, put an X in the \"Pair Week of "
-           (datetime->next-monday-string
-             (ZonedDateTime/now (ZoneId/of "America/Toronto"))) "\" column in "
-           [:a {:href "https://docs.google.com/spreadsheets/d/1XYJjfHQzWu1_WiOV33Fu4RvJn3D1VZ3AyGbE__w2z2g/edit#gid=0"} "the spreadsheet"] " and update your availability (the calendar now includes evenings)."]
-          [:p "If you're no longer interested, remove yourself from the spreadsheet."]
-          [:p "I'll send the schedule Sunday night."]
-          [:p "R"]]})
+          [:p "If you want to pair next week, "
+              [:a {:href (@config :app-domain)} "update your availability schedule"] "."]
+          [:p "The schedule will be sent Sunday night."]
+          [:p "- clojodojo bot"]]})
+
+#_(friday-email-template "alice@example.com")
 
 (defn send-friday-emails! []
-  (doseq [email (@config :emails)]
+  (doseq [email (map :user/email (db/get-users))]
     (email/send! (friday-email-template email))))
 
 (defn schedule-email-job! []
