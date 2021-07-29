@@ -90,7 +90,7 @@
     "+ Add Topic"]])
 
 (defn availability-view []
-  (when-let [availability (:user/availability @(subscribe [:user]))]
+  (when-let [availability @(subscribe [:user-profile-value :user/availability])]
     [:table.availability
      [:thead
       [:tr
