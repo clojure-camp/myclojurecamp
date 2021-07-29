@@ -61,7 +61,8 @@
    [[:put "/api/user/set-profile-value"]
     (fn [request]
       (if (not (contains? #{:user/max-pair-per-day
-                            :user/max-pair-per-week}
+                            :user/max-pair-per-week
+                            :user/name}
                           (get-in request [:body-params :k])))
         {:status 400}
         (let [{:keys [k v]} (request :body-params)]

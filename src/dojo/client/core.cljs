@@ -161,6 +161,14 @@
                            [:opt-in-for-pairing! (not checked?)]))}]
     "Pair next week?"]))
 
+(defn name-view []
+  [:label "Name "
+   [:input {:type "text"
+            :value @(subscribe [:user-profile-value :user/name])
+            :on-change (fn [e]
+                          (dispatch
+                            [:set-user-value! :user/name (.. e -target -value)]))}]])
+
 (defn main-view []
   [:div.main
    [:button.log-out
@@ -168,6 +176,7 @@
                  (dispatch [:log-out!]))}
     "Log Out"]
    [opt-in-view]
+   [name-view]
    [topics-view]
    [max-limit-preferences-view]
    [availability-view]])
