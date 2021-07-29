@@ -14,10 +14,11 @@
             (TemporalAdjusters/next DayOfWeek/MONDAY))
            (DateTimeFormatter/ofPattern "MMM dd")))
 
-(defn friday-email-template [email]
-  {:to email
+(defn friday-email-template [user]
+  {:to (:user/email user)
    :subject "ClojoDojo - Pair Next Week?"
    :body [:div
+          [:p "Hey " (:user/name user) ","]
           [:p "If you want to pair next week, "
               [:a {:href (@config :app-domain)} "update your availability schedule"] "."]
           [:p "The schedule will be sent Sunday night."]
@@ -26,8 +27,10 @@
 #_(friday-email-template "alice@example.com")
 
 (defn send-friday-emails! []
-  (doseq [email (map :user/email (db/get-users))]
-    (email/send! (friday-email-template email))))
+  (doseq [user (db/get-users)]
+    (email/send! (friday-email-template user))))
+
+#_(send-friday-emails!)
 
 (defn schedule-email-job! []
   (chime/chime-at
