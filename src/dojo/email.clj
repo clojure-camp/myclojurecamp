@@ -5,7 +5,7 @@
     [dojo.config :refer [config]]))
 
 (defn send! [{:keys [to subject body]}]
-  (println (hiccup/html body))
+  (println body)
   (try
     (postal/send-message
       (:smtp-credentials @config)
