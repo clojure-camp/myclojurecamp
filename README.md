@@ -12,12 +12,14 @@ WIP.
 
 ## Developing
 
-(prerequisites: java, and leiningen)
+(prerequisites: java, [leiningen](https://leiningen.org/), and [clojure cli](https://clojure.org/guides/getting_started#_clojure_installer_and_cli_tools))
 
 `git clone`
 
 `lein repl`
 
-run `(dojo.config/generate "config.edn" dojo.config/schema)` to generate a starter config (change the values)
+connect to the repl from your text editor
 
-after you've filled in the `config.edn` either, restart the repl (`lein repl`) or `(require 'dojo.core :reload-all)`
+in `dojo.core`, run `(config/generate!)` to generate a starter config
+
+then, in `dojo.core`, run `(start!)` and `(seed/seed!)`
