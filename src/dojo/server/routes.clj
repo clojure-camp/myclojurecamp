@@ -1,19 +1,58 @@
 (ns dojo.server.routes
   (:require
+    [clojure.string :as string]
+    [tada.events.core :as tada]
+    [tada.events.ring]
     [dojo.db :as db]
     [dojo.email :as email]
     [dojo.emails.login-link :as emails.login-link]))
 
+(def commands
+  [{:id :request-login-link-email!
+    :params {:email (and string?
+                         #(re-matches #".*@.*\..*" %))}
+    :conditions
+    (fn [_]
+      [])
+    :effect
+    (fn [{:keys [email]}]
+      (let [user (or (db/get-user-by-email email)
+                     (db/create-user! email))]
+        (email/send!
+          (emails.login-link/login-email-template user))))}
+
+   {:id :create-topic!
+    :params {:user-id uuid?
+             :name (and string? (complement string/blank?))}
+    :conditions
+    (fn [_]
+      ;;TODO: Check that user with this id exists
+      ;;TODO: Check that topic with this name doesn't already exist.
+      [])
+    :effect
+    (fn [{:keys [name]}]
+      (db/create-topic! name))
+    :return
+    (fn [params]
+     (:tada/effect-return params))}])
+
+(def queries
+  [{:id :user}])
+
+#_(tada/register! commands)
+
+(defn params-middleware [handler]
+  (fn [request]
+    ;; TADA wants a :params key on requests
+    (handler (assoc request :params
+              (assoc (:body-params request)
+                     :user-id (get-in request [:session :user-id]))))))
+
 (def routes
   [
    [[:put "/api/request-login-link-email"]
-    (fn [request]
-      (let [email (get-in request [:body-params :email])
-            user (or (db/get-user-by-email email)
-                     (db/create-user! email))]
-        (email/send!
-          (emails.login-link/login-email-template user))
-        {:status 200}))]
+    (tada.events.ring/route :request-login-link-email!)
+    [params-middleware]]
 
    [[:get "/api/user"]
     (fn [request]
@@ -25,8 +64,8 @@
       {:body (db/get-topics)})]
 
    [[:put "/api/topics"]
-    (fn [request]
-      {:body (db/create-topic! (get-in request [:body-params :name]))})]
+    (tada.events.ring/route :create-topic!)
+    [params-middleware]]
 
    [[:put "/api/user/add-topic"]
     (fn [request]
