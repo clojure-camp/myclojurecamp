@@ -11,9 +11,6 @@
   [{:id :request-login-link-email!
     :params {:email (and string?
                          #(re-matches #".*@.*\..*" %))}
-    :conditions
-    (fn [_]
-      [])
     :effect
     (fn [{:keys [email]}]
       (let [user (or (db/get-user-by-email email)
@@ -25,22 +22,20 @@
     :params {:user-id uuid?
              :name (and string? (complement string/blank?))}
     :conditions
-    (fn [_]
-      ;;TODO: Check that user with this id exists
-      ;;TODO: Check that topic with this name doesn't already exist.
-      [])
+    (fn [{:keys [user-id name]}]
+      [[#(db/user-exists? user-id) :not-allowed "User with this ID does not exist."]
+       [#(not (db/topic-name-exists? name)) :not-allowed "Topic with this name already exists."]])
     :effect
     (fn [{:keys [name]}]
       (db/create-topic! name))
-    :return
-    (fn [params]
-     (:tada/effect-return params))}])
+    :return :tada/effect-return}])
+
+#_(tada/do :request-login-link-email! {:email "foo@example.com"})
 
 (def queries
   [{:id :user}])
 
-#_(tada/register! commands)
-
+(tada/register! commands)
 (defn params-middleware [handler]
   (fn [request]
     ;; TADA wants a :params key on requests

@@ -13,6 +13,10 @@
 (defn ->path [entity-type entity-id]
   (str (:data-path @config) "/" (name entity-type) "/" entity-id ".edn"))
 
+(defn user-exists?
+  [user-id]
+  (.exists (java.io/file (->path :user user-id))))
+
 (defn get-user
   [user-id]
   (when user-id
@@ -40,6 +44,12 @@
                 (assoc topic :topic/user-count
                   (or (topic-id->count (:topic/id topic))
                       0)))))))
+
+(defn topic-name-exists?
+  [name]
+  (->> (get-topics)
+       (some (fn [topic]
+               (= (:topic/name topic) name)))))
 
 (defn save-user! [user]
   (io/spit (->path :user (:user/id user)) user))
@@ -77,7 +87,7 @@
   (let [user {:user/id (uuid/random)
               :user/pair-next-week? false
               :user/email (normalize-email email)
-              :user/max-pair-per-day 0 
+              :user/max-pair-per-day 0
               :user/max-pair-per-week 0
               :user/topic-ids #{}
               :user/availability {}}]
