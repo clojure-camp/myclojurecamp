@@ -33,9 +33,18 @@
 #_(tada/do :request-login-link-email! {:email "foo@example.com"})
 
 (def queries
-  [{:id :user}])
+  [{:id :user
+    :params {:user-id uuid?}
+    :conditions
+    (fn [{:keys [user-id]}]
+      [[#(db/user-exists? user-id) :not-allowed "User with this ID does not exist."]])
+    :return
+    (fn [{:keys [user-id]}]
+      (db/get-user user-id))}])
 
 (tada/register! commands)
+(tada/register! queries)
+
 (defn params-middleware [handler]
   (fn [request]
     ;; TADA wants a :params key on requests
@@ -50,9 +59,8 @@
     [params-middleware]]
 
    [[:get "/api/user"]
-    (fn [request]
-      {:body (db/get-user
-               (get-in request [:session :user-id]))})]
+    (tada.events.ring/route :user)
+    [params-middleware]]
 
    [[:get "/api/topics"]
     (fn [_]
