@@ -4,6 +4,8 @@
 
 (def days [:monday :tuesday :wednesday :thursday :friday])
 
+(def availability-values #{:preferred :available nil})
+
 (defn random-availability []
   (into {}
         (for [day days

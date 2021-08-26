@@ -13,9 +13,9 @@
 (defn ->path [entity-type entity-id]
   (str (:data-path @config) "/" (name entity-type) "/" entity-id ".edn"))
 
-(defn user-exists?
-  [user-id]
-  (.exists (java.io/file (->path :user user-id))))
+(defn exists?
+  [type id]
+  (.exists (java.io/file (->path type id))))
 
 (defn get-user
   [user-id]
