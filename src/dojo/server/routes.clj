@@ -10,6 +10,7 @@
 
 (def commands
   [{:id :request-login-link-email!
+    :route [:put "/api/request-login-link-email"]
     :params {:email (and string?
                          #(re-matches #".*@.*\..*" %))}
     :effect
@@ -20,6 +21,7 @@
           (emails.login-link/login-email-template user))))}
 
    {:id :create-topic!
+    :route [:put "/api/topics"]
     :params {:user-id uuid?
              :name (and string? (complement string/blank?))}
     :conditions
@@ -32,6 +34,7 @@
     :return :tada/effect-return}
 
    {:id :subscribe-to-topic!
+    :route [:put "/api/user/add-topic"]
     :params {:user-id uuid?
              :topic-id uuid?}
     :conditions
@@ -45,6 +48,7 @@
               db/save-user!))}
 
    {:id :unsubscribe-from-topic!
+    :route [:put "/api/user/remove-topic"]
     :params {:user-id uuid?
              :topic-id uuid?}
     :conditions
@@ -58,6 +62,7 @@
               db/save-user!))}
 
    {:id :update-availability!
+    :route [:put "/api/user/update-availability"]
     :params {:user-id uuid?
              :hour (fn [h] (contains? (set model/hours) h))
              :day (fn [d] (contains? (set model/days) d))
@@ -72,6 +77,7 @@
               db/save-user!))}
 
    {:id :opt-in-for-pairing!
+    :route [:put "/api/user/opt-in-for-pairing"]
     :params {:user-id uuid?
              :value boolean?}
     :conditions
@@ -84,6 +90,7 @@
               db/save-user!))}
 
    {:id :set-profile-value!
+    :route [:put "/api/user/set-profile-value"]
     :params {:user-id uuid?
              :k (fn [k]
                   (contains? #{:user/max-pair-per-day
@@ -111,6 +118,7 @@
 
 (def queries
   [{:id :user
+    :route [:get "/api/user"]
     :params {:user-id uuid?}
     :conditions
     (fn [{:keys [user-id]}]
@@ -120,6 +128,7 @@
       (db/get-user user-id))}
 
    {:id :topics
+    :route [:get "/api/topics"]
     :params {:user-id uuid?}
     :conditions
     (fn [{:keys [user-id]}]
@@ -128,8 +137,7 @@
     (fn [_]
       (db/get-topics))}])
 
-(tada/register! commands)
-(tada/register! queries)
+(tada/register! (concat commands queries))
 
 (defn params-middleware [handler]
   (fn [request]
@@ -139,44 +147,13 @@
                      :user-id (get-in request [:session :user-id]))))))
 
 (def routes
-  [
-   [[:put "/api/request-login-link-email"]
-    (tada.events.ring/route :request-login-link-email!)
-    [params-middleware]]
-
-   [[:get "/api/user"]
-    (tada.events.ring/route :user)
-    [params-middleware]]
-
-   [[:get "/api/topics"]
-    (tada.events.ring/route :topics)
-    [params-middleware]]
-
-   [[:put "/api/topics"]
-    (tada.events.ring/route :create-topic!)
-    [params-middleware]]
-
-   [[:put "/api/user/add-topic"]
-    (tada.events.ring/route :subscribe-to-topic!)
-    [params-middleware]]
-
-   [[:put "/api/user/remove-topic"]
-    (tada.events.ring/route :unsubscribe-from-topic!)
-    [params-middleware]]
-
-   [[:put "/api/user/update-availability"]
-    (tada.events.ring/route :update-availability!)
-    [params-middleware]]
-
-   [[:put "/api/user/opt-in-for-pairing"]
-    (tada.events.ring/route :opt-in-for-pairing!)
-    [params-middleware]]
-
-   [[:put "/api/user/set-profile-value"]
-    (tada.events.ring/route :set-profile-value!)
-    [params-middleware]]
-
-   [[:delete "/api/session"]
-    (fn [_]
+  (concat
+   (->> (concat commands queries)
+        (map (fn [{:keys [id route]}]
+               [route
+                (tada.events.ring/route id)
+                [params-middleware]])))
+   [[[:delete "/api/session"]
+     (fn [_]
       {:status 200
-       :session nil})]])
+       :session nil})]]))
