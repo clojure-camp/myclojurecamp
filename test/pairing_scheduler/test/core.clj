@@ -414,4 +414,37 @@
                 ps/schedule
                 :schedule
                 set
-                count)))))
+                count))))
+
+  (testing "takes topics into consideration"
+    (is (= 99
+           (ps/individual-score
+              "raf"
+              {:schedule
+               [{:guest-ids #{"raf" "dh"}
+                 :day-of-week :wednesday
+                 :time-of-day 1500}]
+               :topics {"raf" #{3}
+                        "dh" #{1 2}}
+               :availabilities
+               {"raf" #{[:wednesday 1500 :preferred]}}})))
+    (is (= #{#{{:guest-ids #{"alice" "bob"}
+                :day-of-week :monday
+                :time-of-day 1000}
+               {:guest-ids #{"cathy" "donald"}
+                :day-of-week :monday
+                :time-of-day 1000}}}
+          (set (repeatedly 10
+                (fn []
+                  (->> {:availabilities {"alice" #{[:monday 1000 :available]}
+                                         "bob" #{[:monday 1000 :available]}
+                                         "cathy" #{[:monday 1000 :available]}
+                                         "donald" #{[:monday 1000 :available]}}
+                        :topics {"alice" #{"a" "b"}
+                                 "bob" #{"a" "z"}
+                                 "cathy" #{"e" "f"}
+                                 "donald" #{"e" "g"}}
+                        :times-to-pair 1}
+                       ps/schedule
+                       :schedule
+                       set))))))))

@@ -30,7 +30,7 @@
 
 
 (defn individual-score
-  [guest-id {:keys [schedule availabilities max-events-per-day max-events-per-week]}]
+  [guest-id {:keys [schedule availabilities max-events-per-day max-events-per-week topics]}]
   (let [guest-events (->> schedule
                           (filter (fn [event]
                                     (contains? (event :guest-ids) guest-id))))
@@ -79,6 +79,13 @@
                     ;; outside of any available times
                     (not (contains? guest-open-times [(event :day-of-week) (event :time-of-day)]))
                     100
+                    ;; if it's not with someone with matching topics
+                    (and topics ;; ignore this criterion ifno topics passed in
+                         (->> (event :guest-ids)
+                              (map topics)
+                              (apply set/intersection)
+                              empty?))
+                    99
                     ;; at preferred time
                     (contains? (availabilities guest-id) [(event :day-of-week) (event :time-of-day) :preferred])
                     -5
