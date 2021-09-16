@@ -20,6 +20,10 @@
    :saturday DayOfWeek/SATURDAY
    :sunday DayOfWeek/SUNDAY})
 
+(defn mapify [kf vf coll]
+  (zipmap (map kf coll)
+          (map vf coll)))
+
 (defn generate-schedule
   "Returns a list of maps, with :guest-ids, :day-of-week and :Time-of-day,
     ex.
@@ -29,33 +33,23 @@
   [users]
   (if (empty? users)
    []
-   (->> {:max-events-per-day (->> users
-                                  (map (fn [user]
-                                        [(:user/id user) (:user/max-pair-per-day user)]))
-                                  (into {}))
-         :max-events-per-week (->> users
-                                   (map (fn [user]
-                                         [(:user/id user) (:user/max-pair-per-week user)]))
-                                   (into {}))
-         :topics (->> users
-                      (map (fn [user]
-                            [(:user/id user) (:user/topic-ids user)]))
-                      (into {}))
-         :availabilities (->> users
-                              (map (fn [user]
-                                    [(:user/id user)
-                                     ;; stored as {[:monday 10] :available
-                                     ;;            [:tuesday 10] :preferred
-                                     ;;            [:wednesday 10] nil)
-                                     ;; but need #{[:monday 10 :available]
-                                     ;;            [:tuesday 10 :preferred]}
-                                     ;; also, remove when value is nil
-                                     (->> (:user/availability user)
-                                          (filter (fn [[k v]] v))
-                                          (map (fn [[k v]]
-                                                 (conj k v)))
-                                          set)]))
-                              (into {}))}
+   (->> {:max-events-per-day (mapify :user/id :user/max-pair-per-day users)
+         :max-events-per-week (mapify :user/id :user/max-pair-per-week users)
+         :topics (mapify :user/id :user/topic-ids users)
+         :availabilities (mapify :user/id
+                                 ;; stored as {[:monday 10] :available
+                                 ;;            [:tuesday 10] :preferred
+                                 ;;            [:wednesday 10] nil)
+                                 ;; but need #{[:monday 10 :available]
+                                 ;;            [:tuesday 10 :preferred]}
+                                 ;; also, remove when value is nil
+                                 (fn [user]
+                                   (->> (:user/availability user)
+                                        (filter (fn [[_ v]] v))
+                                        (map (fn [[k v]]
+                                               (conj k v)))
+                                        set))
+                                 users)}
         (ps/generate-initial-schedule 1)
         ps/optimize-schedule
         :schedule)))
