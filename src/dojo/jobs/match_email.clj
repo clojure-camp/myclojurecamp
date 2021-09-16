@@ -33,6 +33,10 @@
                                   (map (fn [user]
                                         [(:user/id user) 1]))
                                   (into {}))
+         :topics (->> users
+                      (map (fn [user]
+                            [(:user/id user) (:user/topic-ids user)]))
+                      (into {}))
          :availabilities (->> users
                               (map (fn [user]
                                     [(:user/id user)
