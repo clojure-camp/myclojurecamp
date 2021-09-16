@@ -1,6 +1,5 @@
 (ns dojo.jobs.match-email
   (:require
-    [clojure.string :as string]
     [clojure.set :as set]
     [chime.core :as chime]
     [pairing-scheduler.core :as ps]
