@@ -33,6 +33,10 @@
                                   (map (fn [user]
                                         [(:user/id user) (:user/max-pair-per-day user)]))
                                   (into {}))
+         :max-events-per-week (->> users
+                                   (map (fn [user]
+                                         [(:user/id user) (:user/max-pair-per-week user)]))
+                                   (into {}))
          :topics (->> users
                       (map (fn [user]
                             [(:user/id user) (:user/topic-ids user)]))
