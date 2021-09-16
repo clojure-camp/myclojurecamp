@@ -1,5 +1,6 @@
 (ns dojo.jobs.match-email
   (:require
+    [clojure.string :as string]
     [clojure.set :as set]
     [chime.core :as chime]
     [pairing-scheduler.core :as ps]
@@ -96,7 +97,12 @@
              " with "
              [:span.guest
               (:user/name partner)
-              " (" (:user/email partner) ")"]])
+              " (" (:user/email partner) ")"]
+             " topics: "
+             (->> (set/intersection (:user/topic-ids user) (:user/topic-ids partner))
+                  (map db/get-topic)
+                  (map :topic/name)
+                  (string/join ", "))])
            [:p "If you can't make a session, be sure to let your partner know!"]
            [:p "- DojoBot"]]}))
 

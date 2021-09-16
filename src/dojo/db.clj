@@ -29,6 +29,11 @@
                  (.isFile f)))
        (map parse)))
 
+(defn get-topic
+  [topic-id]
+  (when topic-id
+    (parse (->path :topic topic-id))))
+
 (defn get-topics
   []
   (let [topic-id->count (->> (get-users)
