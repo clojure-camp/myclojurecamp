@@ -31,7 +31,7 @@
    []
    (->> {:max-events-per-day (->> users
                                   (map (fn [user]
-                                        [(:user/id user) 1]))
+                                        [(:user/id user) (:user/max-pair-per-day user)]))
                                   (into {}))
          :topics (->> users
                       (map (fn [user]
