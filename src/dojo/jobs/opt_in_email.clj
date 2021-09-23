@@ -20,7 +20,7 @@
    :body [:div
           [:p "Hey " (:user/name user) ","]
           [:p "If you want to pair next week, "
-              [:a {:href (@config :app-domain)} "update your availability schedule"] "."]
+              [:a {:href (@config :app-domain)} "opt-in and update your availability schedule"] "."]
           [:p "The schedule will be sent Sunday night."]
           [:p "- clojodojo bot"]]})
 
