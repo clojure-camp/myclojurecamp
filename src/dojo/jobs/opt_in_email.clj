@@ -27,7 +27,7 @@
 #_(friday-email-template "alice@example.com")
 
 (defn send-friday-emails! []
-  (doseq [user (db/get-users)]
+  (doseq [user (remove :user/pair-next-week? (db/get-users))]
     (email/send! (friday-email-template user))))
 
 #_(send-friday-emails!)
