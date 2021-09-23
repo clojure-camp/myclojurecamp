@@ -95,6 +95,7 @@
              :k (fn [k]
                   (contains? #{:user/max-pair-per-day
                                :user/max-pair-per-week
+                               :user/time-zone
                                :user/name}
                              k))
              :v any?}
@@ -104,6 +105,11 @@
        [#(case k
            :user/max-pair-per-day (and (integer? v) (< 0 v 24))
            :user/max-pair-per-week (and (integer? v) (< 0 v (* 24 7)))
+           :user/time-zone (and (string? v)
+                                (try
+                                  (java.time.ZoneId/of v)
+                                  (catch Exception _
+                                    false)))
            :user/name (and (string? v)
                            (not (string/blank? v))))
         :not-allowed

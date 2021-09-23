@@ -38,6 +38,12 @@
     {:db (update db :db/topics merge (key-by :topic/id topics))}))
 
 (reg-event-fx
+  ::maybe-set-time-zone!
+  (fn [{db :db} _]
+    (when (nil? (get-in db [:db/user :user/time-zone]))
+     {:dispatch [:set-user-value! :user/time-zone (.. js/Intl DateTimeFormat resolvedOptions -timeZone)]})))
+
+(reg-event-fx
   :new-topic!
   (fn [_ [_ topic-name]]
     {:ajax {:method :put
@@ -73,7 +79,8 @@
 (reg-event-fx
   ::handle-user-data!
   (fn [{db :db} [_ data]]
-    {:db (assoc db :db/user data)}))
+    {:db (assoc db :db/user data)
+     :dispatch [::maybe-set-time-zone!]}))
 
 (reg-event-fx
   :set-availability!

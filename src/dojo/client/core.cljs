@@ -169,6 +169,17 @@
                           (dispatch
                             [:set-user-value! :user/name (.. e -target -value)]))}]])
 
+(defn time-zone-view []
+  [:label "Time Zone "
+   [:input {:type "text"
+            :disabled true
+            :value @(subscribe [:user-profile-value :user/time-zone])}]
+   [:button
+    {:on-click (fn []
+                  (dispatch
+                    [:set-user-value! :user/time-zone (.. js/Intl DateTimeFormat resolvedOptions -timeZone)]))}
+    "Update"]])
+
 (defn main-view []
   [:div.main
    [:button.log-out
@@ -179,6 +190,7 @@
    [name-view]
    [topics-view]
    [max-limit-preferences-view]
+   [time-zone-view]
    [availability-view]])
 
 (defn app-view []
