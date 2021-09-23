@@ -24,17 +24,27 @@
   (zipmap (map kf coll)
           (map vf coll)))
 
+(defn adjust-day-of-week
+  "Given a local-date, adjusts into the following day of week
+     ex. 2021-01-04 + :thursday -> 2021-01-06"
+  [local-date day-of-week]
+  (.with
+    local-date
+    (TemporalAdjusters/nextOrSame (->java-day-of-week day-of-week))))
+
+#_(adjust-day-of-week (LocalDate/now) :friday)
+
 (defn convert-time
   "Converts from [:thursday 19] + 'America/Vancouver' (user's preferences)
                  + 2021-12-01  ('Monday' for which we run the matching)
                  to ZonedDateTime 2021-12-01 19:00:00 UTC"
   [[day-of-week hour-of-day] user-time-zone-string reference-local-date]
-  (.withZoneSameInstant (ZonedDateTime/of reference-local-date
+  (.withZoneSameInstant (ZonedDateTime/of (adjust-day-of-week reference-local-date day-of-week)
                                           (LocalTime/of hour-of-day 0)
                                           (ZoneId/of user-time-zone-string))
                         (ZoneId/of "UTC")))
 
-#_(convert-time [:thursday 19] "America/Vancouver" (LocalDate/now))
+#_(convert-time [:friday 19] "America/Vancouver" (LocalDate/now))
 #_(LocalTime/of 19 0)
 #_(LocalDate/now)
 
@@ -44,7 +54,7 @@
     [{:guest-ids #{123 456}
       :day-of-week :monday
       :time-of-day 1200} ...]"
-  [users]
+  [users local-date-start-of-week]
   (if (empty? users)
    []
    (->> {:max-events-per-day (mapify :user/id :user/max-pair-per-day users)
@@ -61,12 +71,14 @@
                                    (->> (:user/availability user)
                                         (filter (fn [[_ v]] v))
                                         (map (fn [[k v]]
-                                               (conj k v)))
+                                               [(convert-time k (:user/time-zone user) local-date-start-of-week) v]))
                                         set))
                                  users)}
         (ps/generate-initial-schedule 1)
         ps/optimize-schedule
         :schedule)))
+
+#_(generate-schedule (db/get-users) (LocalDate/now))
 
 (defn group-by-guests
   [schedule]
