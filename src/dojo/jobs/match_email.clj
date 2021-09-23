@@ -7,7 +7,7 @@
     [dojo.email :as email]
     [dojo.db :as db])
   (:import
-    (java.time Period DayOfWeek ZonedDateTime ZoneId LocalTime)
+    (java.time Period DayOfWeek ZonedDateTime ZoneId LocalTime LocalDate)
     (java.time.format DateTimeFormatter)
     (java.time.temporal TemporalAdjusters)))
 
@@ -23,6 +23,20 @@
 (defn mapify [kf vf coll]
   (zipmap (map kf coll)
           (map vf coll)))
+
+(defn convert-time
+  "Converts from [:thursday 19] + 'America/Vancouver' (user's preferences)
+                 + 2021-12-01  ('Monday' for which we run the matching)
+                 to ZonedDateTime 2021-12-01 19:00:00 UTC"
+  [[day-of-week hour-of-day] user-time-zone-string reference-local-date]
+  (.withZoneSameInstant (ZonedDateTime/of reference-local-date
+                                          (LocalTime/of hour-of-day 0)
+                                          (ZoneId/of user-time-zone-string))
+                        (ZoneId/of "UTC")))
+
+#_(convert-time [:thursday 19] "America/Vancouver" (LocalDate/now))
+#_(LocalTime/of 19 0)
+#_(LocalDate/now)
 
 (defn generate-schedule
   "Returns a list of maps, with :guest-ids, :day-of-week and :Time-of-day,
