@@ -39,7 +39,9 @@
                  + 2021-12-01  ('Monday' for which we run the matching)
                  to ZonedDateTime 2021-12-01 19:00:00 UTC"
   [[day-of-week hour-of-day] user-time-zone-string reference-local-date]
-  (.withZoneSameInstant (ZonedDateTime/of (adjust-day-of-week reference-local-date day-of-week)
+  (.withZoneSameInstant (ZonedDateTime/of (.with
+                                           (adjust-day-of-week reference-local-date :monday)
+                                           (TemporalAdjusters/nextOrSame (->java-day-of-week day-of-week)))
                                           (LocalTime/of hour-of-day 0)
                                           (ZoneId/of user-time-zone-string))
                         (ZoneId/of "UTC")))
