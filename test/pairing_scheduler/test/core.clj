@@ -6,14 +6,14 @@
 
 ;; schedule
 [{:guest-ids #{"raf" "dh"}
-  :day-of-week :wednesday
-  :time-of-day 1500}]
+  :at #inst "2021-01-01T09"}]
 
 ;; availabilities
 
-{"Raf" #{[:monday 900 :available]
-         [:monday 1000 :preferred]}
+{"Raf" #{[#inst "2021-01-01T09" :available]
+         [#inst "2021-01-01T10" :preferred]}
  "DH" #{}}
+
 
 (deftest individual-score
   (testing "double-scheduling"
@@ -22,13 +22,11 @@
             "raf"
             {:schedule
              [{:guest-ids #{"raf" "dh"}
-               :day-of-week :wednesday
-               :time-of-day 1500}
+               :at #inst "2021-01-01T09"}
               {:guest-ids #{"raf" "berk"}
-               :day-of-week :wednesday
-               :time-of-day 1500}]
+               :at #inst "2021-01-01T09"}]
              :availabilities
-             {"raf" #{[:wednesday 1500 :preferred]}}}))))
+             {"raf" #{[#inst "2021-01-01T09" :preferred]}}}))))
 
   (testing "not within available times"
     (is (= 100
@@ -36,8 +34,7 @@
             "raf"
             {:schedule
              [{:guest-ids #{"raf" "dh"}
-               :day-of-week :wednesday
-               :time-of-day 1800}]
+               :at #inst "2021-01-01T09"}]
              :availabilities
              {"raf" #{}}}))))
 
@@ -47,24 +44,24 @@
             "raf"
             {:schedule
              [{:guest-ids #{"raf" "dh"}
-               :day-of-week :monday
-               :time-of-day 900}
+               :at #inst "2021-01-01T09"}
               {:guest-ids #{"raf" "dh"}
-               :day-of-week :monday
-               :time-of-day 1000}
+               :at #inst "2021-01-01T10"}
               {:guest-ids #{"raf" "dh"}
-               :day-of-week :monday
-               :time-of-day 1100}]
+               :at #inst "2021-01-01T11"}]
+             :timezones
+             {"raf" "America/Toronto"
+              "dh" "America/Toronto"}
              :max-events-per-day
              {"raf" 2
               "dh" 2}
              :availabilities
-             {"raf" #{[:monday 900 :available]
-                      [:monday 1000 :available]
-                      [:monday 1100 :available]}
-              "dh" #{[:monday 900 :available]
-                     [:monday 1000 :available]
-                     [:monday 1100 :available]}}}))))
+             {"raf" #{[#inst "2021-01-01T09" :available]
+                      [#inst "2021-01-01T10" :available]
+                      [#inst "2021-01-01T11" :available]}
+              "dh" #{[#inst "2021-01-01T09" :available]
+                     [#inst "2021-01-01T10" :available]
+                     [#inst "2021-01-01T11" :available]}}}))))
 
   (testing "above max-events-per-week"
     (is (= 97
@@ -72,24 +69,21 @@
             "raf"
             {:schedule
              [{:guest-ids #{"raf" "dh"}
-               :day-of-week :monday
-               :time-of-day 900}
+               :at #inst "2021-01-01T09"}
               {:guest-ids #{"raf" "dh"}
-               :day-of-week :monday
-               :time-of-day 1000}
+               :at #inst "2021-01-01T10"}
               {:guest-ids #{"raf" "dh"}
-               :day-of-week :monday
-               :time-of-day 1100}]
+               :at #inst "2021-01-01T11"}]
              :max-events-per-week
              {"raf" 2
               "dh" 2}
              :availabilities
-             {"raf" #{[:monday 900 :available]
-                      [:monday 1000 :available]
-                      [:monday 1100 :available]}
-              "dh" #{[:monday 900 :available]
-                     [:monday 1000 :available]
-                     [:monday 1100 :available]}}}))))
+             {"raf" #{[#inst "2021-01-01T09" :available]
+                      [#inst "2021-01-01T10" :available]
+                      [#inst "2021-01-01T11" :available]}
+              "dh" #{[#inst "2021-01-01T09" :available]
+                     [#inst "2021-01-01T10" :available]
+                     [#inst "2021-01-01T11" :available]}}}))))
 
   (testing "within available times"
     (is (= -1
@@ -97,11 +91,10 @@
             "raf"
             {:schedule
              [{:guest-ids #{"raf" "dh"}
-               :day-of-week :monday
-               :time-of-day 900}]
+               :at #inst "2021-01-01T09"}]
              :availabilities
-             {"raf" #{[:monday 900 :available]}
-              "dh" #{[:monday 900 :available]}}}))))
+             {"raf" #{[#inst "2021-01-01T09" :available]}
+              "dh" #{[#inst "2021-01-01T09" :available]}}}))))
 
   (testing "within preferred times"
     (is (= -5
@@ -109,46 +102,42 @@
             "raf"
             {:schedule
              [{:guest-ids #{"raf" "dh"}
-               :day-of-week :monday
-               :time-of-day 900}]
+               :at #inst "2021-01-01T09"}]
              :availabilities
-             {"raf" #{[:monday 900 :preferred]}
-              "dh" #{[:monday 900 :preferred]}}})))))
+             {"raf" #{[#inst "2021-01-01T09" :preferred]}
+              "dh" #{[#inst "2021-01-01T09" :preferred]}}})))))
 
 (deftest overlapping-daytimes
   (testing "some overlap"
-    (is (= #{[:monday 900]}
+    (is (= #{#inst "2021-01-01T09"}
            (ps/overlapping-daytimes
             #{"Raf" "Berk"}
             {:availabilities
-             {"Raf" #{[:monday 900 :available]}
-              "Berk" #{[:monday 900 :preferred]}}}))))
+             {"Raf" #{[#inst "2021-01-01T09" :available]}
+              "Berk" #{[#inst "2021-01-01T09" :preferred]}}}))))
 
   (testing "no overlap"
     (is (= #{}
            (ps/overlapping-daytimes
             #{"Raf" "Berk"}
             {:availabilities
-             {"Raf" #{[:monday 900 :available]}
-              "Berk" #{[:tuesday 900 :preferred]}}})))))
+             {"Raf" #{[#inst "2021-01-01T09" :available]}
+              "Berk" #{[#inst "2021-01-02T09" :preferred]}}})))))
 
 (deftest generate-initial-schedule
   (testing "generate-initial-schedule"
     (is (= #{{:guest-ids #{"Raf" "DH"}
-              :day-of-week :monday
-              :time-of-day 900}
+              :at #inst "2021-01-01T09"}
              {:guest-ids #{"Berk" "DH"}
-              :day-of-week :monday
-              :time-of-day 900}
+              :at #inst "2021-01-01T09"}
              {:guest-ids #{"Berk" "Raf"}
-              :day-of-week :monday
-              :time-of-day 900}}
+              :at #inst "2021-01-01T09"}}
            (->> (ps/generate-initial-schedule
                  1
                  {:availabilities
-                  {"Raf" #{[:monday 900 :available]}
-                   "Berk" #{[:monday 900 :available]}
-                   "DH" #{[:monday 900 :available]}}})
+                  {"Raf" #{[#inst "2021-01-01T09" :available]}
+                   "Berk" #{[#inst "2021-01-01T09" :available]}
+                   "DH" #{[#inst "2021-01-01T09" :available]}}})
                 :schedule
                 set)))))
 
@@ -156,107 +145,89 @@
   (testing "prefers empty schedule to overlap"
     (let [context {:availabilities
                    {"raf" #{}
-                    "dh" #{[:monday 1000 :preferred]
-                           [:monday 1200 :preferred]}}}]
+                    "dh" #{[#inst "2021-01-01T10" :preferred]
+                           [#inst "2021-01-01T12" :preferred]}}}]
       (is (< (ps/schedule-score
               (assoc context :schedule []))
              (ps/schedule-score
               (assoc context :schedule [{:guest-ids #{"raf" "dh"}
-                                         :day-of-week :monday
-                                         :time-of-day 900}]))))))
+                                         :at #inst "2021-01-01T09"}]))))))
 
   (testing "prefer distributing events amongst users"
     (let [context {:availabilities
-                   {"raf" #{[:monday 1000 :available]
-                            [:tuesday 1000 :available]
-                            [:thursday 1000 :available]}
-                    "dh" #{[:monday 1000 :available]
-                           [:tuesday 1000 :available]
-                           [:thursday 1000 :available]}
-                    "berk" #{[:monday 1000 :available]
-                             [:tuesday 1000 :available]
-                             [:thursday 1000 :available]}}}]
+                   {"raf" #{[#inst "2021-01-01T10" :available]
+                            [#inst "2021-01-02T10" :available]
+                            [#inst "2021-01-04T10" :available]}
+                    "dh" #{[#inst "2021-01-01T10" :available]
+                           [#inst "2021-01-02T10" :available]
+                           [#inst "2021-01-04T10" :available]}
+                    "berk" #{[#inst "2021-01-01T10" :available]
+                             [#inst "2021-01-02T10" :available]
+                             [#inst "2021-01-04T10" :available]}}}]
       (is (< (ps/schedule-score
               (assoc context :schedule
                      [{:guest-ids #{"dh" "berk"}
-                       :day-of-week :monday
-                       :time-of-day 1000}
+                       :at #inst "2021-01-01T10"}
                       {:guest-ids #{"raf" "berk"}
-                       :day-of-week :tuesday
-                       :time-of-day 1000}
+                       :at #inst "2021-01-02T10"}
                       {:guest-ids #{"dh" "raf"}
-                       :day-of-week :thursday
-                       :time-of-day 1000}]))
+                       :at #inst "2021-01-04T10"}]))
              (ps/schedule-score
               (assoc context :schedule
                      [{:guest-ids #{"dh" "berk"}
-                       :day-of-week :monday
-                       :time-of-day 1000}
+                       :at #inst "2021-01-01T10"}
                       {:guest-ids #{"dh" "berk"}
-                       :day-of-week :thursday
-                       :time-of-day 1000}
+                       :at #inst "2021-01-04T10"}
                       {:guest-ids #{"dh" "berk"}
-                       :day-of-week :tuesday
-                       :time-of-day 1000}]))))))
+                       :at #inst "2021-01-02T10"}]))))))
 
   (testing "prefer a variety of guests per guest"
     (let [context {:availabilities
-                   {"raf" #{[:monday 1000 :available]
-                            [:monday 1100 :available]}
-                    "dh" #{[:monday 1000 :available]
-                           [:monday 1100 :available]}
-                    "berk" #{[:monday 1000 :available]
-                             [:monday 1100 :available]}
-                    "james" #{[:monday 1000 :available]
-                              [:monday 1100 :available]}}}]
+                   {"raf" #{[#inst "2021-01-01T10" :available]
+                            [#inst "2021-01-01T11" :available]}
+                    "dh" #{[#inst "2021-01-01T10" :available]
+                           [#inst "2021-01-01T11" :available]}
+                    "berk" #{[#inst "2021-01-01T10" :available]
+                             [#inst "2021-01-01T11" :available]}
+                    "james" #{[#inst "2021-01-01T10" :available]
+                              [#inst "2021-01-01T11" :available]}}}]
       (is (< (ps/schedule-score
               (assoc context :schedule
                      [{:guest-ids #{"raf" "dh"}
-                       :day-of-week :monday
-                       :time-of-day 1000}
+                       :at #inst "2021-01-01T10"}
                       {:guest-ids #{"raf" "berk"}
-                       :day-of-week :monday
-                       :time-of-day 1100}
+                       :at #inst "2021-01-01T11"}
                       {:guest-ids #{"james" "berk"}
-                       :day-of-week :monday
-                       :time-of-day 1000}
+                       :at #inst "2021-01-01T10"}
                       {:guest-ids #{"james" "dh"}
-                       :day-of-week :monday
-                       :time-of-day 1100}]))
+                       :at #inst "2021-01-01T11"}]))
              (ps/schedule-score
               (assoc context :schedule
                      [{:guest-ids #{"raf" "dh"}
-                       :day-of-week :monday
-                       :time-of-day 1000}
+                       :at #inst "2021-01-01T10"}
                       {:guest-ids #{"raf" "dh"}
-                       :day-of-week :monday
-                       :time-of-day 1100}
+                       :at #inst "2021-01-01T11"}
                       {:guest-ids #{"james" "berk"}
-                       :day-of-week :monday
-                       :time-of-day 1000}
+                       :at #inst "2021-01-01T10"}
                       {:guest-ids #{"james" "berk"}
-                       :day-of-week :monday
-                       :time-of-day 1100}])))))))
+                       :at #inst "2021-01-01T11"}])))))))
 
 (deftest optimize-schedule
   (testing "basic"
     (is (= (set [{:guest-ids #{"raf" "dh"}
-                  :day-of-week :monday
-                  :time-of-day 1000}
+                  :at #inst "2021-01-01T10"}
                  {:guest-ids #{"raf" "berk"}
-                  :day-of-week :monday
-                  :time-of-day 1100}
+                  :at #inst "2021-01-01T11"}
                  {:guest-ids #{"berk" "dh"}
-                  :day-of-week :monday
-                  :time-of-day 1200}])
+                  :at #inst "2021-01-01T12"}])
            (->> {:availabilities
-                 {"raf" #{[:monday 1000 :available]
-                          [:monday 1100 :available]}
-                  "dh" #{[:monday 1000 :available]
-                         [:monday 1100 :available]
-                         [:monday 1200 :available]}
-                  "berk" #{[:monday 1100 :available]
-                           [:monday 1200 :available]}}}
+                 {"raf" #{[#inst "2021-01-01T10" :available]
+                          [#inst "2021-01-01T11" :available]}
+                  "dh" #{[#inst "2021-01-01T10" :available]
+                         [#inst "2021-01-01T11" :available]
+                         [#inst "2021-01-01T12" :available]}
+                  "berk" #{[#inst "2021-01-01T11" :available]
+                           [#inst "2021-01-01T12" :available]}}}
                 (ps/generate-initial-schedule 1)
                 ps/optimize-schedule
                 :schedule
@@ -264,25 +235,22 @@
 
   (testing "prefer scheduling during preferred times"
    (is (= #{{:guest-ids #{"raf" "dh"}
-             :day-of-week :monday
-             :time-of-day 1000}
+             :at #inst "2021-01-01T10"}
             {:guest-ids #{"raf" "berk"}
-             :day-of-week :monday
-             :time-of-day 1100}
+             :at #inst "2021-01-01T11"}
             {:guest-ids #{"berk" "dh"}
-             :day-of-week :monday
-             :time-of-day 1200}}
+             :at #inst "2021-01-01T12"}}
           (->> {:availabilities
-                {"raf" #{[:monday 1000 :preferred]
-                         [:monday 1100 :preferred]
-                         [:monday 1200 :available]}
+                {"raf" #{[#inst "2021-01-01T10" :preferred]
+                         [#inst "2021-01-01T11" :preferred]
+                         [#inst "2021-01-01T12" :available]}
 
-                 "dh" #{[:monday 1000 :preferred]
-                        [:monday 1100 :available]
-                        [:monday 1200 :preferred]}
-                 "berk" #{[:monday 1000 :available]
-                          [:monday 1100 :preferred]
-                          [:monday 1200 :preferred]}}}
+                 "dh" #{[#inst "2021-01-01T10" :preferred]
+                        [#inst "2021-01-01T11" :available]
+                        [#inst "2021-01-01T12" :preferred]}
+                 "berk" #{[#inst "2021-01-01T10" :available]
+                          [#inst "2021-01-01T11" :preferred]
+                          [#inst "2021-01-01T12" :preferred]}}}
                (ps/generate-initial-schedule 1)
                ps/optimize-schedule
                :schedule
@@ -290,15 +258,15 @@
 
   (testing "prefer evenly spreading events amongst users"
     (let [schedule (->> {:availabilities
-                         {"raf" #{[:monday 1000 :available]
-                                  [:tuesday 1000 :available]
-                                  [:thursday 1000 :available]}
-                          "dh" #{[:monday 1000 :available]
-                                 [:tuesday 1000 :available]
-                                 [:thursday 1000 :available]}
-                          "berk" #{[:monday 1000 :available]
-                                   [:tuesday 1000 :available]
-                                   [:thursday 1000 :available]}}}
+                         {"raf" #{[#inst "2021-01-01T10" :available]
+                                  [#inst "2021-01-02T10" :available]
+                                  [#inst "2021-01-04T10" :available]}
+                          "dh" #{[#inst "2021-01-01T10" :available]
+                                 [#inst "2021-01-02T10" :available]
+                                 [#inst "2021-01-04T10" :available]}
+                          "berk" #{[#inst "2021-01-01T10" :available]
+                                   [#inst "2021-01-02T10" :available]
+                                   [#inst "2021-01-04T10" :available]}}}
                         (ps/generate-initial-schedule 1)
                         ps/optimize-schedule
                         :schedule)
@@ -313,46 +281,46 @@
 
 (deftest update-available-to-preferred
   (testing "user has all timeslots set to available"
-    (is (= {"raf" #{[:monday 1000 :available]
-                    [:tuesday 1000 :available]
-                    [:thursday 1000 :preferred]}
-            "dh" #{[:monday 1000 :preferred]
-                   [:tuesday 1000 :preferred]
-                   [:thursday 1000 :preferred]}
-            "berk" #{[:monday 1000 :preferred]
-                     [:tuesday 1000 :available]
-                     [:thursday 1000 :available]}}
+    (is (= {"raf" #{[#inst "2021-01-01T10" :available]
+                    [#inst "2021-01-02T10" :available]
+                    [#inst "2021-01-04T10" :preferred]}
+            "dh" #{[#inst "2021-01-01T10" :preferred]
+                   [#inst "2021-01-02T10" :preferred]
+                   [#inst "2021-01-04T10" :preferred]}
+            "berk" #{[#inst "2021-01-01T10" :preferred]
+                     [#inst "2021-01-02T10" :available]
+                     [#inst "2021-01-04T10" :available]}}
            (ps.import/update-available-to-preferred
-            {"raf" #{[:monday 1000 :available]
-                     [:tuesday 1000 :available]
-                     [:thursday 1000 :preferred]}
-             "dh" #{[:monday 1000 :available]
-                    [:tuesday 1000 :available]
-                    [:thursday 1000 :available]}
-             "berk" #{[:monday 1000 :preferred]
-                      [:tuesday 1000 :available]
-                      [:thursday 1000 :available]}}))))
+            {"raf" #{[#inst "2021-01-01T10" :available]
+                     [#inst "2021-01-02T10" :available]
+                     [#inst "2021-01-04T10" :preferred]}
+             "dh" #{[#inst "2021-01-01T10" :available]
+                    [#inst "2021-01-02T10" :available]
+                    [#inst "2021-01-04T10" :available]}
+             "berk" #{[#inst "2021-01-01T10" :preferred]
+                      [#inst "2021-01-02T10" :available]
+                      [#inst "2021-01-04T10" :available]}}))))
 
   (testing "all users have no preferred time"
-    (is (= {"raf" #{[:monday 1000 :preferred]
-                    [:tuesday 1000 :preferred]
-                    [:thursday 1000 :preferred]}
-            "dh" #{[:monday 1000 :preferred]
-                   [:tuesday 1000 :preferred]
-                   [:thursday 1000 :preferred]}
-            "berk" #{[:monday 1000 :preferred]
-                     [:tuesday 1000 :preferred]
-                     [:thursday 1000 :preferred]}}
+    (is (= {"raf" #{[#inst "2021-01-01T10" :preferred]
+                    [#inst "2021-01-02T10" :preferred]
+                    [#inst "2021-01-04T10" :preferred]}
+            "dh" #{[#inst "2021-01-01T10" :preferred]
+                   [#inst "2021-01-02T10" :preferred]
+                   [#inst "2021-01-04T10" :preferred]}
+            "berk" #{[#inst "2021-01-01T10" :preferred]
+                     [#inst "2021-01-02T10" :preferred]
+                     [#inst "2021-01-04T10" :preferred]}}
            (ps.import/update-available-to-preferred
-            {"raf" #{[:monday 1000 :available]
-                     [:tuesday 1000 :available]
-                     [:thursday 1000 :available]}
-             "dh" #{[:monday 1000 :available]
-                    [:tuesday 1000 :available]
-                    [:thursday 1000 :available]}
-             "berk" #{[:monday 1000 :available]
-                      [:tuesday 1000 :available]
-                      [:thursday 1000 :available]}})))))
+            {"raf" #{[#inst "2021-01-01T10" :available]
+                     [#inst "2021-01-02T10" :available]
+                     [#inst "2021-01-04T10" :available]}
+             "dh" #{[#inst "2021-01-01T10" :available]
+                    [#inst "2021-01-02T10" :available]
+                    [#inst "2021-01-04T10" :available]}
+             "berk" #{[#inst "2021-01-01T10" :available]
+                      [#inst "2021-01-02T10" :available]
+                      [#inst "2021-01-04T10" :available]}})))))
 
 (deftest schedule
   (testing "when no users, returns empty schedule"
@@ -382,8 +350,8 @@
 
   (testing "when no overlapping times, returns empty schedule"
    (is (= #{}
-          (->> {:availabilities {"alice" #{[:monday 1000 :available]}
-                                 "bob" #{[:monday 1100 :available]}}
+          (->> {:availabilities {"alice" #{[#inst "2021-01-01T10" :available]}
+                                 "bob" #{[#inst "2021-01-01T11" :available]}}
                 :times-to-pair 1}
                ps/schedule
                :schedule
@@ -394,9 +362,12 @@
            (->> {:max-events-per-day {"alice" 1
                                       "bob" 1
                                       "cathy" 1}
-                 :availabilities {"alice" #{[:monday 1000 :available]}
-                                  "bob" #{[:monday 1000 :available]}
-                                  "cathy" #{[:monday 1000 :available]}}
+                 :timezones {"alice" "America/Toronto"
+                             "bob" "America/Toronto"
+                             "cathy" "America/Toronto"}
+                 :availabilities {"alice" #{[#inst "2021-01-01T10" :available]}
+                                  "bob" #{[#inst "2021-01-01T10" :available]}
+                                  "cathy" #{[#inst "2021-01-01T10" :available]}}
                  :times-to-pair 1}
                 ps/schedule
                 :schedule
@@ -406,14 +377,44 @@
   (testing "does not schedule more than per-week-limit"
     (is (= 1
            (->> {:max-events-per-week {"alice" 1}
-                 :availabilities {"alice" #{[:monday 1000 :available]
-                                            [:tuesday 1000 :available]}
-                                  "bob" #{[:monday 1000 :available]}
-                                  "cathy" #{[:tuesday 1000 :available]}}
+                 :availabilities {"alice" #{[#inst "2021-01-01T10" :available]
+                                            [#inst "2021-01-02T10" :available]}
+                                  "bob" #{[#inst "2021-01-01T10" :available]}
+                                  "cathy" #{[#inst "2021-01-02T10" :available]}}
                  :times-to-pair 1}
                 ps/schedule
                 :schedule
                 set
+                count))))
+
+  (testing "handles timezones"
+    ;; timezones are only relevant for figuring out max-events-per-day
+    (is (= 1
+           (->> {:max-events-per-day {"alice" 1
+                                      "bob" 1}
+                 :timezones {"alice" "UTC"
+                             "bob" "UTC"}
+                 :availabilities {"alice" #{[#inst "2021-01-01T00" :available]
+                                            [#inst "2021-01-01T20" :available]}
+                                  "bob" #{[#inst "2021-01-01T00" :available]
+                                          [#inst "2021-01-01T20" :available]}}
+                 :times-to-pair 2}
+                ps/schedule
+                :schedule
+                count)))
+    (is (= 2
+           (->> {:max-events-per-day {"alice" 1
+                                      "bob" 1}
+                 :timezones {"alice" "America/Toronto"
+                             "bob" "America/Toronto"}
+                 ;; same as previous, but in Toronto, these are on seperate days!
+                 :availabilities {"alice" #{[#inst "2021-01-01T00" :available]
+                                            [#inst "2021-01-01T20" :available]}
+                                  "bob" #{[#inst "2021-01-01T00" :available]
+                                          [#inst "2021-01-01T20" :available]}}
+                 :times-to-pair 2}
+                ps/schedule
+                :schedule
                 count))))
 
   (testing "takes topics into consideration"
@@ -422,24 +423,21 @@
               "raf"
               {:schedule
                [{:guest-ids #{"raf" "dh"}
-                 :day-of-week :wednesday
-                 :time-of-day 1500}]
+                 :at #inst "2021-01-03T15"}]
                :topics {"raf" #{3}
                         "dh" #{1 2}}
                :availabilities
-               {"raf" #{[:wednesday 1500 :preferred]}}})))
+               {"raf" #{[#inst "2021-01-03T15" :preferred]}}})))
     (is (= #{#{{:guest-ids #{"alice" "bob"}
-                :day-of-week :monday
-                :time-of-day 1000}
+                :at #inst "2021-01-01T10"}
                {:guest-ids #{"cathy" "donald"}
-                :day-of-week :monday
-                :time-of-day 1000}}}
+                :at #inst "2021-01-01T10"}}}
           (set (repeatedly 10
                 (fn []
-                  (->> {:availabilities {"alice" #{[:monday 1000 :available]}
-                                         "bob" #{[:monday 1000 :available]}
-                                         "cathy" #{[:monday 1000 :available]}
-                                         "donald" #{[:monday 1000 :available]}}
+                  (->> {:availabilities {"alice" #{[#inst "2021-01-01T10" :available]}
+                                         "bob" #{[#inst "2021-01-01T10" :available]}
+                                         "cathy" #{[#inst "2021-01-01T10" :available]}
+                                         "donald" #{[#inst "2021-01-01T10" :available]}}
                         :topics {"alice" #{"a" "b"}
                                  "bob" #{"a" "z"}
                                  "cathy" #{"e" "f"}

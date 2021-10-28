@@ -10,14 +10,14 @@
   (->> availabilities
        (map (fn [[guest-id guest-availabilities]]
               (if (->> guest-availabilities
-                                 (map last)
-                                 (some (partial = :preferred)))
-                          [guest-id guest-availabilities]
-                          [guest-id
-                           (->> guest-availabilities
-                      (map (fn [daily-availability]
-                             (assoc daily-availability 2 :preferred)))
-                      set)])))
+                       (map last)
+                       (apply = :available))
+                  [guest-id
+                   (->> guest-availabilities
+                        (map (fn [[inst _]]
+                               [inst :preferred]))
+                        set)]
+                  [guest-id guest-availabilities])))
        (into {})))
 
 (defn read-csv [file-path]
@@ -59,4 +59,3 @@
                               (map (fn [{:keys [name max-hours-per-day]}]
                                      [name max-hours-per-day]))
                               (into {}))}))
-
