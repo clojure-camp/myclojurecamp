@@ -10,4 +10,4 @@
         org.clojure/clojurescript {:mvn/version "1.10.764"}
         hiccup/hiccup {:mvn/version "1.0.5"}
         pairing-scheduler/pairing-scheduler {:git/url "https://github.com/clojodojo/pairing-scheduler"
-                                             :sha "09e72f30cb9d2aa27e21d77703ae2259979e7848"}}}
+                                             :sha "d89da6d4ddf88c8a2266af63c33170d5bea5605c"}}}
