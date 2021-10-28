@@ -50,6 +50,9 @@
 #_(LocalTime/of 19 0)
 #_(LocalDate/now)
 
+(defn ->inst [zoned-date-time]
+  (java.util.Date/from (.toInstant zoned-date-time)))
+
 (defn generate-schedule
   "Returns a list of maps, with :guest-ids, :day-of-week and :Time-of-day,
     ex.
@@ -62,6 +65,7 @@
    (->> {:max-events-per-day (mapify :user/id :user/max-pair-per-day users)
          :max-events-per-week (mapify :user/id :user/max-pair-per-week users)
          :topics (mapify :user/id :user/topic-ids users)
+         :timezones (mapify :user/id :user/time-zone users)
          :availabilities (mapify :user/id
                                  ;; stored as {[:monday 10] :available
                                  ;;            [:tuesday 10] :preferred
@@ -73,7 +77,7 @@
                                    (->> (:user/availability user)
                                         (filter (fn [[_ v]] v))
                                         (map (fn [[k v]]
-                                               [(convert-time k (:user/time-zone user) local-date-start-of-week) v]))
+                                               [(->inst (convert-time k (:user/time-zone user) local-date-start-of-week)) v]))
                                         set))
                                  users)}
         (ps/generate-initial-schedule 1)
