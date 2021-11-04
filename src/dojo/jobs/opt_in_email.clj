@@ -1,5 +1,6 @@
 (ns dojo.jobs.opt-in-email
   (:require
+    [bloom.omni.auth.token :as token]
     [chime.core :as chime]
     [dojo.config :refer [config]]
     [dojo.email :as email]
@@ -20,11 +21,13 @@
    :body [:div
           [:p "Hey " (:user/name user) ","]
           [:p "If you want to pair next week, "
-              [:a {:href (@config :app-domain)} "opt-in and update your availability schedule"] "."]
+              [:a {:href (str (@config :app-domain)
+                              "/?"
+                              (token/login-query-string (:user/id user) (@config :auth-token-secret)))} "opt-in and update your availability schedule"] "."]
           [:p "The schedule will be sent Sunday night."]
           [:p "- clojodojo bot"]]})
 
-#_(friday-email-template "alice@example.com")
+#_(email/send! (friday-email-template (first (db/get-users))))
 
 (defn send-friday-emails! []
   (doseq [user (remove :user/pair-next-week? (db/get-users))]
