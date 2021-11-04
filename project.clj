@@ -3,7 +3,7 @@
   :plugins [[io.bloomventures/omni "0.25.4"]
             [lein-tools-deps "0.4.5"]]
 
-  :omni-config dojo.omni-config/omni-config
+  :omni-config dojo.omni-config/omni-config-prod
 
   :middleware [lein-tools-deps.plugin/resolve-dependencies-with-deps-edn]
 

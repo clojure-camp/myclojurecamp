@@ -12,3 +12,5 @@
                             :secret (@config :auth-cookie-secret)}
                    :token {:secret (@config :auth-token-secret)}})
    :omni/api-routes #'routes/routes})
+
+(def omni-config-prod (omni-config))
