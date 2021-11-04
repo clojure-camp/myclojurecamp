@@ -108,35 +108,43 @@
 (defn matched-email-template
   [user-id events]
   (let [get-user (memoize db/get-user)
-        user (db/get-user user-id)
-        events (->> events
-                    (map (fn [event]
-                           (assoc event :date
-                             (.adjustInto
-                               (LocalTime/of (:time-of-day event) 0)
-                               (.with (ZonedDateTime/now (ZoneId/of "America/Toronto"))
-                                 (TemporalAdjusters/next (->java-day-of-week (:day-of-week event)))))))))]
+        user (db/get-user user-id)]
    {:to (:user/email user)
     :subject "ClojoDojo - Your Matches for this Week"
     :body [:div
            [:p "Hi " (:user/name user) ","]
            [:p "Here are your pairing sessions for next week:"]
-           (for [event (sort-by :date events)
+           (for [event (sort-by :at events)
                  :let [partner (get-user (first (disj (:guest-ids event) user-id)))]]
-            [:div.event
-             [:span (.format (:date event)
-                     (DateTimeFormatter/ofPattern "eee MMM dd 'at' HH:mm"))]
-             " with "
+            [:p.event
+             [:span.datetime
+              [:strong
+               (.format (ZonedDateTime/ofInstant (.toInstant (:at event))
+                                                 (ZoneId/of (:user/time-zone user)))
+                        (DateTimeFormatter/ofPattern "eee MMM dd 'at' HH:mm"))
+               " (" (:user/time-zone user) ")"]]
+             [:br]
+             "With: "
              [:span.guest
               (:user/name partner)
               " (" (:user/email partner) ")"]
-             " topics: "
+             [:br]
+             "Topics: "
              (->> (set/intersection (:user/topic-ids user) (:user/topic-ids partner))
                   (map db/get-topic)
                   (map :topic/name)
                   (string/join ", "))])
            [:p "If you can't make a session, be sure to let your partner know!"]
            [:p "- DojoBot"]]}))
+
+#_(email/send! (matched-email-template
+                  #uuid "ebf40b80-6ea3-486d-9374-6125bfe06d72"
+                  [{:guest-ids #{#uuid "e75af490-c666-4d80-aff4-374c31be9278"
+                                 #uuid "ebf40b80-6ea3-486d-9374-6125bfe06d72"}
+                    :at #inst "2021-11-08T14:00:00.000-00:00"}
+                   {:guest-ids #{#uuid "e75af490-c666-4d80-aff4-374c31be9278"
+                                 #uuid "ebf40b80-6ea3-486d-9374-6125bfe06d72"}
+                    :at #inst "2021-11-09T14:00:00.000-00:00"}]))
 
 #_(let [[user-id events] (first (group-by-guests (generate-schedule (db/get-users))))]
    (email/send! (sunday-email-template user-id events)))
@@ -148,9 +156,9 @@
 
 (defn send-sunday-emails! []
   (let [users-to-match (filter :user/pair-next-week? (db/get-users))
-        user-id->events (->> users-to-match
-                             generate-schedule
-                             group-by-guests)
+        user-id->events (-> users-to-match
+                            (generate-schedule (LocalDate/now))
+                            group-by-guests)
         opted-in-user-ids (set (map :user/id users-to-match))
         matched-user-ids (set (keys user-id->events))
         unmatched-user-ids (set/difference opted-in-user-ids
@@ -164,6 +172,7 @@
      (reset-opt-in! user-id))))
 
 #_(send-sunday-emails!)
+
 (defn schedule-email-job! []
   (chime/chime-at
     (->> (chime/periodic-seq
