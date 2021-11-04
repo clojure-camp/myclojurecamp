@@ -11,7 +11,6 @@
    [:environment [:enum :dev :prod]]
    [:auth-cookie-secret string?]
    [:auth-token-secret string?]
-   [:emails [:vector string?]]
    [:data-path string?]
    [:smtp-credentials
     [:map
