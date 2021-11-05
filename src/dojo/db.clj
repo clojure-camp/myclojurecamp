@@ -75,6 +75,14 @@
 
 #_(normalize-email "\nfOO@example .com")
 
+(defn extract-name-from-email [email]
+  (-> email
+      normalize-email
+      (string/split #"@" 2)
+      first))
+
+#_(extract-name-from-email "alice@example.com")
+
 (defn get-user-by-email
   [email]
   (->> (java.io/file (:data-path @config))
@@ -92,6 +100,7 @@
   (let [user {:user/id (uuid/random)
               :user/pair-next-week? false
               :user/email (normalize-email email)
+              :user/name (extract-name-from-email email)
               :user/max-pair-per-day 0
               :user/max-pair-per-week 0
               :user/topic-ids #{}
