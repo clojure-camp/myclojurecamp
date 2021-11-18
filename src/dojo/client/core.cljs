@@ -150,15 +150,14 @@
 
 (defn opt-in-view []
   (let [checked? @(subscribe [:user-profile-value :user/pair-next-week?])]
-   [:label.opt-in {:class (when checked? "active")}
+   [:button.opt-in
+    {:class (when checked? "active")
+     :on-click (fn []
+                 (dispatch
+                  [:opt-in-for-pairing! (not checked?)]))}
     (if checked?
       [fa/fa-check-square-regular]
       [fa/fa-square-regular])
-    [:input {:type "checkbox"
-             :checked checked?
-             :on-change (fn []
-                          (dispatch
-                           [:opt-in-for-pairing! (not checked?)]))}]
     "Pair next week?"]))
 
 (defn name-view []
