@@ -110,25 +110,37 @@
 
        [:>button
         {:width "100%"
-         :height "5em"
          :border "none"
          :cursor "pointer"
-         :color "#13502c"}
+         :padding "1em"
+         :height "6em"
+         :display "flex"
+         :justify-content "center"
+         :align-items "center"}
 
         [:&.empty
-         {:background "#fff"}
+         {:background "#fff"
+          :color "#aaa"}
+
+         [:>.wrapper
+          {:border "1px dashed #ccc"
+           :height "4em"
+           :width "100%"
+           :line-height "4em"}]
 
          [:&:hover
           {:background (darken "#fff" 5)}]]
 
         [:&.preferred
-         {:background accent-dark}
+         {:background accent-dark
+          :color "white"}
 
          [:&:hover
           {:background (darken accent-dark 5)}]]
 
         [:&.available
-         {:background accent-light}
+         {:background accent-light
+          :color "white"}
 
          [:&:hover
           {:background (darken accent-light 5)}]]]]]]]])

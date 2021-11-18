@@ -126,10 +126,11 @@
                                            :preferred nil
                                            :available :preferred
                                            nil :available)]))}
-                 (case value
-                   :preferred "P"
-                   :available "A"
-                   nil "")])]))]))]]))
+                 [:div.wrapper
+                  (case value
+                    :preferred "P"
+                    :available "A"
+                    nil "")]])]))]))]]))
 
 (defn login-view []
   (let [sent-email (r/atom nil)]
