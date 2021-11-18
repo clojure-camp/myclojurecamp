@@ -80,8 +80,7 @@
                                                [(->inst (convert-time k (:user/time-zone user) local-date-start-of-week)) v]))
                                         set))
                                  users)}
-        (ps/generate-initial-schedule 1)
-        ps/optimize-schedule
+        (ps/schedule)
         :schedule)))
 
 #_(generate-schedule (db/get-users) (LocalDate/now))
