@@ -206,7 +206,7 @@
 
 (defn schedule
   [{:keys [availabilities times-to-pair] :as context}]
-  (if (<= (count availabilities) 1)
+  (if (< (count availabilities) 2)
    (assoc context :schedule [])
    (-> (generate-initial-schedule times-to-pair context)
        optimize-schedule)))
