@@ -1,13 +1,23 @@
 (ns dojo.client.state
   (:require
     [bloom.commons.ajax :as ajax]
+    [reagent.core :as r]
     [re-frame.core :refer [reg-event-fx reg-fx reg-sub dispatch]]))
 
 (defn key-by [f coll]
   (zipmap (map f coll)
           coll))
 
-(reg-fx :ajax ajax/request)
+(defonce ajax-state (r/atom {}))
+
+(reg-fx :ajax
+  (fn [opts]
+    (let [request-id (gensym "request")]
+     (swap! ajax-state assoc request-id :request.state/in-progress)
+     (ajax/request (assoc opts :on-success (fn [data]
+                                            (swap! ajax-state dissoc request-id)
+                                            (when (opts :on-success)
+                                             ((opts :on-success) data))))))))
 
 (reg-event-fx
   :initialize!

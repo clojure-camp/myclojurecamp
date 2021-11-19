@@ -1,6 +1,6 @@
 (ns dojo.client.styles
   (:require
-    [garden.stylesheet :refer [at-import]]
+    [garden.stylesheet :refer [at-import at-keyframes]]
     [garden.color :refer [darken]]))
 
 (def accent-light "#45c077")
@@ -11,6 +11,33 @@
 
 (def styles
   [(at-import "https://fonts.googleapis.com/css2?family=Roboto:wght@300;700&display=swap")
+
+   (at-keyframes "fade-out"
+     ["0%" {:opacity 1}]
+     ["100%" {:opacity 0}])
+
+   (at-keyframes "spin"
+     ["0%" {:transform "rotate(0deg)"}]
+     ["100%" {:transform "rotate(359deg)"}])
+
+   [:.ajax-status
+    {:position "fixed"
+     :top "1em"
+     :left 0
+     :right 0
+     :display "flex"
+     :justify-content "center"}
+
+    [:>svg
+     {:width "1em"
+      :height "1em"}]
+
+    [:&.loading>svg
+     {:animation "spin 1s infinite linear"
+      :color "gray"}]
+      
+    [:&.normal>svg
+     {:animation "fade-out 1s forwards ease-in-out"}]]
 
    [:.log-out
     {:position "absolute"

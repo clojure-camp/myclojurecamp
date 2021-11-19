@@ -7,7 +7,7 @@
    [reagent.dom :as rdom]
    [reagent.core :as r]
    [bloom.commons.fontawesome :as fa]
-   [dojo.client.state]
+   [dojo.client.state :as state]
    [dojo.client.styles :refer [styles]]
    [dojo.model :as model]))
 
@@ -180,8 +180,15 @@
                     [:set-user-value! :user/time-zone (.. js/Intl DateTimeFormat resolvedOptions -timeZone)]))}
     "Update"]])
 
+(defn ajax-status-view []
+  [:div.ajax-status {:class (if (empty? @state/ajax-state) "normal" "loading")}
+   (if (empty? @state/ajax-state)
+     [fa/fa-check-circle-solid]
+     [fa/fa-circle-notch-solid])])
+
 (defn main-view []
   [:div.main
+   [ajax-status-view]
    [:button.log-out
     {:on-click (fn []
                  (dispatch [:log-out!]))}
