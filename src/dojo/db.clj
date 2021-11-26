@@ -68,6 +68,9 @@
     (save-topic! topic)
     topic))
 
+(defn delete-topic! [topic-id]
+  (java.io/delete-file (->path :topic topic-id)))
+
 (defn normalize-email [email]
   (-> email
      (string/replace #"\s" "")
