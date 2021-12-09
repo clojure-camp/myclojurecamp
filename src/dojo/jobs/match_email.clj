@@ -62,7 +62,8 @@
   [users local-date-start-of-week]
   (if (empty? users)
    []
-   (->> {:max-events-per-day (mapify :user/id :user/max-pair-per-day users)
+   (->> {:times-to-pair 1
+         :max-events-per-day (mapify :user/id :user/max-pair-per-day users)
          :max-events-per-week (mapify :user/id :user/max-pair-per-week users)
          :topics (mapify :user/id :user/topic-ids users)
          :timezones (mapify :user/id :user/time-zone users)
