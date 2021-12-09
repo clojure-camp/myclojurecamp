@@ -13,6 +13,8 @@
   :repl-options {:init-ns dojo.core
                  :timeout 200000}
 
+  :jvm-opts ["-Dclojure.tools.logging.factory=clojure.tools.logging.impl/jul-factory"]
+
   :profiles {:uberjar
              {:aot :all
               :prep-tasks [["omni" "compile"]
