@@ -206,6 +206,13 @@
    [time-zone-view]
    [availability-view]])
 
+(defonce favicon
+ (let [element (.createElement js/document "link")]
+   (.setAttribute element "rel" "icon")
+   (.setAttribute element "href" "/logo.svg")
+   (.appendChild (.querySelector js/document "head") element)
+   nil))
+
 (defn app-view []
   [:<>
    [:style
