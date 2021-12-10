@@ -6,8 +6,8 @@
 (def accent-light "#45c077")
 (def accent-dark "#2b8d53")
 (def gray "#f3f3f3")
-
-(defn button [])
+(def clojure-green "#5FAD31")
+(def clojure-blue "#567ED2")
 
 (def styles
   [(at-import "https://fonts.googleapis.com/css2?family=Roboto:wght@300;700&display=swap")
@@ -35,7 +35,7 @@
     [:&.loading>svg
      {:animation "spin 1s infinite linear"
       :color "gray"}]
-      
+
     [:&.normal>svg
      {:animation "fade-out 1s forwards ease-in-out"}]]
 
@@ -51,8 +51,37 @@
 
    [:#app
     {:max-width "40em"
+     :min-height "100vh"
      :margin "0 auto"
      :background "white"}
+
+    [:.login
+     {:display "flex"
+      :justify-content "center"
+      :align-items "center"
+      :flex-direction "column"
+      :height "100%"}
+
+     [:>img
+      {:max-width "15vw"}]
+
+     [:>form>label>input
+      :>form>button
+      {:height "2em"
+       :font-size "1em"
+       :padding "0.25em"
+       :border "1px solid black"
+       :box-sizing "border-box"
+       :margin-left "0.5rem"
+       :border-radius "0.2rem"}]
+
+     [:>form>label>input
+      {:border-color clojure-green}]
+
+     [:>form>button
+      {:background-color clojure-blue
+       :border-color clojure-blue
+       :color "white"}]]
 
     [:.main
      {:display "flex"
