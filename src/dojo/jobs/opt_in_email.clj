@@ -30,8 +30,12 @@
 #_(email/send! (friday-email-template (first (db/get-users))))
 
 (defn send-friday-emails! []
-  (doseq [user (remove :user/pair-next-week? (db/get-users))]
-    (email/send! (friday-email-template user))))
+ (->> (db/get-users)
+      (filter :user/subscribed?)
+      (remove :user/pair-next-week?)
+      (map (fn [user]
+            (email/send! (friday-email-template user))))
+      dorun))
 
 #_(send-friday-emails!)
 

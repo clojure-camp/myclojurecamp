@@ -111,7 +111,7 @@
      :ajax {:method :put
             :uri "/api/user/add-topic"
             :params {:topic-id topic-id}}}))
-            
+
 (defn maybe-delete-topic [db topic-id]
   (if (= 0 (get-in db [:db/topics topic-id :topic/user-count]))
    (update db :db/topics dissoc topic-id)
@@ -144,7 +144,12 @@
             :uri "/api/user/set-profile-value"
             :params {:k k
                      :v v}}}))
-
+(reg-event-fx
+  :unsubscribe!
+  (fn [_ _]
+    {:ajax {:method :put
+            :uri "/api/user/unsubscribe"}}))
+          
 (reg-sub
   :user
   (fn [db _]

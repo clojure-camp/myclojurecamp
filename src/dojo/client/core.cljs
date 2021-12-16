@@ -191,6 +191,13 @@
    (if (empty? @state/ajax-state)
      [fa/fa-check-circle-solid]
      [fa/fa-circle-notch-solid])])
+     
+(defn unsubscribe-view []
+  [:button.unsubscribe
+   {:on-click (fn []
+                (when (js/window.confirm "Are you sure you want to unsubscribe?")
+                  (dispatch [:unsubscribe!])))}
+   "Unsubscribe"])
 
 (defn main-view []
   [:div.main
@@ -204,7 +211,8 @@
    [topics-view]
    [max-limit-preferences-view]
    [time-zone-view]
-   [availability-view]])
+   [availability-view]
+   [unsubscribe-view]])
 
 (defonce favicon
  (let [element (.createElement js/document "link")]

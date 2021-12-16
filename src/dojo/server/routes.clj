@@ -125,7 +125,20 @@
     (fn [{:keys [user-id k v]}]
       (some-> (db/get-user user-id)
               (assoc k v)
+              db/save-user!))}
+
+   {:id :unsubscribe!
+    :route [:put "/api/user/unsubscribe"]
+    :params {:user-id uuid?}
+    :conditions
+    (fn [{:keys [user-id]}]
+      [[#(db/exists? :user user-id) :not-allowed "User with this ID does not exist."]])
+    :effect
+    (fn [{:keys [user-id]}]
+      (some-> (db/get-user user-id)
+              (assoc :user/subscribed? false)
               db/save-user!))}])
+
 
 #_(tada/do :request-login-link-email! {:email "foo@example.com"})
 

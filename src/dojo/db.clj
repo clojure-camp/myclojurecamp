@@ -107,6 +107,7 @@
               :user/max-pair-per-day 0
               :user/max-pair-per-week 0
               :user/topic-ids #{}
-              :user/availability {}}]
+              :user/availability {}
+              :user/subscribed? true}]
     (save-user! user)
     user))
