@@ -133,17 +133,20 @@
              (->> (set/intersection (:user/topic-ids user) (:user/topic-ids partner))
                   (map db/get-topic)
                   (map :topic/name)
-                  (string/join ", "))])
+                  (string/join ", "))
+             [:br]
+             ;; hashing the event to get a unique short-ish id
+             [:a {:href (str "https://meet.jit.si/" "clojodojo" (hash event))} "Meeting Link"]])
            [:p "If you can't make a session, be sure to let your partner know!"]
            [:p "- DojoBot"]]}))
 
 #_(email/send! (matched-email-template
-                  #uuid "ebf40b80-6ea3-486d-9374-6125bfe06d72"
-                  [{:guest-ids #{#uuid "e75af490-c666-4d80-aff4-374c31be9278"
-                                 #uuid "ebf40b80-6ea3-486d-9374-6125bfe06d72"}
+                  (:user/id (first (db/get-users)))
+                  [{:guest-ids #{(:user/id (first (db/get-users)))
+                                 (:user/id (last (db/get-users)))}
                     :at #inst "2021-11-08T14:00:00.000-00:00"}
-                   {:guest-ids #{#uuid "e75af490-c666-4d80-aff4-374c31be9278"
-                                 #uuid "ebf40b80-6ea3-486d-9374-6125bfe06d72"}
+                   {:guest-ids #{(:user/id (first (db/get-users)))
+                                 (:user/id (last (db/get-users)))}
                     :at #inst "2021-11-09T14:00:00.000-00:00"}]))
 
 #_(let [[user-id events] (first (group-by-guests (generate-schedule (db/get-users))))]
