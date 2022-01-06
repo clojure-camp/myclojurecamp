@@ -127,16 +127,17 @@
               (assoc k v)
               db/save-user!))}
 
-   {:id :unsubscribe!
-    :route [:put "/api/user/unsubscribe"]
-    :params {:user-id uuid?}
+   {:id :update-subscription!
+    :route [:put "/api/user/subscription"]
+    :params {:user-id uuid?
+             :status boolean?}
     :conditions
     (fn [{:keys [user-id]}]
       [[#(db/exists? :user user-id) :not-allowed "User with this ID does not exist."]])
     :effect
-    (fn [{:keys [user-id]}]
+    (fn [{:keys [user-id status]}]
       (some-> (db/get-user user-id)
-              (assoc :user/subscribed? false)
+              (assoc :user/subscribed? status)
               db/save-user!))}])
 
 

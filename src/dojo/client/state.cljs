@@ -144,12 +144,15 @@
             :uri "/api/user/set-profile-value"
             :params {:k k
                      :v v}}}))
+
 (reg-event-fx
-  :unsubscribe!
-  (fn [_ _]
-    {:ajax {:method :put
-            :uri "/api/user/unsubscribe"}}))
-          
+  :update-subscription!
+  (fn [{db :db} [_ status]]
+    {:db (assoc-in db [:db/user :user/subscribed?] status)
+     :ajax {:method :put
+            :uri "/api/user/subscription"
+            :params {:status status}}}))
+
 (reg-sub
   :user
   (fn [db _]
