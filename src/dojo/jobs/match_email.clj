@@ -9,7 +9,7 @@
   (:import
     (java.time Period DayOfWeek ZonedDateTime ZoneId LocalTime LocalDate)
     (java.time.format DateTimeFormatter)
-    (java.time.temporal TemporalAdjusters)))
+    (java.time.temporal TemporalAdjusters ChronoUnit)))
 
 (def ->java-day-of-week
   {:monday DayOfWeek/MONDAY
@@ -94,6 +94,34 @@
                (update (last (:guest-ids event)) (fnil conj #{}) event)))
      {} schedule))
 
+(defn ->date-string [at]
+  (.format (ZonedDateTime/ofInstant (.toInstant at)
+                                    (ZoneId/of "UTC"))
+           (DateTimeFormatter/ofPattern "yyyy-MM-dd")))
+
+(defn ->id [event]
+  (str "clojodojo-" (->date-string (:at event)) "-" (Math/abs (hash event))))
+
+#_(->id {:guest-ids #{(:user/id (first (db/get-users)))
+                      (:user/id (last (db/get-users)))}
+         :at #inst "2021-11-08T14:00:00.000-00:00"})
+
+(defn ->jitsi-url [event]
+  (str "https://meet.jit.si/" (->id event)))
+
+(defn ->topics [event]
+
+  (->> (:guest-ids event)
+       (map db/get-user)
+       (map :user/topic-ids)
+       (apply set/intersection)
+       (map db/get-topic)
+       (map :topic/name)
+       (string/join ", ")))
+
+#_(->topics {:guest-ids #{(:user/id (first (db/get-users)))
+                          (:user/id (last (db/get-users)))}
+             :at #inst "2021-11-08T14:00:00.000-00:00"})
 
 (defn unmatched-email-template
   [user-id]
@@ -105,12 +133,53 @@
             [:p "Unfortunately, we couldn't match you with anyone this week. :("]
             [:p "- DojoBot"]]}))
 
+(defn event->ical
+  [{:keys [guest-ids at] :as event}]
+  (let [guests (map db/get-user guest-ids)
+        ;; iCAL expects datetimes in the form: "20211108T140000Z"
+        format  (fn [t]
+                  (string/replace t #"-|:" ""))
+        start (.toInstant (:at event))
+        end (.plus start 1 ChronoUnit/HOURS)]
+   (->> [["BEGIN" "VCALENDAR"]
+         ["VERSION" "2.0"]
+         ["PRODID" "CLOJODOJO.COM"]
+         ["CALSCALE" "GREGORIAN"]
+         ["METHOD" "PUBLISH"]
+         ["BEGIN" "VEVENT"]
+         ["SUMMARY" (str "ClojoDojo " (:user/name (first guests))
+                         " and " (:user/name (last guests)))]
+         ["ORGANIZER" "mailto:bot@clojodojo.com"]
+         ["ATTENDEE" (str "mailto:" (:user/email (first guests)))]
+         ["ATTENDEE" (str "mailto:" (:user/email (last guests)))]
+         ["UID" (->id event)]
+         ["DESCRIPTION" (str "Potential topics: " (->topics event))]
+         ["LOCATION" (->jitsi-url event)]
+         ["DTSTART" (format start)]
+         ["DTEND" (format end)]
+         ["DTSTAMP" (format (.toInstant (java.util.Date.)))]
+         ["END" "VEVENT"]
+         ["END" "VCALENDAR"]]
+        (map (fn [[a b]] (str a ":" b)))
+        (string/join "\n"))))
+
+#_(last (db/get-users))
+#_(event->ical {:guest-ids #{(:user/id (first (db/get-users)))
+                             (:user/id (last (db/get-users)))}
+                :at #inst "2021-11-08T14:00:00.000-00:00"})
+
 (defn matched-email-template
   [user-id events]
   (let [get-user (memoize db/get-user)
         user (db/get-user user-id)]
    {:to (:user/email user)
     :subject "ClojoDojo - Your Matches for this Week"
+    :attachments (->> events
+                      (map (fn [event]
+                            {:type :attachment
+                             :content-type "text/calendar"
+                             :file-name (str "event-" (->id event) ".ics")
+                             :content (.getBytes (event->ical event))})))
     :body [:div
            [:p "Hi " (:user/name user) ","]
            [:p "Here are your pairing sessions for next week:"]
@@ -130,24 +199,21 @@
               " (" (:user/email partner) ")"]
              [:br]
              "Topics: "
-             (->> (set/intersection (:user/topic-ids user) (:user/topic-ids partner))
-                  (map db/get-topic)
-                  (map :topic/name)
-                  (string/join ", "))
+             (->topics event)
              [:br]
              ;; hashing the event to get a unique short-ish id
-             [:a {:href (str "https://meet.jit.si/" "clojodojo" (hash event))} "Meeting Link"]])
+             [:a {:href (->jitsi-url event)} "Meeting Link"]])
            [:p "If you can't make a session, be sure to let your partner know!"]
            [:p "- DojoBot"]]}))
 
 #_(email/send! (matched-email-template
-                  (:user/id (first (db/get-users)))
-                  [{:guest-ids #{(:user/id (first (db/get-users)))
-                                 (:user/id (last (db/get-users)))}
-                    :at #inst "2021-11-08T14:00:00.000-00:00"}
-                   {:guest-ids #{(:user/id (first (db/get-users)))
-                                 (:user/id (last (db/get-users)))}
-                    :at #inst "2021-11-09T14:00:00.000-00:00"}]))
+                 (:user/id (first (db/get-users)))
+                 [{:guest-ids #{(:user/id (first (db/get-users)))
+                                (:user/id (last (db/get-users)))}
+                   :at #inst "2021-11-08T14:00:00.000-00:00"}
+                  {:guest-ids #{(:user/id (first (db/get-users)))
+                                (:user/id (last (db/get-users)))}
+                   :at #inst "2021-11-09T14:00:00.000-00:00"}]))
 
 #_(let [[user-id events] (first (group-by-guests (generate-schedule (db/get-users))))]
    (email/send! (sunday-email-template user-id events)))

@@ -1,6 +1,6 @@
 {:deps {org.clojure/clojure {:mvn/version "1.10.1"}
         jarohen/chime {:mvn/version "0.3.2"}
-        com.draines/postal {:mvn/version "2.0.3"}
+        com.draines/postal {:mvn/version "2.0.5"}
         io.bloomventures/omni {:mvn/version "0.27.6"}
         io.bloomventures/commons {:mvn/version "0.11.2"}
         tada/tada {:mvn/version "0.2.2"}

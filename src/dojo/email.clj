@@ -4,7 +4,8 @@
     [hiccup.core :as hiccup]
     [dojo.config :refer [config]]))
 
-(defn send! [{:keys [to subject body]}]
+(defn send!
+  [{:keys [to subject body attachments]}]
   (println body)
   (try
     (postal/send-message
@@ -12,7 +13,8 @@
       {:from (:from (:smtp-credentials @config))
        :to to
        :subject subject
-       :body [{:type "text/html; charset=utf-8"
-               :content (hiccup/html body)}]})
+       :body (concat [{:type "text/html; charset=utf-8"
+                       :content (hiccup/html body)}]
+                     attachments)})
     (catch com.sun.mail.util.MailConnectException _
       (println "Couldn't send email."))))
