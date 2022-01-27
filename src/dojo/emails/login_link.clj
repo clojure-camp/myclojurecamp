@@ -12,4 +12,7 @@
     [:p "To log in to ClojoDojo, "
      [:a {:href
           (str (@config :app-domain)
-               "/?" (token/login-query-string (:user/id user) (@config :auth-token-secret)))} "click here"] "."]]})
+               (if (:user/email-validated? user)
+                "/"
+                "/validate")
+               "?" (token/login-query-string (:user/id user) (@config :auth-token-secret)))} "click here"] "."]]})

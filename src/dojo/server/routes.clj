@@ -180,6 +180,18 @@
                [route
                 (tada.events.ring/route id)
                 [params-middleware]])))
+
+   [[[:get "/validate"]
+     (fn [request]
+       ;; NOTE: a GET request with a side effect
+       ;; first time after registering, users get sent here
+       (some-> (get-in request [:session :user-id])
+               (db/get-user)
+               (assoc :user/email-validated? true)
+               db/save-user!)
+       {:status 302
+        :headers {"Location" "/"}})]]
+
    [[[:delete "/api/session"]
      (fn [_]
       {:status 200
