@@ -68,6 +68,12 @@
   [:div.topics-view
    [:h1 "Topics"]
    (let [user-topic-ids @(subscribe [:user-profile-value :user/topic-ids])]
+    [:<>
+     (when (and (empty? user-topic-ids)
+                @(subscribe [:user-profile-value :user/pair-next-week?]))
+      [:p.warning
+       [fa/fa-exclamation-triangle-solid]
+       "You need to select at least one topic to be matched with someone."])
      [:div.topics
       (for [topic (sort-by :topic/name @(subscribe [:topics]))
             :let [checked? (contains? user-topic-ids (:topic/id topic))]]
@@ -81,7 +87,7 @@
                       (dispatch [:remove-user-topic! (:topic/id topic)])
                       (dispatch [:add-user-topic! (:topic/id topic)])))}]
          [:span.name (:topic/name topic)] " "
-         [:span.count (:topic/user-count topic)]])])
+         [:span.count (:topic/user-count topic)]])]])
    [:button
     {:on-click (fn [_]
                  (let [value (js/prompt "Enter a new topic:")]

@@ -119,6 +119,16 @@
        {:display "none"}]]
 
      [:>.topics-view
+      [:>.warning
+       {:color "red"
+        :background "#ffe9e9"
+        :padding "0.25em"
+        :border-radius "0.25em"
+        :border "1px solid #ffc4c4"}
+
+       [:>svg
+        {:width "1em"
+         :margin-right "0.25em"}]]
 
       [:>.topics
        {:columns "3"}
