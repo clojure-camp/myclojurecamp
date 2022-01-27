@@ -104,8 +104,8 @@
               :user/pair-next-week? false
               :user/email (normalize-email email)
               :user/name (extract-name-from-email email)
-              :user/max-pair-per-day 0
-              :user/max-pair-per-week 0
+              :user/max-pair-per-day 1
+              :user/max-pair-per-week 1
               :user/topic-ids #{}
               :user/availability {}
               :user/email-validated? false

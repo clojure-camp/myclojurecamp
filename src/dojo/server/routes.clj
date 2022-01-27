@@ -110,8 +110,8 @@
     (fn [{:keys [user-id k v]}]
       [[#(db/exists? :user user-id) :not-allowed "User with this ID does not exist."]
        [#(case k
-           :user/max-pair-per-day (and (integer? v) (<= 0 v 24))
-           :user/max-pair-per-week (and (integer? v) (<= 0 v (* 24 7)))
+           :user/max-pair-per-day (and (integer? v) (<= 1 v 24))
+           :user/max-pair-per-week (and (integer? v) (<= 1 v (* 24 7)))
            :user/time-zone (and (string? v)
                                 (try
                                   (java.time.ZoneId/of v)

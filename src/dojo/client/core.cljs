@@ -17,7 +17,7 @@
     "Max pair per day"
     [:input {:type "number"
              :value @(subscribe [:user-profile-value :user/max-pair-per-day])
-             :min 0
+             :min 1
              :max 24
              :on-change (fn [e]
                            (dispatch [:set-user-value!
@@ -27,7 +27,7 @@
     "Max pair per week"
     [:input {:type "number"
              :value @(subscribe [:user-profile-value :user/max-pair-per-week])
-             :min 0
+             :min 1
              :max (* 24 7)
              :on-change (fn [e]
                            (dispatch [:set-user-value!
