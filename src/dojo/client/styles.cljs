@@ -45,7 +45,7 @@
      :right 0}]
 
    [:body
-    {:background "black"
+    {:background (str "linear-gradient(-225deg, " clojure-green "ee, " clojure-blue "ee)")
      :font-family "Roboto, sans-serif"
      :margin 0}]
 
