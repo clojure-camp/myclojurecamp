@@ -62,6 +62,9 @@
 (defn save-topic! [topic]
   (io/spit (->path :topic (:topic/id topic)) topic))
 
+(defn save-event! [event]
+  (io/spit (->path :event (:event/id event)) event))
+
 (defn create-topic! [name]
   (let [topic {:topic/id (uuid/random)
                :topic/name name}]
