@@ -11,6 +11,7 @@
   (edn/read-string (io/slurp f)))
 
 (defn ->path [entity-type entity-id]
+  (.mkdirs (java.io/file (:data-path @config) (name entity-type)))
   (str (:data-path @config) "/" (name entity-type) "/" entity-id ".edn"))
 
 (defn exists?
