@@ -115,7 +115,6 @@
   (str "https://meet.jit.si/" (->id event)))
 
 (defn ->topics [event]
-
   (->> (:event/guest-ids event)
        (map db/get-user)
        (map :user/topic-ids)
