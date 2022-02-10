@@ -180,7 +180,7 @@
                       (map (fn [event]
                             {:type :attachment
                              :content-type "text/calendar"
-                             :file-name (str "event-" (->id event) ".ics")
+                             :file-name (str "event-" (:event/id event) ".ics")
                              :content (.getBytes (event->ical event))})))
     :body [:div
            [:p "Hi " (:user/name user) ","]
