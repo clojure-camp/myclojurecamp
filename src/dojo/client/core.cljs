@@ -210,6 +210,17 @@
                   (dispatch [:update-subscription! true]))}
      "Re-Subscribe"]))
 
+
+(defn events-view []
+  [:div.events
+   (for [event @(subscribe [:events])]
+    ^{:key (:event/id event)}
+    [:div (pr-str event)
+     [:button
+      {:on-click (fn []
+                   (dispatch [:flag-event-guest! (:event/id event)]))}
+      "Partner didn't show up"]])])
+
 (defn main-view []
   [:div.main
    [ajax-status-view]
@@ -217,6 +228,7 @@
     {:on-click (fn []
                  (dispatch [:log-out!]))}
     "Log Out"]
+   [events-view]
    [opt-in-view]
    [name-view]
    [topics-view]

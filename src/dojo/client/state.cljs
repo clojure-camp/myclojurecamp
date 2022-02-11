@@ -2,7 +2,8 @@
   (:require
     [bloom.commons.ajax :as ajax]
     [reagent.core :as r]
-    [re-frame.core :refer [reg-event-fx reg-fx reg-sub dispatch]]))
+    [re-frame.core :refer [reg-event-fx reg-fx reg-sub dispatch]]
+    [dojo.model :as model]))
 
 (defn key-by [f coll]
   (zipmap (map f coll)
@@ -23,8 +24,7 @@
   :initialize!
   (fn [_ _]
     {:db {:db/topics {}}
-     :dispatch-n [[:fetch-user!]
-                  [::fetch-topics!]]}))
+     :dispatch-n [[:fetch-user!]]}))
 
 (reg-event-fx
   :fetch-user!
@@ -32,7 +32,14 @@
     {:ajax {:method :get
             :uri "/api/user"
             :on-success (fn [data]
-                          (dispatch [::handle-user-data! data]))}}))
+                          (dispatch [::handle-user-data! data])
+                          (dispatch [::fetch-other-data!]))}}))
+
+(reg-event-fx
+  ::fetch-other-data!
+  (fn [_ _]
+    {:dispatch-n [[::fetch-topics!]
+                  [::fetch-events!]]}))
 
 (reg-event-fx
   ::fetch-topics!
@@ -46,6 +53,19 @@
   ::store-topics!
   (fn [{db :db} [_ topics]]
     {:db (update db :db/topics merge (key-by :topic/id topics))}))
+
+(reg-event-fx
+  ::fetch-events!
+  (fn [_ _]
+    {:ajax {:method :get
+            :uri "/api/events"
+            :on-success (fn [events]
+                          (dispatch [::store-events! events]))}}))
+
+(reg-event-fx
+  ::store-events!
+  (fn [{db :db} [_ events]]
+    {:db (update db :db/events merge (key-by :event/id events))}))
 
 (reg-event-fx
   ::maybe-set-time-zone!
@@ -153,6 +173,14 @@
             :uri "/api/user/subscription"
             :params {:status status}}}))
 
+(reg-event-fx
+  :flag-event-guest!
+  (fn [{db :db} [_ event-id]]
+    {:db (update-in db [:db/events event-id] model/flag-other-user (get-in db [:db/user :user/id]))
+     :ajax {:method :put
+            :uri "/api/event/flag-guest"
+            :params {:event-id event-id}}}))
+
 (reg-sub
   :user
   (fn [db _]
@@ -167,3 +195,8 @@
   :topics
   (fn [db _]
     (vals (db :db/topics))))
+
+(reg-sub
+  :events
+  (fn [db _]
+    (vals (db :db/events))))

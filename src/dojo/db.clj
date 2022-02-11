@@ -66,6 +66,20 @@
 (defn save-event! [event]
   (io/spit (->path :event (:event/id event)) event))
 
+(defn get-event
+  [event-id]
+  (when event-id
+    (parse (->path :event event-id))))
+
+(defn get-events-for-user [user-id]
+  (->> (java.io/file (str (:data-path @config) "/event"))
+       file-seq
+       (filter (fn [f]
+                 (.isFile f)))
+       (map parse)
+       (filter (fn [event]
+                 (contains? (:event/guest-ids event) user-id)))))
+
 (defn create-topic! [name]
   (let [topic {:topic/id (uuid/random)
                :topic/name name}]
