@@ -1,4 +1,9 @@
-(ns dojo.model)
+(ns dojo.model
+  (:require
+    [clojure.string :as string])
+  #?(:clj (:import
+            (java.time ZonedDateTime)
+            (java.time.format DateTimeFormatter))))
 
 (def hours (range 9 21))
 
@@ -15,3 +20,17 @@
 (defn flag-other-user [event user-id]
   (let [other-user-id (first (disj (:event/guest-ids event) user-id))]
     (update event :event/flagged-guest-ids (fnil conj #{}) other-user-id)))
+
+(defn ->date-string [at]
+  #?(:cljs (-> (.toISOString at) (string/split "T") first)
+     :clj (.format (ZonedDateTime/ofInstant (.toInstant at)
+                                            (ZoneId/of "UTC"))
+                   (DateTimeFormatter/ofPattern "yyyy-MM-dd"))))
+
+(defn ->jitsi-url [event]
+  (str "https://meet.jit.si/" "clojodojo-" (->date-string (:event/at event)) "-" (:event/id event)))
+
+#_(->jitsi-url {:event/guest-ids #{(:user/id (first (db/get-users)))
+                                   (:user/id (last (db/get-users)))}
+                :event/at #inst "2021-11-08T14:00:00.000-00:00"
+                :event/id #uuid "22675d48-b361-4598-b447-4a23b492f4fc"})

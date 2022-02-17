@@ -185,7 +185,15 @@
       [[#(db/exists? :user user-id) :not-allowed "User with this ID does not exist."]])
     :return
     (fn [{:keys [user-id]}]
-      (db/get-events-for-user user-id))}])
+      (->> (db/get-events-for-user user-id)
+           ;; enhance event objects with extra info the client needs
+           (map (fn [event]
+                 (assoc event :event/other-guest
+                   (-> (:event/guest-ids event)
+                       (disj user-id)
+                       first
+                       db/get-user
+                       (select-keys [:user/id :user/name])))))))}])
 
 (tada/register! (concat commands queries))
 
