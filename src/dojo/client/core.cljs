@@ -241,8 +241,10 @@
        [:button.flag
         {:class (when other-guest-flagged? "flagged")
          :on-click (fn []
-                     (when (js/confirm (str "Are you sure you want to report " guest-name " for not showing up?"))
-                      (dispatch [:flag-event-guest! (:event/id event)])))}
+                     (if other-guest-flagged?
+                       (dispatch [:flag-event-guest! (:event/id event) false])
+                       (when (js/confirm (str "Are you sure you want to report " guest-name " for not showing up?"))
+                        (dispatch [:flag-event-guest! (:event/id event) true]))))}
         [fa/fa-flag-solid]]])])))
 
 (defn main-view []

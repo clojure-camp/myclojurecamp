@@ -143,15 +143,16 @@
    {:id :flag-user!
     :route [:put "/api/event/flag-guest"]
     :params {:user-id uuid?
-             :event-id uuid?}
+             :event-id uuid?
+             :value boolean?}
     :conditions
     (fn [{:keys [user-id event-id]}]
       [[#(db/exists? :user user-id) :not-allowed "User with this ID does not exist."]
        [#(db/exists? :event event-id) :not-allowed "Event with this ID does not exist."]])
     :effect
-    (fn [{:keys [user-id event-id]}]
+    (fn [{:keys [user-id event-id value]}]
       (some-> (db/get-event event-id)
-              (model/flag-other-user user-id)
+              ((partial model/flag-other-user value) user-id)
               db/save-event!))}])
 
 #_(tada/do :request-login-link-email! {:email "foo@example.com"})

@@ -42,7 +42,9 @@
        :color "#AAA"}
 
       [:&:hover
-       :&.flagged
+       {:transform "scale(1.25)"}]
+
+      [:&.flagged
        {:color "red"}]
 
       [:>svg

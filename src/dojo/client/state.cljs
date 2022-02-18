@@ -175,11 +175,12 @@
 
 (reg-event-fx
   :flag-event-guest!
-  (fn [{db :db} [_ event-id]]
-    {:db (update-in db [:db/events event-id] model/flag-other-user (get-in db [:db/user :user/id]))
+  (fn [{db :db} [_ event-id value]]
+    {:db (update-in db [:db/events event-id] (partial model/flag-other-user value) (get-in db [:db/user :user/id]))
      :ajax {:method :put
             :uri "/api/event/flag-guest"
-            :params {:event-id event-id}}}))
+            :params {:event-id event-id
+                     :value value}}}))
 
 (reg-sub
   :user
