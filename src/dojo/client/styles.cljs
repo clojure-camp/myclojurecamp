@@ -111,7 +111,9 @@
      [:>form>button
       {:background-color clojure-blue
        :border-color clojure-blue
-       :color "white"}]]
+       :color "white"
+       :padding "0 0.5rem"
+       :cursor "pointer"}]]
 
     [:.main
      {:display "flex"
