@@ -275,8 +275,11 @@
    [:style
     (garden/css styles)]
 
-   (if-let [user @(subscribe [:user])]
+   (cond
+     @(subscribe [:user])
      [main-view]
+
+     @(subscribe [:checked-auth?])
      [login-view])])
 
 (defn render []

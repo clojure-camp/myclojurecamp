@@ -23,7 +23,8 @@
 (reg-event-fx
   :initialize!
   (fn [_ _]
-    {:db {:db/topics {}}
+    {:db {:db/checked-auth? false
+          :db/topics {}}
      :dispatch-n [[:fetch-user!]]}))
 
 (reg-event-fx
@@ -33,7 +34,15 @@
             :uri "/api/user"
             :on-success (fn [data]
                           (dispatch [::handle-user-data! data])
-                          (dispatch [::fetch-other-data!]))}}))
+                          (dispatch [::mark-auth-completed!])
+                          (dispatch [::fetch-other-data!]))
+            :on-error (fn [_]
+                       (dispatch [::mark-auth-completed!]))}}))
+
+(reg-event-fx
+  ::mark-auth-completed!
+  (fn [{db :db} _]
+    {:db (assoc db :db/checked-auth? true)}))
 
 (reg-event-fx
   ::fetch-other-data!
@@ -90,8 +99,6 @@
             :uri "/api/request-login-link-email"
             :params {:email email}
             :on-success (fn [data])}}))
-
-
 
 (reg-event-fx
   :log-out!
@@ -181,6 +188,11 @@
             :uri "/api/event/flag-guest"
             :params {:event-id event-id
                      :value value}}}))
+
+(reg-sub
+  :checked-auth?
+  (fn [db _]
+    (db :db/checked-auth?)))
 
 (reg-sub
   :user
