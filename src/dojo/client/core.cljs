@@ -87,13 +87,13 @@
                       (dispatch [:remove-user-topic! (:topic/id topic)])
                       (dispatch [:add-user-topic! (:topic/id topic)])))}]
          [:span.name (:topic/name topic)] " "
-         [:span.count (:topic/user-count topic)]])]])
-   [:button
-    {:on-click (fn [_]
-                 (let [value (js/prompt "Enter a new topic:")]
-                   (when (not (string/blank? value))
-                     (dispatch [:new-topic! (string/trim value)]))))}
-    "+ Add Topic"]])
+         [:span.count (:topic/user-count topic)]])
+      [:button
+       {:on-click (fn [_]
+                    (let [value (js/prompt "Enter a new topic:")]
+                      (when (not (string/blank? value))
+                        (dispatch [:new-topic! (string/trim value)]))))}
+       "+ Add Topic"]]])])
 
 (defn availability-view []
   (when-let [availability @(subscribe [:user-profile-value :user/availability])]
@@ -174,7 +174,7 @@
     "Pair next week?"]))
 
 (defn name-view []
-  [:label "Name "
+  [:label.name "Name "
    [:input {:type "text"
             :value @(subscribe [:user-profile-value :user/name])
             :on-change (fn [e]
@@ -182,7 +182,7 @@
                             [:set-user-value! :user/name (.. e -target -value)]))}]])
 
 (defn time-zone-view []
-  [:label "Time Zone "
+  [:label.time-zone "Time Zone "
    [:input {:type "text"
             :disabled true
             :value @(subscribe [:user-profile-value :user/time-zone])}]

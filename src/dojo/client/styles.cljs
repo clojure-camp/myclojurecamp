@@ -8,6 +8,21 @@
 (def gray "#f3f3f3")
 (def clojure-green "#5FAD31")
 (def clojure-blue "#567ED2")
+(def clojure-blue-darker "#396CD5")
+
+(defn button []
+  [:&
+   {:background-color clojure-blue
+    :border "none"
+    :color "white"
+    :padding "0.25rem 0.5rem"
+    :cursor "pointer"
+    :font-size "1em"
+    :box-sizing "border-box"
+    :border-radius "0.2rem"}
+
+   [:&:hover
+    {:background-color clojure-blue-darker}]])
 
 (def styles
   [(at-import "https://fonts.googleapis.com/css2?family=Roboto:wght@300;700&display=swap")
@@ -70,9 +85,10 @@
      {:animation "fade-out 1s forwards ease-in-out"}]]
 
    [:.log-out
+    (button)
     {:position "absolute"
-     :top 0
-     :right 0}]
+     :top "0.25rem"
+     :right "0.25rem"}]
 
    [:body
     {:background (str "linear-gradient(-225deg, " clojure-green "ee, " clojure-blue "ee)")
@@ -110,6 +126,7 @@
 
      [:>form>button
       {:background-color clojure-blue
+       :border "1px solid black"
        :border-color clojure-blue
        :color "white"
        :padding "0 0.5rem"
@@ -169,13 +186,14 @@
         {:display "block"
          :margin-bottom "0.5rem"
          :cursor "pointer"
-         :vertical-align "center"}
+         :vertical-align "center"
+         :white-space "nowrap"}
 
         [:>.count
-         {:color "#ccc"}]]]
+         {:color "#ccc"}]]
 
-      [:>button
-       {:cursor "pointer"}]]
+       [:>button
+        (button)]]]
 
      [:>.max-limit-preferences
 
@@ -185,6 +203,13 @@
 
        [:>input
         {:margin-left "0.5rem"}]]]
+
+     [:>.time-zone
+      {:display "flex"
+       :gap "0.25em"
+       :align-items "center"}
+      [:>button
+       (button)]]
 
      [:>table.availability
       {:border-spacing 0
@@ -241,4 +266,7 @@
           :color "white"}
 
          [:&:hover
-          {:background (darken accent-light 5)}]]]]]]]])
+          {:background (darken accent-light 5)}]]]]]
+
+     [:>.unsubscribe
+      (button)]]]])
