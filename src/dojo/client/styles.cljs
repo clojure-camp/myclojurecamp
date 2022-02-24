@@ -20,6 +20,36 @@
      ["0%" {:transform "rotate(0deg)"}]
      ["100%" {:transform "rotate(359deg)"}])
 
+   [:.events
+    [:>.event
+     {:display "flex"
+      :gap "0.5em"
+      :padding "0.5em"
+      :align-items "center"}
+
+     [:&.past
+      {:opacity "0.5"}]
+
+     [:>.link
+      [:>svg
+       {:width "1em"}]]
+
+     [:>button.flag
+      {:cursor "pointer"
+       :border "none"
+       :background "none"
+       :padding 0
+       :color "#AAA"}
+
+      [:&:hover
+       {:transform "scale(1.25)"}]
+
+      [:&.flagged
+       {:color "red"}]
+
+      [:>svg
+       {:width "1em"}]]]]
+
    [:.ajax-status
     {:position "fixed"
      :top "1em"

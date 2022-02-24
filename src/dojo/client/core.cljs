@@ -210,6 +210,43 @@
                   (dispatch [:update-subscription! true]))}
      "Re-Subscribe"]))
 
+(defn format-date-2 [date]
+  (.format (js/Intl.DateTimeFormat. "default" #js {:day "numeric"
+                                                   :month "short"
+                                                   :year "numeric"
+                                                   :hour "numeric"})
+           date))
+
+(defn events-view []
+  (let [events @(subscribe [:events])]
+   (when (seq events)
+    [:div.events
+     [:h2 "Your Pairing Sessions"]
+     (for [event (->> events
+                      (sort-by :event/at)
+                      reverse)
+           :let [guest-name (:user/name (:event/other-guest event))
+                 other-guest-flagged? (contains? (:event/flagged-guest-ids event)
+                                                 (:user/id (:event/other-guest event)))]]
+      ^{:key (:event/id event)}
+      [:div.event {:class (if (< (js/Date.) (:event/at event))
+                            "future"
+                            "past")}
+       [:span
+        [:span.at (format-date-2 (:event/at event))]
+        " with "
+        [:span.other-guest (:user/name (:event/other-guest event))]]
+       [:a.link {:href (model/->jitsi-url event)}
+        [fa/fa-video-solid]]
+       [:button.flag
+        {:class (when other-guest-flagged? "flagged")
+         :on-click (fn []
+                     (if other-guest-flagged?
+                       (dispatch [:flag-event-guest! (:event/id event) false])
+                       (when (js/confirm (str "Are you sure you want to report " guest-name " for not showing up?"))
+                        (dispatch [:flag-event-guest! (:event/id event) true]))))}
+        [fa/fa-flag-solid]]])])))
+
 (defn main-view []
   [:div.main
    [ajax-status-view]
@@ -223,6 +260,7 @@
    [max-limit-preferences-view]
    [time-zone-view]
    [availability-view]
+   [events-view]
    [subscription-toggle-view]])
 
 (defonce favicon

@@ -2,6 +2,7 @@
   (:require
     [clojure.string :as string]
     [clojure.set :as set]
+    [bloom.commons.uuid :as uuid]
     [chime.core :as chime]
     [pairing-scheduler.core :as ps]
     [dojo.email :as email]
@@ -54,11 +55,10 @@
   (java.util.Date/from (.toInstant zoned-date-time)))
 
 (defn generate-schedule
-  "Returns a list of maps, with :guest-ids, :day-of-week and :Time-of-day,
+  "Returns a list of maps, with :event/guest-ids, :day-of-week and :Time-of-day,
     ex.
-    [{:guest-ids #{123 456}
-      :day-of-week :monday
-      :time-of-day 1200} ...]"
+    [{:event/guest-ids #{123 456}
+      :event/at #inst \"...\"} ...]"
   [users local-date-start-of-week]
   (if (empty? users)
    []
@@ -82,7 +82,12 @@
                                         set))
                                  users)}
         (ps/schedule)
-        :schedule)))
+        :schedule
+        (map (fn [event]
+              (-> event
+                  (set/rename-keys {:at :event/at
+                                    :guest-ids :event/guest-ids})
+                  (assoc :event/id (uuid/random))))))))
 
 #_(generate-schedule (db/get-users) (LocalDate/now))
 
@@ -90,28 +95,25 @@
   [schedule]
   (reduce (fn [memo event]
            (-> memo
-               (update (first (:guest-ids event)) (fnil conj #{}) event)
-               (update (last (:guest-ids event)) (fnil conj #{}) event)))
+               (update (first (:event/guest-ids event)) (fnil conj #{}) event)
+               (update (last (:event/guest-ids event)) (fnil conj #{}) event)))
      {} schedule))
 
 (defn ->date-string [at]
   (.format (ZonedDateTime/ofInstant (.toInstant at)
                                     (ZoneId/of "UTC"))
            (DateTimeFormatter/ofPattern "yyyy-MM-dd")))
-
-(defn ->id [event]
-  (str "clojodojo-" (->date-string (:at event)) "-" (Math/abs (hash event))))
-
-#_(->id {:guest-ids #{(:user/id (first (db/get-users)))
-                      (:user/id (last (db/get-users)))}
-         :at #inst "2021-11-08T14:00:00.000-00:00"})
-
+           
 (defn ->jitsi-url [event]
-  (str "https://meet.jit.si/" (->id event)))
+  (str "https://meet.jit.si/" "clojodojo-" (->date-string (:event/at event)) "-" (:event/id event)))
+
+#_(->jitsi-url {:event/guest-ids #{(:user/id (first (db/get-users)))
+                                   (:user/id (last (db/get-users)))}
+                :event/at #inst "2021-11-08T14:00:00.000-00:00"
+                :event/id #uuid "22675d48-b361-4598-b447-4a23b492f4fc"})
 
 (defn ->topics [event]
-
-  (->> (:guest-ids event)
+  (->> (:event/guest-ids event)
        (map db/get-user)
        (map :user/topic-ids)
        (apply set/intersection)
@@ -119,9 +121,9 @@
        (map :topic/name)
        (string/join ", ")))
 
-#_(->topics {:guest-ids #{(:user/id (first (db/get-users)))
-                          (:user/id (last (db/get-users)))}
-             :at #inst "2021-11-08T14:00:00.000-00:00"})
+#_(->topics {:event/guest-ids #{(:user/id (first (db/get-users)))
+                                (:user/id (last (db/get-users)))}
+             :event/at #inst "2021-11-08T14:00:00.000-00:00"})
 
 (defn unmatched-email-template
   [user-id]
@@ -139,7 +141,7 @@
         ;; iCAL expects datetimes in the form: "20211108T140000Z"
         format  (fn [t]
                   (string/replace t #"-|:" ""))
-        start (.toInstant (:at event))
+        start (.toInstant (:event/at event))
         end (.plus start 1 ChronoUnit/HOURS)]
    (->> [["BEGIN" "VCALENDAR"]
          ["VERSION" "2.0"]
@@ -152,7 +154,7 @@
          ["ORGANIZER" "mailto:bot@clojodojo.com"]
          ["ATTENDEE" (str "mailto:" (:user/email (first guests)))]
          ["ATTENDEE" (str "mailto:" (:user/email (last guests)))]
-         ["UID" (->id event)]
+         ["UID" (:event/id event)]
          ["DESCRIPTION" (str "Potential topics: " (->topics event))]
          ["LOCATION" (->jitsi-url event)]
          ["DTSTART" (format start)]
@@ -164,9 +166,9 @@
         (string/join "\n"))))
 
 #_(last (db/get-users))
-#_(event->ical {:guest-ids #{(:user/id (first (db/get-users)))
-                             (:user/id (last (db/get-users)))}
-                :at #inst "2021-11-08T14:00:00.000-00:00"})
+#_(event->ical {:event/guest-ids #{(:user/id (first (db/get-users)))
+                                   (:user/id (last (db/get-users)))}
+                :event/at #inst "2021-11-08T14:00:00.000-00:00"})
 
 (defn matched-email-template
   [user-id events]
@@ -178,17 +180,17 @@
                       (map (fn [event]
                             {:type :attachment
                              :content-type "text/calendar"
-                             :file-name (str "event-" (->id event) ".ics")
+                             :file-name (str "event-" (:event/id event) ".ics")
                              :content (.getBytes (event->ical event))})))
     :body [:div
            [:p "Hi " (:user/name user) ","]
            [:p "Here are your pairing sessions for next week:"]
-           (for [event (sort-by :at events)
-                 :let [partner (get-user (first (disj (:guest-ids event) user-id)))]]
+           (for [event (sort-by :event/at events)
+                 :let [partner (get-user (first (disj (:event/guest-ids event) user-id)))]]
             [:p.event
              [:span.datetime
               [:strong
-               (.format (ZonedDateTime/ofInstant (.toInstant (:at event))
+               (.format (ZonedDateTime/ofInstant (.toInstant (:event/at event))
                                                  (ZoneId/of (:user/time-zone user)))
                         (DateTimeFormatter/ofPattern "eee MMM dd 'at' HH:mm"))
                " (" (:user/time-zone user) ")"]]
@@ -208,12 +210,12 @@
 
 #_(email/send! (matched-email-template
                  (:user/id (first (db/get-users)))
-                 [{:guest-ids #{(:user/id (first (db/get-users)))
-                                (:user/id (last (db/get-users)))}
-                   :at #inst "2021-11-08T14:00:00.000-00:00"}
-                  {:guest-ids #{(:user/id (first (db/get-users)))
-                                (:user/id (last (db/get-users)))}
-                   :at #inst "2021-11-09T14:00:00.000-00:00"}]))
+                 [{:event/guest-ids #{(:user/id (first (db/get-users)))
+                                      (:user/id (last (db/get-users)))}
+                   :event/at #inst "2021-11-08T14:00:00.000-00:00"}
+                  {:event/guest-ids #{(:user/id (first (db/get-users)))
+                                      (:user/id (last (db/get-users)))}
+                   :event/at #inst "2021-11-09T14:00:00.000-00:00"}]))
 
 #_(let [[user-id events] (first (group-by-guests (generate-schedule (db/get-users))))]
    (email/send! (sunday-email-template user-id events)))
@@ -225,13 +227,15 @@
 
 (defn send-sunday-emails! []
   (let [users-to-match (filter :user/pair-next-week? (db/get-users))
-        user-id->events (-> users-to-match
-                            (generate-schedule (LocalDate/now))
-                            group-by-guests)
+        events (generate-schedule users-to-match (LocalDate/now))
+        user-id->events (group-by-guests events)
         opted-in-user-ids (set (map :user/id users-to-match))
         matched-user-ids (set (keys user-id->events))
         unmatched-user-ids (set/difference opted-in-user-ids
                                            matched-user-ids)]
+   (doseq [event events]
+     (db/save-event! event))
+
    (doseq [user-id unmatched-user-ids]
      (email/send! (unmatched-email-template user-id))
      (reset-opt-in! user-id))

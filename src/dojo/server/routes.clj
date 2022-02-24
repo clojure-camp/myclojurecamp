@@ -138,8 +138,22 @@
     (fn [{:keys [user-id status]}]
       (some-> (db/get-user user-id)
               (assoc :user/subscribed? status)
-              db/save-user!))}])
+              db/save-user!))}
 
+   {:id :flag-user!
+    :route [:put "/api/event/flag-guest"]
+    :params {:user-id uuid?
+             :event-id uuid?
+             :value boolean?}
+    :conditions
+    (fn [{:keys [user-id event-id]}]
+      [[#(db/exists? :user user-id) :not-allowed "User with this ID does not exist."]
+       [#(db/exists? :event event-id) :not-allowed "Event with this ID does not exist."]])
+    :effect
+    (fn [{:keys [user-id event-id value]}]
+      (some-> (db/get-event event-id)
+              ((partial model/flag-other-user value) user-id)
+              db/save-event!))}])
 
 #_(tada/do :request-login-link-email! {:email "foo@example.com"})
 
@@ -162,7 +176,25 @@
       [[#(db/exists? :user user-id) :not-allowed "User with this ID does not exist."]])
     :return
     (fn [_]
-      (db/get-topics))}])
+      (db/get-topics))}
+
+   {:id :events
+    :route [:get "/api/events"]
+    :params {:user-id uuid?}
+    :conditions
+    (fn [{:keys [user-id]}]
+      [[#(db/exists? :user user-id) :not-allowed "User with this ID does not exist."]])
+    :return
+    (fn [{:keys [user-id]}]
+      (->> (db/get-events-for-user user-id)
+           ;; enhance event objects with extra info the client needs
+           (map (fn [event]
+                 (assoc event :event/other-guest
+                   (-> (:event/guest-ids event)
+                       (disj user-id)
+                       first
+                       db/get-user
+                       (select-keys [:user/id :user/name])))))))}])
 
 (tada/register! (concat commands queries))
 
