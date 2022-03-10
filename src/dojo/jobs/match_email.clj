@@ -103,7 +103,7 @@
   (.format (ZonedDateTime/ofInstant (.toInstant at)
                                     (ZoneId/of "UTC"))
            (DateTimeFormatter/ofPattern "yyyy-MM-dd")))
-           
+
 (defn ->jitsi-url [event]
   (str "https://meet.jit.si/" "clojodojo-" (->date-string (:event/at event)) "-" (:event/id event)))
 
@@ -136,12 +136,12 @@
             [:p "- DojoBot"]]}))
 
 (defn event->ical
-  [{:keys [guest-ids at] :as event}]
+  [{:event/keys [guest-ids at id] :as event}]
   (let [guests (map db/get-user guest-ids)
         ;; iCAL expects datetimes in the form: "20211108T140000Z"
         format  (fn [t]
                   (string/replace t #"-|:" ""))
-        start (.toInstant (:event/at event))
+        start (.toInstant at)
         end (.plus start 1 ChronoUnit/HOURS)]
    (->> [["BEGIN" "VCALENDAR"]
          ["VERSION" "2.0"]
@@ -154,7 +154,7 @@
          ["ORGANIZER" "mailto:bot@clojodojo.com"]
          ["ATTENDEE" (str "mailto:" (:user/email (first guests)))]
          ["ATTENDEE" (str "mailto:" (:user/email (last guests)))]
-         ["UID" (:event/id event)]
+         ["UID" id]
          ["DESCRIPTION" (str "Potential topics: " (->topics event))]
          ["LOCATION" (->jitsi-url event)]
          ["DTSTART" (format start)]
@@ -168,8 +168,9 @@
 #_(last (db/get-users))
 #_(event->ical {:event/guest-ids #{(:user/id (first (db/get-users)))
                                    (:user/id (last (db/get-users)))}
-                :event/at #inst "2021-11-08T14:00:00.000-00:00"})
-
+                :event/at #inst "2021-11-08T14:00:00.000-00:00"
+                :event/id #uuid "c2492476-8302-4ab0-aee8-abf0039fc09b"})
+                
 (defn matched-email-template
   [user-id events]
   (let [get-user (memoize db/get-user)
