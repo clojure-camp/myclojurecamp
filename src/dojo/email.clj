@@ -13,6 +13,7 @@
       {:from (:from (:smtp-credentials @config))
        :to to
        :subject subject
+       :List-Unsubscribe "<mailto: unsubscribe@clojodojo.com?subject=unsubscribe>"
        :body (concat [{:type "text/html; charset=utf-8"
                        :content (hiccup/html body)}]
                      attachments)})
