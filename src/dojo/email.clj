@@ -43,10 +43,11 @@
        :to to
        :subject subject
        :List-Unsubscribe "<mailto: unsubscribe@clojodojo.com?subject=unsubscribe>"
-       :body (concat [{:type "text/html; charset=utf-8"
-                       :content (hiccup/html body)}
-                      {:type "text/plain; charset=utf-8"
-                       :content (textify body)}]
+       :body (concat [[:alternative
+                       {:type "text/plain; charset=utf-8"
+                        :content (textify body)}
+                       {:type "text/html; charset=utf-8"
+                        :content (hiccup/html [:html [:body body]])}]]
                      attachments)})
     (catch com.sun.mail.util.MailConnectException _
       (println "Couldn't send email."))))
