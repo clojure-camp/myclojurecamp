@@ -217,37 +217,48 @@
                                                    :hour "numeric"})
            date))
 
+(defn event-view [heading event]
+ (let [guest-name (:user/name (:event/other-guest event))
+       other-guest-flagged? (contains? (:event/flagged-guest-ids event)
+                                       (:user/id (:event/other-guest event)))]
+   [:tr.event {:class (if (< (js/Date.) (:event/at event))
+                        "future"
+                        "past")}
+    [:th heading]
+    [:td
+     [:span.at (format-date-2 (:event/at event))]
+     " with "
+     [:span.other-guest (:user/name (:event/other-guest event))]]
+    [:td
+     [:div.actions
+      [:a.link {:href (str "mailto:" (:user/email (:event/other-guest event)))}
+       [fa/fa-envelope-solid]]
+      [:a.link {:href (model/->jitsi-url event)}
+       [fa/fa-video-solid]]
+      [:button.flag
+       {:class (when other-guest-flagged? "flagged")
+        :on-click (fn []
+                    (if other-guest-flagged?
+                      (dispatch [:flag-event-guest! (:event/id event) false])
+                      (when (js/confirm (str "Are you sure you want to report " guest-name " for not showing up?"))
+                       (dispatch [:flag-event-guest! (:event/id event) true]))))}
+       [fa/fa-flag-solid]]]]]))
+
 (defn events-view []
-  (let [events @(subscribe [:events])]
-   (when (seq events)
-    [:div.events
-     [:h2 "Your Pairing Sessions"]
-     (for [event (->> events
-                      (sort-by :event/at)
-                      reverse)
-           :let [guest-name (:user/name (:event/other-guest event))
-                 other-guest-flagged? (contains? (:event/flagged-guest-ids event)
-                                                 (:user/id (:event/other-guest event)))]]
-      ^{:key (:event/id event)}
-      [:div.event {:class (if (< (js/Date.) (:event/at event))
-                            "future"
-                            "past")}
-       [:span
-        [:span.at (format-date-2 (:event/at event))]
-        " with "
-        [:span.other-guest (:user/name (:event/other-guest event))]]
-       [:a.link {:href (str "mailto:" (:user/email (:event/other-guest event)))}
-        [fa/fa-envelope-solid]]
-       [:a.link {:href (model/->jitsi-url event)}
-        [fa/fa-video-solid]]
-       [:button.flag
-        {:class (when other-guest-flagged? "flagged")
-         :on-click (fn []
-                     (if other-guest-flagged?
-                       (dispatch [:flag-event-guest! (:event/id event) false])
-                       (when (js/confirm (str "Are you sure you want to report " guest-name " for not showing up?"))
-                        (dispatch [:flag-event-guest! (:event/id event) true]))))}
-        [fa/fa-flag-solid]]])])))
+  (let [events @(subscribe [:events])
+        [upcoming-events past-events] (->> events
+                                           (sort-by :event/at)
+                                           reverse
+                                           (split-with (fn [event]
+                                                         (< (js/Date.) (:event/at event)))))]
+   [:table.events
+    [:tbody
+     (for [[index event] (map-indexed vector upcoming-events)]
+       ^{:key (:event/id event)}
+       [event-view (when (= 0 index) "Upcoming Sessions") event])
+     (for [[index event] (map-indexed vector past-events)]
+       ^{:key (:event/id event)}
+       [event-view (when (= 0 index) "Past Sessions") event])]]))
 
 (defn main-view []
   [:div.main

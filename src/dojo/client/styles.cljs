@@ -35,35 +35,44 @@
      ["0%" {:transform "rotate(0deg)"}]
      ["100%" {:transform "rotate(359deg)"}])
 
-   [:.events
-    [:>.event
-     {:display "flex"
-      :gap "0.5em"
-      :padding "0.5em"
-      :align-items "center"}
+   [:table.events
+    [:>tbody
+     [:>tr
+      [:&.past
+       {:opacity "0.5"}]
 
-     [:&.past
-      {:opacity "0.5"}]
+      [:>th
+       {:vertical-align "top"
+        :text-align "right"
+        :padding "0.5em"}]
 
-     [:>.link
-      [:>svg
-       {:width "1em"}]]
+      [:>td
+       {:padding "0.5em"}
 
-     [:>button.flag
-      {:cursor "pointer"
-       :border "none"
-       :background "none"
-       :padding 0
-       :color "#AAA"}
+       [:>.actions
+        {:display "flex"
+         :gap "0.5em"
+         :align-items "center"}
 
-      [:&:hover
-       {:transform "scale(1.25)"}]
+        [:>.link
+         [:>svg
+          {:width "1em"}]]
 
-      [:&.flagged
-       {:color "red"}]
+        [:>button.flag
+         {:cursor "pointer"
+          :border "none"
+          :background "none"
+          :padding 0
+          :color "#AAA"}
 
-      [:>svg
-       {:width "1em"}]]]]
+         [:&:hover
+          {:transform "scale(1.25)"}]
+
+         [:&.flagged
+          {:color "red"}]
+
+         [:>svg
+          {:width "1em"}]]]]]]]
 
    [:.ajax-status
     {:position "fixed"
