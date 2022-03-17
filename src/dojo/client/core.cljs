@@ -236,6 +236,8 @@
         [:span.at (format-date-2 (:event/at event))]
         " with "
         [:span.other-guest (:user/name (:event/other-guest event))]]
+       [:a.link {:href (str "mailto:" (:user/email (:event/other-guest event)))}
+        [fa/fa-envelope-solid]]
        [:a.link {:href (model/->jitsi-url event)}
         [fa/fa-video-solid]]
        [:button.flag

@@ -194,7 +194,7 @@
                        (disj user-id)
                        first
                        db/get-user
-                       (select-keys [:user/id :user/name])))))))}])
+                       (select-keys [:user/id :user/name :user/email])))))))}])
 
 (tada/register! (concat commands queries))
 
