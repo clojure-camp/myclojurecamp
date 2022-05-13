@@ -7,19 +7,32 @@
    [reagent.dom :as rdom]
    [reagent.core :as r]
    [bloom.commons.fontawesome :as fa]
-   [dojo.client.state]
+   [dojo.client.state :as state]
    [dojo.client.styles :refer [styles]]
    [dojo.model :as model]))
 
 (defn max-limit-preferences-view []
-  [:div "Max pair per day"
-   [:input {:type "number"
-            :value @(subscribe [:user-profile-value :user/max-pair-per-day])
-            :on-change (fn [e]
-                          (dispatch [:set-user-value!
-                                     :user/max-pair-per-day
-                                     (.. e -target -value)]))}]])
-
+  [:div.max-limit-preferences
+   [:label
+    "Max pair per day"
+    [:input {:type "number"
+             :value @(subscribe [:user-profile-value :user/max-pair-per-day])
+             :min 1
+             :max 24
+             :on-change (fn [e]
+                           (dispatch [:set-user-value!
+                                      :user/max-pair-per-day
+                                      (js/parseInt (.. e -target -value) 10)]))}]]
+   [:label
+    "Max pair per week"
+    [:input {:type "number"
+             :value @(subscribe [:user-profile-value :user/max-pair-per-week])
+             :min 1
+             :max (* 24 7)
+             :on-change (fn [e]
+                           (dispatch [:set-user-value!
+                                      :user/max-pair-per-week
+                                      (js/parseInt (.. e -target -value) 10)]))}]]])
 (defn next-day-of-week
   "Calculates next date with day of week as given"
   [now target-day-of-week]
@@ -55,6 +68,12 @@
   [:div.topics-view
    [:h1 "Topics"]
    (let [user-topic-ids @(subscribe [:user-profile-value :user/topic-ids])]
+    [:<>
+     (when (and (empty? user-topic-ids)
+                @(subscribe [:user-profile-value :user/pair-next-week?]))
+      [:p.warning
+       [fa/fa-exclamation-triangle-solid]
+       "You need to select at least one topic to be matched with someone."])
      [:div.topics
       (for [topic (sort-by :topic/name @(subscribe [:topics]))
             :let [checked? (contains? user-topic-ids (:topic/id topic))]]
@@ -68,16 +87,16 @@
                       (dispatch [:remove-user-topic! (:topic/id topic)])
                       (dispatch [:add-user-topic! (:topic/id topic)])))}]
          [:span.name (:topic/name topic)] " "
-         [:span.count (:topic/user-count topic)]])])
-   [:button
-    {:on-click (fn [_]
-                 (let [value (js/prompt "Enter a new topic:")]
-                   (when (not (string/blank? value))
-                     (dispatch [:new-topic! (string/trim value)]))))}
-    "+ Add Topic"]])
+         [:span.count (:topic/user-count topic)]])
+      [:button
+       {:on-click (fn [_]
+                    (let [value (js/prompt "Enter a new topic:")]
+                      (when (not (string/blank? value))
+                        (dispatch [:new-topic! (string/trim value)]))))}
+       "+ Add Topic"]]])])
 
 (defn availability-view []
-  (when-let [availability (:user/availability @(subscribe [:user]))]
+  (when-let [availability @(subscribe [:user-profile-value :user/availability])]
     [:table.availability
      [:thead
       [:tr
@@ -113,59 +132,167 @@
                                            :preferred nil
                                            :available :preferred
                                            nil :available)]))}
-                 (case value
-                   :preferred "P"
-                   :available "A"
-                   nil "")])]))]))]]))
+                 [:div.wrapper
+                  (case value
+                    :preferred "P"
+                    :available "A"
+                    nil "")]])]))]))]]))
 
 (defn login-view []
   (let [sent-email (r/atom nil)]
     (fn []
-      [:form.login
-       {:on-submit (fn [e]
-                     (let [email (.. e -target -elements -email -value)]
-                       (.preventDefault e)
-                       (dispatch [:log-in! email])
-                       (reset! sent-email email)))}
-       [:label
-        "Enter your email:"
-        [:input {:name "email"
-                 :type "email"}]]
-       [:button "Go"]
-       (when @sent-email
-         [:div "An email with a login-link was sent to " @sent-email])])))
+      [:div.login
+       [:img {:src "/logo.svg"
+              :alt "A circle with green-blue gradient and two white parentheses in the middle"}]
+       [:h1
+        [:span {:style {:color "#5FAD31"}} "Clojo"]
+        [:span {:style {:color "#567ED2"}} "Dojo"]]
+       [:form
+        {:on-submit (fn [e]
+                      (let [email (.. e -target -elements -email -value)]
+                        (.preventDefault e)
+                        (dispatch [:log-in! email])
+                        (reset! sent-email email)))}
+        [:label
+         "Enter your email:"
+         [:input {:name "email"
+                  :type "email"}]]
+        [:button "Login"]
+        (when @sent-email
+          [:div "An email with a login-link was sent to " @sent-email])]])))
 
 (defn opt-in-view []
   (let [checked? @(subscribe [:user-profile-value :user/pair-next-week?])]
-   [:label.opt-in {:class (when checked? "active")}
+   [:button.opt-in
+    {:class (when checked? "active")
+     :on-click (fn []
+                 (dispatch
+                  [:opt-in-for-pairing! (not checked?)]))}
     (if checked?
       [fa/fa-check-square-regular]
       [fa/fa-square-regular])
-    [:input {:type "checkbox"
-             :checked checked?
-             :on-change (fn []
-                          (dispatch
-                           [:opt-in-for-pairing! (not checked?)]))}]
     "Pair next week?"]))
+
+(defn name-view []
+  [:label.name "Name "
+   [:input {:type "text"
+            :value @(subscribe [:user-profile-value :user/name])
+            :on-change (fn [e]
+                          (dispatch
+                            [:set-user-value! :user/name (.. e -target -value)]))}]])
+
+(defn time-zone-view []
+  [:label.time-zone "Time Zone "
+   [:input {:type "text"
+            :disabled true
+            :value @(subscribe [:user-profile-value :user/time-zone])}]
+   [:button
+    {:on-click (fn []
+                  (dispatch
+                    [:set-user-value! :user/time-zone (.. js/Intl DateTimeFormat resolvedOptions -timeZone)]))}
+    "Update"]])
+
+(defn ajax-status-view []
+  [:div.ajax-status {:class (if (empty? @state/ajax-state) "normal" "loading")}
+   (if (empty? @state/ajax-state)
+     [fa/fa-check-circle-solid]
+     [fa/fa-circle-notch-solid])])
+
+(defn subscription-toggle-view []
+  (if @(subscribe [:user-profile-value :user/subscribed?])
+    [:button.unsubscribe
+     {:on-click (fn []
+                  (when (js/window.confirm "Are you sure you want to unsubscribe?")
+                    (dispatch [:update-subscription! false])))}
+     "Unsubscribe"]
+    [:button.subscribe
+     {:on-click (fn []
+                  (dispatch [:update-subscription! true]))}
+     "Re-Subscribe"]))
+
+(defn format-date-2 [date]
+  (.format (js/Intl.DateTimeFormat. "default" #js {:day "numeric"
+                                                   :month "short"
+                                                   :year "numeric"
+                                                   :hour "numeric"})
+           date))
+
+(defn event-view [heading event]
+ (let [guest-name (:user/name (:event/other-guest event))
+       other-guest-flagged? (contains? (:event/flagged-guest-ids event)
+                                       (:user/id (:event/other-guest event)))]
+   [:tr.event {:class (if (< (js/Date.) (:event/at event))
+                        "future"
+                        "past")}
+    [:th heading]
+    [:td
+     [:span.at (format-date-2 (:event/at event))]
+     " with "
+     [:span.other-guest (:user/name (:event/other-guest event))]]
+    [:td
+     [:div.actions
+      [:a.link {:href (str "mailto:" (:user/email (:event/other-guest event)))}
+       [fa/fa-envelope-solid]]
+      [:a.link {:href (model/->jitsi-url event)}
+       [fa/fa-video-solid]]
+      [:button.flag
+       {:class (when other-guest-flagged? "flagged")
+        :on-click (fn []
+                    (if other-guest-flagged?
+                      (dispatch [:flag-event-guest! (:event/id event) false])
+                      (when (js/confirm (str "Are you sure you want to report " guest-name " for not showing up?"))
+                       (dispatch [:flag-event-guest! (:event/id event) true]))))}
+       [fa/fa-flag-solid]]]]]))
+
+(defn events-view []
+  (let [events @(subscribe [:events])
+        [upcoming-events past-events] (->> events
+                                           (sort-by :event/at)
+                                           reverse
+                                           (split-with (fn [event]
+                                                         (< (js/Date.) (:event/at event)))))]
+   [:table.events
+    [:tbody
+     (for [[index event] (map-indexed vector upcoming-events)]
+       ^{:key (:event/id event)}
+       [event-view (when (= 0 index) "Upcoming Sessions") event])
+     (for [[index event] (map-indexed vector past-events)]
+       ^{:key (:event/id event)}
+       [event-view (when (= 0 index) "Past Sessions") event])]]))
 
 (defn main-view []
   [:div.main
+   [ajax-status-view]
    [:button.log-out
     {:on-click (fn []
                  (dispatch [:log-out!]))}
     "Log Out"]
    [opt-in-view]
+   [name-view]
    [topics-view]
    [max-limit-preferences-view]
-   [availability-view]])
+   [time-zone-view]
+   [availability-view]
+   [events-view]
+   [subscription-toggle-view]])
+
+(defonce favicon
+ (let [element (.createElement js/document "link")]
+   (.setAttribute element "rel" "icon")
+   (.setAttribute element "href" "/logo.svg")
+   (.appendChild (.querySelector js/document "head") element)
+   nil))
 
 (defn app-view []
   [:<>
    [:style
     (garden/css styles)]
 
-   (if-let [user @(subscribe [:user])]
+   (cond
+     @(subscribe [:user])
      [main-view]
+
+     @(subscribe [:checked-auth?])
      [login-view])])
 
 (defn render []

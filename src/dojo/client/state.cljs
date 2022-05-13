@@ -1,20 +1,31 @@
 (ns dojo.client.state
   (:require
     [bloom.commons.ajax :as ajax]
-    [re-frame.core :refer [reg-event-fx reg-fx reg-sub dispatch]]))
+    [reagent.core :as r]
+    [re-frame.core :refer [reg-event-fx reg-fx reg-sub dispatch]]
+    [dojo.model :as model]))
 
 (defn key-by [f coll]
   (zipmap (map f coll)
           coll))
 
-(reg-fx :ajax ajax/request)
+(defonce ajax-state (r/atom {}))
+
+(reg-fx :ajax
+  (fn [opts]
+    (let [request-id (gensym "request")]
+     (swap! ajax-state assoc request-id :request.state/in-progress)
+     (ajax/request (assoc opts :on-success (fn [data]
+                                            (swap! ajax-state dissoc request-id)
+                                            (when (opts :on-success)
+                                             ((opts :on-success) data))))))))
 
 (reg-event-fx
   :initialize!
   (fn [_ _]
-    {:db {:db/topics {}}
-     :dispatch-n [[:fetch-user!]
-                  [::fetch-topics!]]}))
+    {:db {:db/checked-auth? false
+          :db/topics {}}
+     :dispatch-n [[:fetch-user!]]}))
 
 (reg-event-fx
   :fetch-user!
@@ -22,7 +33,22 @@
     {:ajax {:method :get
             :uri "/api/user"
             :on-success (fn [data]
-                          (dispatch [::handle-user-data! data]))}}))
+                          (dispatch [::handle-user-data! data])
+                          (dispatch [::mark-auth-completed!])
+                          (dispatch [::fetch-other-data!]))
+            :on-error (fn [_]
+                       (dispatch [::mark-auth-completed!]))}}))
+
+(reg-event-fx
+  ::mark-auth-completed!
+  (fn [{db :db} _]
+    {:db (assoc db :db/checked-auth? true)}))
+
+(reg-event-fx
+  ::fetch-other-data!
+  (fn [_ _]
+    {:dispatch-n [[::fetch-topics!]
+                  [::fetch-events!]]}))
 
 (reg-event-fx
   ::fetch-topics!
@@ -36,6 +62,25 @@
   ::store-topics!
   (fn [{db :db} [_ topics]]
     {:db (update db :db/topics merge (key-by :topic/id topics))}))
+
+(reg-event-fx
+  ::fetch-events!
+  (fn [_ _]
+    {:ajax {:method :get
+            :uri "/api/events"
+            :on-success (fn [events]
+                          (dispatch [::store-events! events]))}}))
+
+(reg-event-fx
+  ::store-events!
+  (fn [{db :db} [_ events]]
+    {:db (update db :db/events merge (key-by :event/id events))}))
+
+(reg-event-fx
+  ::maybe-set-time-zone!
+  (fn [{db :db} _]
+    (when (nil? (get-in db [:db/user :user/time-zone]))
+     {:dispatch [:set-user-value! :user/time-zone (.. js/Intl DateTimeFormat resolvedOptions -timeZone)]})))
 
 (reg-event-fx
   :new-topic!
@@ -55,8 +100,6 @@
             :params {:email email}
             :on-success (fn [data])}}))
 
-
-
 (reg-event-fx
   :log-out!
   (fn [_ _]
@@ -73,7 +116,8 @@
 (reg-event-fx
   ::handle-user-data!
   (fn [{db :db} [_ data]]
-    {:db (assoc db :db/user data)}))
+    {:db (assoc db :db/user data)
+     :dispatch [::maybe-set-time-zone!]}))
 
 (reg-event-fx
   :set-availability!
@@ -95,13 +139,18 @@
             :uri "/api/user/add-topic"
             :params {:topic-id topic-id}}}))
 
+(defn maybe-delete-topic [db topic-id]
+  (if (= 0 (get-in db [:db/topics topic-id :topic/user-count]))
+   (update db :db/topics dissoc topic-id)
+   db))
 
 (reg-event-fx
   :remove-user-topic!
   (fn [{db :db} [_ topic-id]]
     {:db (-> db
              (update-in [:db/user :user/topic-ids] disj topic-id)
-             (update-in [:db/topics topic-id :topic/user-count] dec))
+             (update-in [:db/topics topic-id :topic/user-count] dec)
+             (maybe-delete-topic topic-id))
      :ajax {:method :put
             :uri "/api/user/remove-topic"
             :params {:topic-id topic-id}}}))
@@ -123,6 +172,28 @@
             :params {:k k
                      :v v}}}))
 
+(reg-event-fx
+  :update-subscription!
+  (fn [{db :db} [_ status]]
+    {:db (assoc-in db [:db/user :user/subscribed?] status)
+     :ajax {:method :put
+            :uri "/api/user/subscription"
+            :params {:status status}}}))
+
+(reg-event-fx
+  :flag-event-guest!
+  (fn [{db :db} [_ event-id value]]
+    {:db (update-in db [:db/events event-id] (partial model/flag-other-user value) (get-in db [:db/user :user/id]))
+     :ajax {:method :put
+            :uri "/api/event/flag-guest"
+            :params {:event-id event-id
+                     :value value}}}))
+
+(reg-sub
+  :checked-auth?
+  (fn [db _]
+    (db :db/checked-auth?)))
+
 (reg-sub
   :user
   (fn [db _]
@@ -137,3 +208,8 @@
   :topics
   (fn [db _]
     (vals (db :db/topics))))
+
+(reg-sub
+  :events
+  (fn [db _]
+    (vals (db :db/events))))
