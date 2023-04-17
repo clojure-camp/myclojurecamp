@@ -235,7 +235,9 @@
 
       [:td.hour
        {:text-align "right"
-        :padding-right "1rem"}]
+        :padding-right "1rem"
+        :vertical-align "top"
+        :transform "translateY(-0.5rem)"}]
 
       [:td
        {:padding 0}
