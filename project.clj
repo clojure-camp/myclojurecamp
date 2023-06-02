@@ -1,6 +1,6 @@
 (defproject dojo "0.1.0-SNAPSHOT"
 
-  :plugins [[io.bloomventures/omni "0.27.6"]
+  :plugins [[io.bloomventures/omni "0.32.2"]
             [lein-tools-deps "0.4.5"]]
 
   :omni-config dojo.omni-config/omni-config-prod
