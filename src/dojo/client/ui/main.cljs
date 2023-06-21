@@ -233,18 +233,31 @@
        ^{:key (:event/id event)}
        [event-view (when (= 0 index) "Past Sessions") event])]]))
 
-(defn main-view []
-  [:div.main
-   [ajax-status-view]
+(defn header-view []
+  [:div.header
+   [:img.logomark
+    {:src "/logomark.svg"
+     :alt "Logo of Clojure Camp. A star constellation in the shape of alambda."}]
+   [:div.gap]
+   [:img.logotype
+    {:src "/logotype.svg"
+     :alt "Clojure Camp"}]
+   [:div.gap]
    [:button.log-out
     {:on-click (fn []
                  (dispatch [:log-out!]))}
-    "Log Out"]
-   [opt-in-view]
-   [name-view]
-   [topics-view]
-   [max-limit-preferences-view]
-   [time-zone-view]
-   [availability-view]
-   [events-view]
-   [subscription-toggle-view]])
+    "Log Out"]])
+
+(defn main-view []
+  [:div.main
+   [ajax-status-view]
+   [header-view]
+   [:div.content
+    [opt-in-view]
+    [name-view]
+    [topics-view]
+    [max-limit-preferences-view]
+    [time-zone-view]
+    [availability-view]
+    [events-view]
+    [subscription-toggle-view]]])

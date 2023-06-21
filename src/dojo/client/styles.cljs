@@ -78,10 +78,8 @@
    [:.ajax-status
     {:position "fixed"
      :top "1em"
-     :left 0
-     :right 0
-     :display "flex"
-     :justify-content "center"}
+     :left "1em"
+     :right 0}
 
     [:>svg
      {:width "1em"
@@ -94,11 +92,7 @@
     [:&.normal>svg
      {:animation "fade-out 1s forwards ease-in-out"}]]
 
-   [:.log-out
-    (button)
-    {:position "absolute"
-     :top "0.25rem"
-     :right "0.25rem"}]
+
 
    [:body
     {;;:background (str "linear-gradient(-225deg, " clojure-green "ee, " clojure-blue "ee)")
@@ -170,145 +164,169 @@
         :cursor "pointer"}]]]
 
     [:.main
-     {:display "flex"
-      :flex-direction "column"
-      :align-items "center"
-      :padding "2rem"
-      :gap "2rem"}
-     {:max-width "40em"
-      :margin "0 auto"
-      :background "white"}
 
-     [:>.opt-in
-      {:display "flex"
+
+     [:>.header
+      {:background clojure-camp-blue
+       :display "flex"
+       :justify-content "space-between"
        :align-items "center"
-       :font-size "2rem"
-       :background gray
-       :border [["1px" "solid" (darken gray 10)]]
-       :padding "1rem"
-       :border-radius "0.5rem"
-       :font-weight "bold"
-       :cursor "pointer"}
+       :color "white"
+       :padding "0.5em"
+       :box-sizing "border-box"
+       :width "100vw"}
 
-      [:&:hover
-       {:background (darken gray 5)}]
+      [:>img.logomark
+       {:height "2em"
+        ;; to balance out log-out button
+        :padding-right "3em"}]
 
-      [:&.active
-       {:background accent-light
-        :border [["1px" "solid" (darken accent-light 10)]]}
+      [:>img.logotype
+       {:height "1.5em"}]
 
-       [:&:hover
-        {:background (darken accent-light 5)}]]
-
-      [:>svg
-       {:width "2rem"
-        :margin-right "0.5rem"}]
-
-      [:>input
-       {:display "none"}]]
-
-     [:>.topics-view
-      [:>.warning
-       {:color "red"
-        :background "#ffe9e9"
-        :padding "0.25em"
-        :border-radius "0.25em"
-        :border "1px solid #ffc4c4"}
-
-       [:>svg
-        {:width "1em"
-         :margin-right "0.25em"}]]
-
-      [:>.topics
-       {:columns "3"}
-
-       [:>.topic
-        {:display "block"
-         :margin-bottom "0.5rem"
-         :cursor "pointer"
-         :vertical-align "center"
-         :white-space "nowrap"}
-
-        [:>.count
-         {:color "#ccc"}]]
-
-       [:>button
-        (button)]]]
-
-     [:>.max-limit-preferences
-
-      [:>label
-       {:display "block"
-        :padding "0.5rem"}
-
-       [:>input
-        {:margin-left "0.5rem"}]]]
-
-     [:>.time-zone
-      {:display "flex"
-       :gap "0.25em"
-       :align-items "center"}
-      [:>button
+      [:>.log-out
        (button)]]
 
-     [:>table.availability
-      {:border-spacing 0
-       :width "100%"}
+     [:>.content
+      {:padding "2em"
+       :display "flex"
+       :flex-direction "column"
+       :align-items "center"
+       :gap "2rem"}
+      {:max-width "40em"
+       :margin "0 auto"
+       :background "white"}
 
-      [:th.day
-       {:font-weight "normal"
-        :padding-bottom "1rem"}
+      [:>.opt-in
+       {:display "flex"
+        :align-items "center"
+        :font-size "2rem"
+        :background gray
+        :border [["1px" "solid" (darken gray 10)]]
+        :padding "1rem"
+        :border-radius "0.5rem"
+        :font-weight "bold"
+        :cursor "pointer"}
 
-       [:>.day-of-week]
+       [:&:hover
+        {:background (darken gray 5)}]
 
-       [:>.date
-        {:color "#aaa"}]]
+       [:&.active
+        {:background accent-light
+         :border [["1px" "solid" (darken accent-light 10)]]}
 
-      [:td.hour
-       {:text-align "right"
-        :padding-right "1rem"
-        :vertical-align "top"
-        :transform "translateY(-0.5rem)"}]
+        [:&:hover
+         {:background (darken accent-light 5)}]]
 
-      [:td
-       {:padding 0}
+       [:>svg
+        {:width "2rem"
+         :margin-right "0.5rem"}]
 
+       [:>input
+        {:display "none"}]]
+
+      [:>.topics-view
+       [:>.warning
+        {:color "red"
+         :background "#ffe9e9"
+         :padding "0.25em"
+         :border-radius "0.25em"
+         :border "1px solid #ffc4c4"}
+
+        [:>svg
+         {:width "1em"
+          :margin-right "0.25em"}]]
+
+       [:>.topics
+        {:columns "3"}
+
+        [:>.topic
+         {:display "block"
+          :margin-bottom "0.5rem"
+          :cursor "pointer"
+          :vertical-align "center"
+          :white-space "nowrap"}
+
+         [:>.count
+          {:color "#ccc"}]]
+
+        [:>button
+         (button)]]]
+
+      [:>.max-limit-preferences
+
+       [:>label
+        {:display "block"
+         :padding "0.5rem"}
+
+        [:>input
+         {:margin-left "0.5rem"}]]]
+
+      [:>.time-zone
+       {:display "flex"
+        :gap "0.25em"
+        :align-items "center"}
        [:>button
-        {:width "100%"
-         :border "none"
-         :cursor "pointer"
-         :padding "1em"
-         :height "6em"
-         :display "flex"
-         :justify-content "center"
-         :align-items "center"}
+        (button)]]
 
-        [:&.empty
-         {:background "#fff"
-          :color "#aaa"}
+      [:>table.availability
+       {:border-spacing 0
+        :width "100%"}
 
-         [:>.wrapper
-          {:border "1px dashed #ccc"
-           :height "4em"
-           :width "100%"
-           :line-height "4em"}]
+       [:th.day
+        {:font-weight "normal"
+         :padding-bottom "1rem"}
 
-         [:&:hover
-          {:background (darken "#fff" 5)}]]
+        [:>.day-of-week]
 
-        [:&.preferred
-         {:background accent-dark
-          :color "white"}
+        [:>.date
+         {:color "#aaa"}]]
 
-         [:&:hover
-          {:background (darken accent-dark 5)}]]
+       [:td.hour
+        {:text-align "right"
+         :padding-right "1rem"
+         :vertical-align "top"
+         :transform "translateY(-0.5rem)"}]
 
-        [:&.available
-         {:background accent-light
-          :color "white"}
+       [:td
+        {:padding 0}
 
-         [:&:hover
-          {:background (darken accent-light 5)}]]]]]
+        [:>button
+         {:width "100%"
+          :border "none"
+          :cursor "pointer"
+          :padding "1em"
+          :height "6em"
+          :display "flex"
+          :justify-content "center"
+          :align-items "center"}
 
-     [:>.unsubscribe
-      (button)]]]])
+         [:&.empty
+          {:background "#fff"
+           :color "#aaa"}
+
+          [:>.wrapper
+           {:border "1px dashed #ccc"
+            :height "4em"
+            :width "100%"
+            :line-height "4em"}]
+
+          [:&:hover
+           {:background (darken "#fff" 5)}]]
+
+         [:&.preferred
+          {:background accent-dark
+           :color "white"}
+
+          [:&:hover
+           {:background (darken accent-dark 5)}]]
+
+         [:&.available
+          {:background accent-light
+           :color "white"}
+
+          [:&:hover
+           {:background (darken accent-light 5)}]]]]]
+
+      [:>.unsubscribe
+       (button)]]]]])
