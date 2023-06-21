@@ -248,10 +248,3 @@
    [availability-view]
    [events-view]
    [subscription-toggle-view]])
-
-(defonce favicon
- (let [element (.createElement js/document "link")]
-   (.setAttribute element "rel" "icon")
-   (.setAttribute element "href" "/logo.svg")
-   (.appendChild (.querySelector js/document "head") element)
-   nil))
