@@ -129,11 +129,11 @@
   [user-id]
   (let [user (db/get-user user-id)]
     {:to (:user/email user)
-     :subject "ClojoDojo - Your Matches for this Week"
+     :subject "Clojure Camp - Your Matches for this Week"
      :body [:div
             [:p "Hi " (:user/name user) ","]
             [:p "Unfortunately, we couldn't match you with anyone this week. :("]
-            [:p "- DojoBot"]]}))
+            [:p "- Clojure Camp scheduler bot"]]}))
 
 (defn event->ical
   [{:event/keys [guest-ids at id] :as event}]
@@ -149,7 +149,7 @@
          ["CALSCALE" "GREGORIAN"]
          ["METHOD" "PUBLISH"]
          ["BEGIN" "VEVENT"]
-         ["SUMMARY" (str "ClojoDojo " (:user/name (first guests))
+         ["SUMMARY" (str "Clojure Camp " (:user/name (first guests))
                          " and " (:user/name (last guests)))]
          ["ORGANIZER" "mailto:bot@clojodojo.com"]
          ["ATTENDEE" (str "mailto:" (:user/email (first guests)))]
@@ -170,13 +170,13 @@
                                    (:user/id (last (db/get-users)))}
                 :event/at #inst "2021-11-08T14:00:00.000-00:00"
                 :event/id #uuid "c2492476-8302-4ab0-aee8-abf0039fc09b"})
-                
+
 (defn matched-email-template
   [user-id events]
   (let [get-user (memoize db/get-user)
         user (db/get-user user-id)]
    {:to (:user/email user)
-    :subject "ClojoDojo - Your Matches for this Week"
+    :subject "Clojure Camp - Your Matches for this Week"
     :attachments (->> events
                       (map (fn [event]
                             {:type :attachment

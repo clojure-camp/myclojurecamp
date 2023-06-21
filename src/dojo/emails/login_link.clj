@@ -5,11 +5,11 @@
 
 (defn login-email-template [user]
   {:to (:user/email user)
-   :subject "[ClojoDojo] Your Login Link"
+   :subject "Clojure Camp - Your Login Link"
    :body
    [:div
     [:p "Hi " (:user/name user) ","]
-    [:p "To log in to ClojoDojo, "
+    [:p "To log in to Clojure Camp, "
      [:a {:href
           (str (@config :app-domain)
                (if (:user/email-validated? user)
