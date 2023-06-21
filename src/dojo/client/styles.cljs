@@ -143,6 +143,8 @@
      [:>form
       {:display "flex"
        :flex-direction "column"
+       :background clojure-camp-blue
+       :padding "0.5em"
        :min-width "20em"
        :max-width "80vw"}
 
