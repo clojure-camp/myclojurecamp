@@ -9,6 +9,7 @@
 (def clojure-green "#5FAD31")
 (def clojure-blue "#567ED2")
 (def clojure-blue-darker "#396CD5")
+(def clojure-camp-blue "#181742")
 
 (defn button []
   [:&
@@ -25,7 +26,7 @@
     {:background-color clojure-blue-darker}]])
 
 (def styles
-  [(at-import "https://fonts.googleapis.com/css2?family=Roboto:wght@300;700&display=swap")
+  [(at-import "https://fonts.googleapis.com/css2?family=Roboto:wght@300;500&family=Walter+Turncoat&display=swap")
 
    (at-keyframes "fade-out"
      ["0%" {:opacity 1}]
@@ -100,46 +101,71 @@
      :right "0.25rem"}]
 
    [:body
-    {:background (str "linear-gradient(-225deg, " clojure-green "ee, " clojure-blue "ee)")
+    {;;:background (str "linear-gradient(-225deg, " clojure-green "ee, " clojure-blue "ee)")
      :font-family "Roboto, sans-serif"
      :margin 0}]
 
    [:#app
-    {:max-width "40em"
-     :min-height "100vh"
-     :margin "0 auto"
-     :background "white"}
 
     [:.login
-     {:display "flex"
+     {:min-height "100vh"
+      :display "flex"
       :justify-content "center"
       :align-items "center"
       :flex-direction "column"
-      :height "100%"}
+      :height "100%"
+      ;; for star-field:
+      :z-index 1
+      :position "relative"
+      :background clojure-camp-blue
+      :color "white"}
 
-     [:>img
-      {:max-width "15vw"}]
+     [:>.star-field
+      {:position "absolute"
+       :z-index -1
+       :top 0
+       :right 0
+       :bottom 0
+       :left 0
+       :background clojure-camp-blue}]
 
-     [:>form>label>input
-      :>form>button
-      {:height "2em"
-       :font-size "1em"
-       :padding "0.25em"
-       :border "1px solid black"
-       :box-sizing "border-box"
-       :margin-left "0.5rem"
-       :border-radius "0.2rem"}]
+     [:>img.logomark
+      {:max-height "30vh"
+       :max-width "60vw"}]
 
-     [:>form>label>input
-      {:border-color clojure-green}]
+     [:>h1
+      {:margin [[0 0 "2em" 0]]}
 
-     [:>form>button
-      {:background-color clojure-blue
-       :border "1px solid black"
-       :border-color clojure-blue
-       :color "white"
-       :padding "0 0.5rem"
-       :cursor "pointer"}]]
+      [:>img.logotype
+       {:max-width "50vw"
+        :max-height "10vh"}]]
+
+     [:>form
+      {:display "flex"
+       :flex-direction "column"
+       :min-width "20em"
+       :max-width "80vw"}
+
+      [:>label>input
+       :>button
+       {:display "block"
+        :height "2em"
+        :font-size "1em"
+        :margin "0.5em 0"
+        :padding "0.25em"
+        :border "none"
+        :box-sizing "border-box"
+        :border-radius "0.2rem"}]
+
+      [:>label>input
+       {:width "100%"}]
+
+      [:>button
+       {:background-color "white"
+        :color clojure-camp-blue
+        :font-family "Roboto"
+        :padding "0 0.5rem"
+        :cursor "pointer"}]]]
 
     [:.main
      {:display "flex"
@@ -147,6 +173,9 @@
       :align-items "center"
       :padding "2rem"
       :gap "2rem"}
+     {:max-width "40em"
+      :margin "0 auto"
+      :background "white"}
 
      [:>.opt-in
       {:display "flex"
