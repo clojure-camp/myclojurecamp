@@ -7,8 +7,6 @@
    [dojo.db :as db]))
 
 (defn seed! []
-  (.mkdirs (io/file (:data-path @config) "topic"))
-  (.mkdirs (io/file (:data-path @config) "user"))
   (let [topics (for [topic ["react" "clojure" "reagent" "re-frame" "javascript"]]
                  {:topic/id (uuid/random)
                   :topic/name topic})

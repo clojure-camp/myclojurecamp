@@ -10,8 +10,9 @@
 (defn parse [f]
   (edn/read-string (io/slurp f)))
 
-(defn ->path [entity-type entity-id]
-  (.mkdirs (java.io/file (:data-path @config) (name entity-type)))
+
+(defn ->path
+  [entity-type entity-id]
   (str (:data-path @config) "/" (name entity-type) "/" entity-id ".edn"))
 
 (defn exists?
@@ -57,14 +58,19 @@
        (some (fn [topic]
                (= (:topic/name topic) name)))))
 
+(defn save! [file-path content]
+  ;; make sure parent directory exists or spit will error
+  (.mkdirs (.getParentFile (java.io/file file-path)))
+  (io/spit file-path content))
+
 (defn save-user! [user]
-  (io/spit (->path :user (:user/id user)) user))
+  (save! (->path :user (:user/id user)) user))
 
 (defn save-topic! [topic]
-  (io/spit (->path :topic (:topic/id topic)) topic))
+  (save! (->path :topic (:topic/id topic)) topic))
 
 (defn save-event! [event]
-  (io/spit (->path :event (:event/id event)) event))
+  (save! (->path :event (:event/id event)) event))
 
 (defn get-event
   [event-id]
