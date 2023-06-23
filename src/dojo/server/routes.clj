@@ -26,7 +26,7 @@
              :name (and string? (complement string/blank?))}
     :conditions
     (fn [{:keys [user-id name]}]
-      [[#(db/exists? :user user-id) :not-allowed "User with this ID does not exist."]
+      [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]
        [#(not (db/topic-name-exists? name)) :not-allowed "Topic with this name already exists."]])
     :effect
     (fn [{:keys [name]}]
@@ -39,8 +39,8 @@
              :topic-id uuid?}
     :conditions
     (fn [{:keys [user-id topic-id]}]
-      [[#(db/exists? :user user-id) :not-allowed "User with this ID does not exist."]
-       [#(db/exists? :topic topic-id) :not-allowed "Topic with this ID does not exist."]])
+      [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]
+       [#(db/entity-file-exists? :topic topic-id) :not-allowed "Topic with this ID does not exist."]])
     :effect
     (fn [{:keys [user-id topic-id]}]
       (some-> (db/get-user user-id)
@@ -53,8 +53,8 @@
              :topic-id uuid?}
     :conditions
     (fn [{:keys [user-id topic-id]}]
-      [[#(db/exists? :user user-id) :not-allowed "User with this ID does not exist."]
-       [#(db/exists? :topic topic-id) :not-allowed "Topic with this ID does not exist."]])
+      [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]
+       [#(db/entity-file-exists? :topic topic-id) :not-allowed "Topic with this ID does not exist."]])
     :effect
     (fn [{:keys [user-id topic-id]}]
       (some-> (db/get-user user-id)
@@ -76,7 +76,7 @@
              :value (fn [v] (contains? model/availability-values v))}
     :conditions
     (fn [{:keys [user-id]}]
-      [[#(db/exists? :user user-id) :not-allowed "User with this ID does not exist."]])
+      [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]])
     :effect
     (fn [{:keys [user-id day hour value]}]
       (some-> (db/get-user user-id)
@@ -89,7 +89,7 @@
              :value boolean?}
     :conditions
     (fn [{:keys [user-id]}]
-      [[#(db/exists? :user user-id) :not-allowed "User with this ID does not exist."]])
+      [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]])
     :effect
     (fn [{:keys [user-id value]}]
       (some-> (db/get-user user-id)
@@ -108,7 +108,7 @@
              :v any?}
     :conditions
     (fn [{:keys [user-id k v]}]
-      [[#(db/exists? :user user-id) :not-allowed "User with this ID does not exist."]
+      [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]
        [#(case k
            :user/max-pair-per-day (and (integer? v) (<= 1 v 24))
            :user/max-pair-per-week (and (integer? v) (<= 1 v (* 24 7)))
@@ -133,7 +133,7 @@
              :status boolean?}
     :conditions
     (fn [{:keys [user-id]}]
-      [[#(db/exists? :user user-id) :not-allowed "User with this ID does not exist."]])
+      [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]])
     :effect
     (fn [{:keys [user-id status]}]
       (some-> (db/get-user user-id)
@@ -147,8 +147,8 @@
              :value boolean?}
     :conditions
     (fn [{:keys [user-id event-id]}]
-      [[#(db/exists? :user user-id) :not-allowed "User with this ID does not exist."]
-       [#(db/exists? :event event-id) :not-allowed "Event with this ID does not exist."]])
+      [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]
+       [#(db/entity-file-exists? :event event-id) :not-allowed "Event with this ID does not exist."]])
     :effect
     (fn [{:keys [user-id event-id value]}]
       (some-> (db/get-event event-id)
@@ -163,7 +163,7 @@
     :params {:user-id uuid?}
     :conditions
     (fn [{:keys [user-id]}]
-      [[#(db/exists? :user user-id) :not-allowed "User with this ID does not exist."]])
+      [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]])
     :return
     (fn [{:keys [user-id]}]
       (db/get-user user-id))}
@@ -173,7 +173,7 @@
     :params {:user-id uuid?}
     :conditions
     (fn [{:keys [user-id]}]
-      [[#(db/exists? :user user-id) :not-allowed "User with this ID does not exist."]])
+      [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]])
     :return
     (fn [_]
       (db/get-topics))}
@@ -183,7 +183,7 @@
     :params {:user-id uuid?}
     :conditions
     (fn [{:keys [user-id]}]
-      [[#(db/exists? :user user-id) :not-allowed "User with this ID does not exist."]])
+      [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]])
     :return
     (fn [{:keys [user-id]}]
       (->> (db/get-events-for-user user-id)
