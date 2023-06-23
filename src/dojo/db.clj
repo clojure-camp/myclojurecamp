@@ -7,77 +7,127 @@
     [bloom.commons.thread-safe-io :as io]
     [dojo.config :refer [config]]))
 
-(defn parse [f]
+(defn parse
+  "Given filename as string, return contents"
+  [f]
   (edn/read-string (io/slurp f)))
 
-
+;; in the doc string "config as context" (added by Paula) indicates config is not an argument. note: this fn is not referentially transparent
 (defn ->path
+  "Given entity-type and entity-id as strings, create path to entity (using config as context) and return path as string"
   [entity-type entity-id]
   (str (:data-path @config) "/" (name entity-type) "/" entity-id ".edn"))
 
-(defn exists?
+(defn entity-file-exists?
+  "Given entity-type and entity-id as strings, check if entity file exists"
   [type id]
   (.exists (java.io/file (->path type id))))
 
 (defn get-user
+  "Given user-id as string, return map of user details"
   [user-id]
   (when user-id
     (parse (->path :user user-id))))
 
-(defn get-users []
+(defn get-users
+  "Returns a collection maps of user details"
+  []
   (->> (java.io/file (str (:data-path @config) "/user"))
        file-seq
        (filter (fn [f]
                  (.isFile f)))
        (map parse)))
 
+
 (defn get-topic
+  "Given topic-id as string, return map of topic details"
   [topic-id]
   (when topic-id
     (parse (->path :topic topic-id))))
 
-(defn get-topics
+
+(defn user-topic-frequencies
+  "Returns a map of topic-id->user-count"
   []
-  (let [topic-id->count (->> (get-users)
-                             (map :user/topic-ids)
-                             (apply concat)
-                             frequencies)]
-    (->> (java.io/file (str (:data-path @config) "/topic"))
-         file-seq
-         (filter (fn [f]
-                   (.isFile f)))
-         (map parse)
+  (->> (get-users)
+      (map :user/topic-ids)
+      (apply concat)
+      frequencies))
+
+(defn get-topics
+  "Returns a collection of maps of topic details"
+  []
+  (->> (java.io/file (str (:data-path @config) "/topic"))
+       file-seq
+       (filter (fn [f]
+                 (.isFile f)))
+       (map parse)))
+
+(defn update-topic-interests
+  "Add user count for each topic to collection of maps of topic details"
+  []
+  (let [topics (get-topics)
+        user-interest (user-topic-frequencies)]
+    (->> topics
          (map (fn [topic]
                 (assoc topic :topic/user-count
-                  (or (topic-id->count (:topic/id topic))
-                      0)))))))
+                             (or (user-interest (:topic/id topic)
+                                                0))))))))
+
+; x->y means map with key x and value y (e.g. topic-id->count)
+;; deconstructed this function into 3 different ones above
+#_(defn get-topics
+    "Read all topics from files and add user count. Returns a collection of maps"
+    []
+    (let [topic-id->count (->> (get-users)
+                               (map :user/topic-ids)
+                               (apply concat)
+                               frequencies)]
+      (->> (java.io/file (str (:data-path @config) "/topic"))
+           file-seq
+           (filter (fn [f]
+                     (.isFile f)))
+           (map parse)
+           (map (fn [topic]
+                  (assoc topic :topic/user-count
+                    (or (topic-id->count (:topic/id topic))
+                        0)))))))
 
 (defn topic-name-exists?
+  "Returns true if topic name is found in map of topic details"
   [name]
   (->> (get-topics)
        (some (fn [topic]
                (= (:topic/name topic) name)))))
 
-(defn save! [file-path content]
-  ;; make sure parent directory exists or spit will error
+(defn save!
+  "Create parent directory if it doesn't exist.
+  Then, spit content to file-path"
+  [file-path content]
   (.mkdirs (.getParentFile (java.io/file file-path)))
   (io/spit file-path content))
 
 (defn save-user! [user]
+  "Given map of user details, save map to path"
   (save! (->path :user (:user/id user)) user))
 
 (defn save-topic! [topic]
+  "Given map of topic details, save map to path"
   (save! (->path :topic (:topic/id topic)) topic))
 
 (defn save-event! [event]
+  "Given map of event details, save map to path"
   (save! (->path :event (:event/id event)) event))
 
 (defn get-event
+  "Given event-id as string, return map of event details"
   [event-id]
   (when event-id
     (parse (->path :event event-id))))
 
-(defn get-events-for-user [user-id]
+(defn get-events-for-user
+  "Given user-id as string, return collection of map of event details where user is included"
+  [user-id]
   (->> (java.io/file (str (:data-path @config) "/event"))
        file-seq
        (filter (fn [f]
