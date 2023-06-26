@@ -7,30 +7,31 @@
     [bloom.commons.thread-safe-io :as io]
     [dojo.config :refer [config]]))
 
+;; The data for user, topic and event details are stored on disk in path defined in config.edn
+
 (defn parse
-  "Given filename as string, return contents"
   [f]
   (edn/read-string (io/slurp f)))
 
 ;; in the doc string "config as context" (added by Paula) indicates config is not an argument. note: this fn is not referentially transparent
 (defn ->path
-  "Given entity-type and entity-id as strings, create path to entity (using config as context) and return path as string"
+  "Given entity-type and entity-id, create path to entity (using config as context) and return path as string"
   [entity-type entity-id]
   (str (:data-path @config) "/" (name entity-type) "/" entity-id ".edn"))
 
 (defn entity-file-exists?
-  "Given entity-type and entity-id as strings, check if entity file exists"
+  "Given entity-type and entity-id, check if entity file exists"
   [type id]
   (.exists (java.io/file (->path type id))))
 
 (defn get-user
-  "Given user-id as string, return map of user details"
+  "Given user-id, return map of user details"
   [user-id]
   (when user-id
     (parse (->path :user user-id))))
 
 (defn get-users
-  "Returns a collection maps of user details"
+  "Returns a sequence of maps of user details using config as context."
   []
   (->> (java.io/file (str (:data-path @config) "/user"))
        file-seq
@@ -40,7 +41,7 @@
 
 
 (defn get-topic
-  "Given topic-id as string, return map of topic details"
+  "Given topic-id, return map of topic details"
   [topic-id]
   (when topic-id
     (parse (->path :topic topic-id))))
@@ -55,7 +56,7 @@
       frequencies))
 
 (defn get-topics
-  "Returns a collection of maps of topic details"
+  "Returns a sequence of maps of topic details"
   []
   (->> (java.io/file (str (:data-path @config) "/topic"))
        file-seq
@@ -64,7 +65,7 @@
        (map parse)))
 
 (defn update-topic-interests
-  "Add user count for each topic to collection of maps of topic details"
+  "Add user count for each topic to sequence of maps of topic details"
   []
   (let [topics (get-topics)
         user-interest (user-topic-frequencies)]
@@ -74,10 +75,9 @@
                              (or (user-interest (:topic/id topic)
                                                 0))))))))
 
-; x->y means map with key x and value y (e.g. topic-id->count)
 ;; deconstructed this function into 3 different ones above
 #_(defn get-topics
-    "Read all topics from files and add user count. Returns a collection of maps"
+    "Read all topics from files and add user count. Returns a sequence of maps"
     []
     (let [topic-id->count (->> (get-users)
                                (map :user/topic-ids)
@@ -101,32 +101,28 @@
                (= (:topic/name topic) name)))))
 
 (defn save!
-  "Create parent directory if it doesn't exist.
-  Then, spit content to file-path"
+  "Write content to file-path. If parent directory doesn't exist, create it."
   [file-path content]
   (.mkdirs (.getParentFile (java.io/file file-path)))
   (io/spit file-path content))
 
 (defn save-user! [user]
-  "Given map of user details, save map to path"
   (save! (->path :user (:user/id user)) user))
 
 (defn save-topic! [topic]
-  "Given map of topic details, save map to path"
   (save! (->path :topic (:topic/id topic)) topic))
 
 (defn save-event! [event]
-  "Given map of event details, save map to path"
   (save! (->path :event (:event/id event)) event))
 
 (defn get-event
-  "Given event-id as string, return map of event details"
+  "Given event-id, return map of event details"
   [event-id]
   (when event-id
     (parse (->path :event event-id))))
 
 (defn get-events-for-user
-  "Given user-id as string, return collection of map of event details where user is included"
+  "Return only events (as seq of maps) that include user with `user-id`"
   [user-id]
   (->> (java.io/file (str (:data-path @config) "/event"))
        file-seq
@@ -136,7 +132,9 @@
        (filter (fn [event]
                  (contains? (:event/guest-ids event) user-id)))))
 
-(defn create-topic! [name]
+(defn create-topic!
+  "Given topic name, create and save map of topic details."
+  [name]
   (let [topic {:topic/id (uuid/random)
                :topic/name name}]
     (save-topic! topic)
@@ -145,14 +143,19 @@
 (defn delete-topic! [topic-id]
   (java.io/delete-file (->path :topic topic-id)))
 
-(defn normalize-email [email]
+(defn normalize-email
+  "Given email, return email with whitespace characters removed and converted to lowercase."
+  [email]
   (-> email
      (string/replace #"\s" "")
      (string/lower-case)))
 
 #_(normalize-email "\nfOO@example .com")
 
-(defn extract-name-from-email [email]
+(defn extract-name-from-email
+  ;"Given email, return local part of email."
+  "Return the local part of `email`."
+  [email]
   (-> email
       normalize-email
       (string/split #"@" 2)
@@ -161,6 +164,7 @@
 #_(extract-name-from-email "alice@example.com")
 
 (defn get-user-by-email
+  "Given email, return map of user details which contain input email."
   [email]
   (->> (java.io/file (:data-path @config))
        file-seq
