@@ -9,7 +9,7 @@
 (defonce favicon
  (let [element (.createElement js/document "link")]
    (.setAttribute element "rel" "icon")
-   (.setAttribute element "href" "/logo.svg")
+   (.setAttribute element "href" "/logomark.svg")
    (.appendChild (.querySelector js/document "head") element)
    nil))
 
