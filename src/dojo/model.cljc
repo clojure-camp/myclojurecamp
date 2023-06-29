@@ -7,7 +7,7 @@
 
 (def hours (range 9 21))
 
-(def days [:monday :tuesday :wednesday :thursday :friday])
+(def days [:monday :tuesday :wednesday :thursday :friday :saturday :sunday])
 
 (def availability-values #{:preferred :available nil})
 
