@@ -21,7 +21,8 @@
    :saturday DayOfWeek/SATURDAY
    :sunday DayOfWeek/SUNDAY})
 
-(defn mapify [kf vf coll]
+(defn mapify
+  [kf vf coll]
   (zipmap (map kf coll)
           (map vf coll)))
 
@@ -54,6 +55,30 @@
 (defn ->inst [zoned-date-time]
   (java.util.Date/from (.toInstant zoned-date-time)))
 
+(defn prep-input-for-schedule
+  [users local-date-start-of-week]
+  {:times-to-pair 1
+   :max-events-per-day (mapify :user/id :user/max-pair-per-day users)
+   :max-events-per-week (mapify :user/id :user/max-pair-per-week users)
+   :topics (mapify :user/id :user/topic-ids users)
+   :timezones (mapify :user/id :user/time-zone users)
+   :availabilities (mapify :user/id
+                           ;; stored as {[:monday 10] :available
+                           ;;            [:tuesday 10] :preferred
+                           ;;            [:wednesday 10] nil)
+                           ;; but need #{[:monday 10 :available]
+                           ;;            [:tuesday 10 :preferred]}
+                           ;; also, remove when value is nil
+                           (fn [user]
+                             (->> (:user/availability user)
+                                  (filter (fn [[_ v]] v))
+                                  (map (fn [[k v]]
+                                         [(->inst (convert-time k (:user/time-zone user) local-date-start-of-week)) v]))
+                                  set))
+                           users)})
+
+#_(prep-input-for-schedule (db/get-users) (LocalDate/now))
+
 (defn generate-schedule
   "Returns a list of maps, with :event/guest-ids, :day-of-week and :Time-of-day,
     ex.
@@ -62,25 +87,7 @@
   [users local-date-start-of-week]
   (if (empty? users)
    []
-   (->> {:times-to-pair 1
-         :max-events-per-day (mapify :user/id :user/max-pair-per-day users)
-         :max-events-per-week (mapify :user/id :user/max-pair-per-week users)
-         :topics (mapify :user/id :user/topic-ids users)
-         :timezones (mapify :user/id :user/time-zone users)
-         :availabilities (mapify :user/id
-                                 ;; stored as {[:monday 10] :available
-                                 ;;            [:tuesday 10] :preferred
-                                 ;;            [:wednesday 10] nil)
-                                 ;; but need #{[:monday 10 :available]
-                                 ;;            [:tuesday 10 :preferred]}
-                                 ;; also, remove when value is nil
-                                 (fn [user]
-                                   (->> (:user/availability user)
-                                        (filter (fn [[_ v]] v))
-                                        (map (fn [[k v]]
-                                               [(->inst (convert-time k (:user/time-zone user) local-date-start-of-week)) v]))
-                                        set))
-                                 users)}
+   (->> (prep-input-for-schedule users local-date-start-of-week)
         (ps/schedule)
         :schedule
         (map (fn [event]
