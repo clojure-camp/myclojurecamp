@@ -1,7 +1,7 @@
 (ns ^:figwheel-hooks
   dojo.client.core
   (:require
-   [re-frame.core :refer [dispatch ]]
+   [re-frame.core :refer [dispatch]]
    [reagent.dom :as rdom]
    [dojo.client.ui.app :as app]))
 
