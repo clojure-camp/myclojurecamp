@@ -36,6 +36,8 @@
        file-seq
        (filter (fn [f]
                  (.isFile f)))
+       (filter (fn [f]
+                 (string/ends-with? (.getName f) "edn")))
        (map parse)))
 
 
@@ -61,6 +63,8 @@
        file-seq
        (filter (fn [f]
                  (.isFile f)))
+       (filter (fn [f]
+                 (string/ends-with? (.getName f) "edn")))
        (map parse)))
 
 (defn update-topic-interests
