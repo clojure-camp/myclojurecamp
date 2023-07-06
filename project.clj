@@ -7,7 +7,9 @@
 
   :middleware [lein-tools-deps.plugin/resolve-dependencies-with-deps-edn]
 
-  :lein-tools-deps/config {:config-files [:install :user :project]}
+  :lein-tools-deps/config {:config-files [:install :user :project]
+                           :clojure-executables ["/opt/homebrew/bin/clojure"]}
+
 
   :main dojo.core
   :repl-options {:init-ns dojo.core
