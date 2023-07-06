@@ -17,3 +17,4 @@ config.edn
 .DS_Store
 lock
 output.*
+pair_playground.clj
