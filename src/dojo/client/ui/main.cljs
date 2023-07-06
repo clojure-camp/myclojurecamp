@@ -8,18 +8,18 @@
 
 (defn max-limit-preferences-view []
   [:div.max-limit-preferences
+   #_[:label
+      "Max pair per day"
+      [:input {:type "number"
+               :value @(subscribe [:user-profile-value :user/max-pair-per-day])
+               :min 1
+               :max 24
+               :on-change (fn [e]
+                             (dispatch [:set-user-value!
+                                        :user/max-pair-per-day
+                                        (js/parseInt (.. e -target -value) 10)]))}]]
    [:label
-    "Max pair per day"
-    [:input {:type "number"
-             :value @(subscribe [:user-profile-value :user/max-pair-per-day])
-             :min 1
-             :max 24
-             :on-change (fn [e]
-                           (dispatch [:set-user-value!
-                                      :user/max-pair-per-day
-                                      (js/parseInt (.. e -target -value) 10)]))}]]
-   [:label
-    "Max pair per week"
+    "How many times would you like to pair next week"
     [:input {:type "number"
              :value @(subscribe [:user-profile-value :user/max-pair-per-week])
              :min 1
@@ -62,34 +62,36 @@
 
 (defn topics-view []
   [:div.topics-view
-   [:h1 "Topics"]
-   (let [user-topic-ids @(subscribe [:user-profile-value :user/topic-ids])]
-    [:<>
-     (when (and (empty? user-topic-ids)
-                @(subscribe [:user-profile-value :user/pair-next-week?]))
-      [:p.warning
-       [fa/fa-exclamation-triangle-solid]
-       "You need to select at least one topic to be matched with someone."])
-     [:div.topics
-      (for [topic (sort-by :topic/name @(subscribe [:topics]))
-            :let [checked? (contains? user-topic-ids (:topic/id topic))]]
-        ^{:key (:topic/id topic)}
-        [:label.topic
-         [:input {:type "checkbox"
-                  :checked checked?
-                  :on-change
-                  (fn []
-                    (if checked?
-                      (dispatch [:remove-user-topic! (:topic/id topic)])
-                      (dispatch [:add-user-topic! (:topic/id topic)])))}]
-         [:span.name (:topic/name topic)] " "
-         [:span.count (:topic/user-count topic)]])
-      [:button
-       {:on-click (fn [_]
-                    (let [value (js/prompt "Enter a new topic:")]
-                      (when (not (string/blank? value))
-                        (dispatch [:new-topic! (string/trim value)]))))}
-       "+ Add Topic"]]])])
+   [:label
+    "What skill level would you like you partner to have?"
+    (let [user-topic-ids @(subscribe [:user-profile-value :user/topic-ids])]
+      [:<>
+       (when (and (empty? user-topic-ids)
+                  @(subscribe [:user-profile-value :user/pair-next-week?]))
+         [:p.warning
+          [fa/fa-exclamation-triangle-solid]
+          "You need to select at least one skill level to be matched with someone."])
+       [:div.topics
+        (for [topic (sort-by :topic/id @(subscribe [:topics]))
+              :let [checked? (contains? user-topic-ids (:topic/id topic))]]
+          ^{:key (:topic/id topic)}
+          [:label.topic
+           [:input {:type    "checkbox"
+                    :checked checked?
+                    :on-change
+                    (fn []
+                      (if checked?
+                        (dispatch [:remove-user-topic! (:topic/id topic)])
+                        (dispatch [:add-user-topic! (:topic/id topic)])))}]
+           [:span.name (:topic/name topic)] " "
+           [:span.count (:topic/user-count topic)]])
+        ;hiding this feature because users will not need to add skill level.
+        #_[:button
+           {:on-click (fn [_]
+                        (let [value (js/prompt "Enter a new topic:")]
+                          (when (not (string/blank? value))
+                            (dispatch [:new-topic! (string/trim value)]))))}
+           "+ Add Topic"]]])]])
 
 (defn availability-view []
   (when-let [availability @(subscribe [:user-profile-value :user/availability])]
@@ -144,7 +146,7 @@
     (if checked?
       [fa/fa-check-square-regular]
       [fa/fa-square-regular])
-    "Pair next week?"]))
+    (str "Pair next week, " @(subscribe [:user-profile-value :user/name]) "?")]))
 
 (defn name-view []
   [:label.name "Name "
@@ -240,7 +242,7 @@
      :alt "Logo of Clojure Camp. A star constellation in the shape of alambda."}]
    [:div.gap]
    [:img.logotype
-    {:src "/logotype.svg"
+    {:src "/logotype.png"
      :alt "Clojure Camp"}]
    [:div.gap]
    [:button.log-out
@@ -254,10 +256,12 @@
    [header-view]
    [:div.content
     [opt-in-view]
-    [name-view]
-    [topics-view]
+    ;[name-view]
     [max-limit-preferences-view]
-    [time-zone-view]
+    [topics-view]
+    ;[time-zone-view]
+    [:h4 "Please select times to pair below (A=Available  P=Preferred):"]
     [availability-view]
-    [events-view]
+    ;[events-view]
     [subscription-toggle-view]]])
+

@@ -9,7 +9,10 @@
 
 #_(strip-classes-and-ids :p.event)
 
-(defn textify [content]
+
+(defn textify
+  "Given hiccup content, strips out html tags and returns remaining text as string"
+  [content]
   ;; TODO should normalize all vector nodes to include {}
   (clojure.walk/postwalk
     (fn [node]
@@ -51,3 +54,6 @@
                      attachments)})
     (catch com.sun.mail.util.MailConnectException _
       (println "Couldn't send email."))))
+
+
+

@@ -167,7 +167,7 @@
 
 
      [:>.header
-      {:background clojure-camp-blue
+      {:background clojure-green
        :display "flex"
        :justify-content "space-between"
        :align-items "center"
@@ -182,7 +182,7 @@
         :padding-right "3em"}]
 
       [:>img.logotype
-       {:height "1.5em"}]
+       {:height "2.5em"}]
 
       [:>.log-out
        (button)]]
@@ -200,12 +200,12 @@
       [:>.opt-in
        {:display "flex"
         :align-items "center"
-        :font-size "2rem"
+        :font-size "1rem"
         :background gray
         :border [["1px" "solid" (darken gray 10)]]
         :padding "1rem"
         :border-radius "0.5rem"
-        :font-weight "bold"
+        ;:font-weight "bold"
         :cursor "pointer"}
 
        [:&:hover
