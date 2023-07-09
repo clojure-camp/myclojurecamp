@@ -41,23 +41,20 @@
                  (string/ends-with? (.getName f) "edn")))
        (map parse)))
 
-
 (defn get-topic
   "Given topic-id, return map of topic details"
   [topic-id]
   (when topic-id
     (parse (->path :topic topic-id))))
 
-
 (defn user-topic-frequencies
   "Returns a map of topic-id->user-count"
   []
   (->> (get-users)
-      (map :user/topic-ids)
-      (apply concat)
-      frequencies))
+       (mapcat :user/topic-ids)
+       frequencies))
 
-(defn get-topics
+(defn get-topics-raw
   "Returns a sequence of maps of topic details"
   []
   (->> (java.io/file (str (:data-path @config) "/topic"))
@@ -68,34 +65,15 @@
                  (string/ends-with? (.getName f) "edn")))
        (map parse)))
 
-(defn update-topic-interests
-  "Add user count for each topic to sequence of maps of topic details"
+(defn get-topics
+  "Read all topics from files and add user count. Returns a sequence of maps"
   []
-  (let [topics (get-topics)
-        user-interest (user-topic-frequencies)]
-    (->> topics
+  (let [topic-id->count (user-topic-frequencies)]
+    (->> (get-topics-raw)
          (map (fn [topic]
                 (assoc topic :topic/user-count
-                             (or (user-interest (:topic/id topic)
-                                                0))))))))
-
-;; deconstructed this function into 3 different ones above
-#_(defn get-topics
-    "Read all topics from files and add user count. Returns a sequence of maps"
-    []
-    (let [topic-id->count (->> (get-users)
-                               (map :user/topic-ids)
-                               (apply concat)
-                               frequencies)]
-      (->> (java.io/file (str (:data-path @config) "/topic"))
-           file-seq
-           (filter (fn [f]
-                     (.isFile f)))
-           (map parse)
-           (map (fn [topic]
-                  (assoc topic :topic/user-count
-                    (or (topic-id->count (:topic/id topic))
-                        0)))))))
+                  (or (topic-id->count (:topic/id topic))
+                      0)))))))
 
 (defn topic-name-exists?
   "Returns true if topic name is found in map of topic details"
