@@ -62,36 +62,36 @@
 
 (defn topics-view []
   [:div.topics-view
-   [:label
-    "What skill level would you like you partner to have?"
-    (let [user-topic-ids @(subscribe [:user-profile-value :user/topic-ids])]
-      [:<>
-       (when (and (empty? user-topic-ids)
-                  @(subscribe [:user-profile-value :user/pair-next-week?]))
-         [:p.warning
-          [fa/fa-exclamation-triangle-solid]
-          "You need to select at least one skill level to be matched with someone."])
-       [:div.topics
-        (for [topic (sort-by :topic/id @(subscribe [:topics]))
-              :let [checked? (contains? user-topic-ids (:topic/id topic))]]
-          ^{:key (:topic/id topic)}
-          [:label.topic
-           [:input {:type    "checkbox"
-                    :checked checked?
-                    :on-change
-                    (fn []
-                      (if checked?
-                        (dispatch [:remove-user-topic! (:topic/id topic)])
-                        (dispatch [:add-user-topic! (:topic/id topic)])))}]
-           [:span.name (:topic/name topic)] " "
-           [:span.count (:topic/user-count topic)]])
-        ;hiding this feature because users will not need to add skill level.
-        #_[:button
-           {:on-click (fn [_]
-                        (let [value (js/prompt "Enter a new topic:")]
-                          (when (not (string/blank? value))
-                            (dispatch [:new-topic! (string/trim value)]))))}
-           "+ Add Topic"]]])]])
+   [:h4 "Skill Level"]
+   (let [user-topic-ids @(subscribe [:user-profile-value :user/topic-ids])]
+     [:<>
+      (when (and (empty? user-topic-ids)
+                 @(subscribe [:user-profile-value :user/pair-next-week?]))
+        [:p.warning
+         [fa/fa-exclamation-triangle-solid]
+         "You need to select at least one skill level to be matched with someone."])
+      [:div.topics
+       (for [topic (sort-by :topic/id @(subscribe [:topics]))
+             :let [checked? (contains? user-topic-ids (:topic/id topic))]]
+         ;(println @(subscribe [:topics]))
+         ^{:key (:topic/id topic)}
+         [:label.topic
+          [:input {:type    "checkbox"
+                   :checked checked?
+                   :on-change
+                   (fn []
+                     (if checked?
+                       (dispatch [:remove-user-topic! (:topic/id topic)])
+                       (dispatch [:add-user-topic! (:topic/id topic)])))}]
+          [:span.name (:topic/name topic)] " "
+          [:span.count (:topic/user-count topic)]])
+       ;hiding this feature because users will not need to add skill level.
+       #_[:button
+          {:on-click (fn [_]
+                       (let [value (js/prompt "Enter a new topic:")]
+                         (when (not (string/blank? value))
+                           (dispatch [:new-topic! (string/trim value)]))))}
+          "+ Add Topic"]]])])
 
 (defn availability-view []
   (when-let [availability @(subscribe [:user-profile-value :user/availability])]
