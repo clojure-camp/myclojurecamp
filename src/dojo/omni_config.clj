@@ -5,7 +5,7 @@
 
 (defn omni-config []
   {:omni/http-port (@config :http-port)
-   :omni/title "Clojure Camp"
+   :omni/title "Partner Serve"
    :omni/environment (@config :environment)
    :omni/cljs {:main "dojo.client.core"}
    :omni/auth (-> {:cookie {:name "clojurecamp"
