@@ -259,8 +259,8 @@
   [:div.main
    [ajax-status-view]
    [header-view]
-   (when goog.DEBUG
-    [debug/db-view])
+   (when debug/debug?
+     [debug/db-view])
    [:div.content
     [opt-in-view]
     ;[name-view]

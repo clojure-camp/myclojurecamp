@@ -4,7 +4,10 @@
     [reagent.core :as r]
     [re-frame.core :refer [reg-sub subscribe]]))
 
-(when goog.DEBUG
+(def debug?
+  ^boolean js/goog.DEBUG)
+
+(when debug?
   (reg-sub
     :db
     (fn [db _]
