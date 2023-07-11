@@ -258,9 +258,9 @@
 (defn main-view []
   [:div.main
    [ajax-status-view]
-   [header-view]])
+   [header-view]
    (when goog.DEBUG
-     [debug/db-view])
+    [debug/db-view])
    [:div.content
     [opt-in-view]
     ;[name-view]
@@ -270,5 +270,5 @@
     [:h4 "Please select times to pair below (A=Available  P=Preferred):"]
     [availability-view]
     ;[events-view]
-    [subscription-toggle-view]]
+    [subscription-toggle-view]]])
 
