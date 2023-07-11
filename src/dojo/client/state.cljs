@@ -213,3 +213,8 @@
   :events
   (fn [db _]
     (vals (db :db/events))))
+
+(reg-sub
+  :db
+  (fn [db _]
+    db))

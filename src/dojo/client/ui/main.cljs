@@ -1,6 +1,7 @@
 (ns dojo.client.ui.main
   (:require
     [clojure.string :as string]
+    [clojure.pprint]
     [re-frame.core :refer [dispatch subscribe]]
     [bloom.commons.fontawesome :as fa]
     [dojo.client.state :as state]
@@ -250,10 +251,14 @@
                  (dispatch [:log-out!]))}
     "Log Out"]])
 
+(defn inspector-view []
+  [:pre {} (with-out-str (clojure.pprint/pprint @(subscribe [:db])))])
+
 (defn main-view []
   [:div.main
    [ajax-status-view]
    [header-view]
+   [inspector-view]
    [:div.content
     [opt-in-view]
     ;[name-view]
