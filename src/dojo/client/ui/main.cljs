@@ -3,6 +3,7 @@
     [clojure.string :as string]
     [re-frame.core :refer [dispatch subscribe]]
     [bloom.commons.fontawesome :as fa]
+    [dojo.client.ui.debug :as debug]
     [dojo.client.state :as state]
     [dojo.model :as model]))
 
@@ -252,6 +253,8 @@
   [:div.main
    [ajax-status-view]
    [header-view]
+   (when goog.DEBUG
+     [debug/db-view])
    [:div.content
     [opt-in-view]
     [name-view]
