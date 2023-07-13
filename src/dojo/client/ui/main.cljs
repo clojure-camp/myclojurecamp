@@ -62,38 +62,96 @@
                                                  :day "numeric"})
            date))
 
-(defn topics-view []
+#_(defn topics-view []
+    [:div.topics-view
+     [:h4 "Skill Level"]
+     (let [user-topic-ids @(subscribe [:user-profile-value :user/topic-ids])]
+       [:<>
+        (when (and (empty? user-topic-ids)
+                   @(subscribe [:user-profile-value :user/pair-next-week?]))
+          [:p.warning
+           [fa/fa-exclamation-triangle-solid]
+           "You need to select at least one skill level to be matched with someone."])
+        [:div.topics
+         (for [topic (sort-by :topic/id @(subscribe [:topics]))
+               :let [checked? (contains? user-topic-ids (:topic/id topic))]]
+           ;(println @(subscribe [:topics]))
+           ^{:key (:topic/id topic)}
+           [:label.topic
+            [:input {:type    "checkbox"
+                     :checked checked?
+                     :on-change
+                     (fn []
+                       (if checked?
+                         (dispatch [:remove-user-topic! (:topic/id topic)])
+                         (dispatch [:add-user-topic! (:topic/id topic)])))}]
+            [:span.name (:topic/name topic)] " "
+            [:span.count (:topic/user-count topic)]])
+         ;hiding this feature because users will not need to add skill level.
+         #_[:button
+            {:on-click (fn [_]
+                         (let [value (js/prompt "Enter a new topic:")]
+                           (when (not (string/blank? value))
+                             (dispatch [:new-topic! (string/trim value)]))))}
+            "+ Add Topic"]]])])
+
+(defn topics->selections [user-topic-ids selection-key]
+  (set (map (fn [topic-id] (get (get state/topic-id->selections topic-id) selection-key)) user-topic-ids)))
+
+(defn skill-level-view []
   [:div.topics-view
    [:h4 "Skill Level"]
-   (let [user-topic-ids @(subscribe [:user-profile-value :user/topic-ids])]
+   (let [user-topic-ids @(subscribe [:user-profile-value :user/topic-ids])
+         user-skill-levels (topics->selections user-topic-ids :skill-level)]
      [:<>
-      (when (and (empty? user-topic-ids)
+      (when (and (empty? user-skill-levels)
                  @(subscribe [:user-profile-value :user/pair-next-week?]))
         [:p.warning
          [fa/fa-exclamation-triangle-solid]
          "You need to select at least one skill level to be matched with someone."])
       [:div.topics
-       (for [topic (sort-by :topic/id @(subscribe [:topics]))
-             :let [checked? (contains? user-topic-ids (:topic/id topic))]]
-         ;(println @(subscribe [:topics]))
-         ^{:key (:topic/id topic)}
+       (for [skill-level-item @(subscribe [:skill-level])
+             :let [checked? (contains? user-skill-levels skill-level-item)]]
+         ^{:key skill-level-item}
          [:label.topic
           [:input {:type    "checkbox"
                    :checked checked?
                    :on-change
                    (fn []
                      (if checked?
-                       (dispatch [:remove-user-topic! (:topic/id topic)])
-                       (dispatch [:add-user-topic! (:topic/id topic)])))}]
-          [:span.name (:topic/name topic)] " "
-          [:span.count (:topic/user-count topic)]])
-       ;hiding this feature because users will not need to add skill level.
-       #_[:button
-          {:on-click (fn [_]
-                       (let [value (js/prompt "Enter a new topic:")]
-                         (when (not (string/blank? value))
-                           (dispatch [:new-topic! (string/trim value)]))))}
-          "+ Add Topic"]]])])
+                       (dispatch [:remove-skill-level! skill-level-item])
+                       (dispatch [:add-topic-from-skill-level! skill-level-item])))}]
+          [:span.name skill-level-item] " "
+          #_[:span.count (:topic/user-count topic)]])]])])
+
+
+(defn session-type-view []
+  [:div.topics-view
+   [:h4 "Session Type"]
+   (let [user-topic-ids @(subscribe [:user-profile-value :user/topic-ids])
+         user-session-types (topics->selections user-topic-ids :session-type)]
+     [:<>
+      (when (and (empty? user-session-types)
+                 @(subscribe [:user-profile-value :user/pair-next-week?]))
+        [:p.warning
+         [fa/fa-exclamation-triangle-solid]
+         "You need to select at least one session type to be matched with someone."])
+      [:div.topics
+       (for [session-type-item @(subscribe [:session-type])
+             :let [checked? (contains? user-session-types session-type-item)]]
+         ^{:key session-type-item}
+         [:label.topic
+          [:input {:type    "checkbox"
+                   :checked checked?
+                   :on-change
+                   (fn []
+                     (if checked?
+                       (dispatch [:remove-session-type! session-type-item])
+                       (dispatch [:add-topic! session-type-item])))}]
+          [:span.name session-type-item] " "
+          #_[:span.count (:topic/user-count topic)]])]])])
+
+
 
 (defn availability-view []
   (when-let [availability @(subscribe [:user-profile-value :user/availability])]
@@ -265,7 +323,8 @@
     [opt-in-view]
     ;[name-view]
     [max-limit-preferences-view]
-    [topics-view]
+    [skill-level-view]
+    [session-type-view]
     ;[time-zone-view]
     [:h4 "Please select times to pair below (A=Available  P=Preferred):"]
     [availability-view]

@@ -11,6 +11,52 @@
 
 (defonce ajax-state (r/atom {}))
 
+(def topic-id->selections {#uuid"43fe92c3-1def-4051-aca0-ec4a5b175b0a" {:skill-level "beginner" :session-type "match"}
+                           #uuid"76a4323f-960b-4e03-adf3-a3c0d25b8e76" {:skill-level "beginner" :session-type "rally"}
+                           #uuid"3e819b1f-705d-4369-863b-b58513288e4a" {:skill-level "expert" :session-type "match"}
+                           #uuid"5b5b325c-0611-412a-983b-64efff09578d" {:skill-level "expert" :session-type "rally"}})
+
+#_(def selections->topic-id {"beginner" #{#uuid"43fe92c3-1def-4051-aca0-ec4a5b175b0a" #uuid"76a4323f-960b-4e03-adf3-a3c0d25b8e76"}
+                             "expert"   #{#uuid"3e819b1f-705d-4369-863b-b58513288e4a" #uuid"5b5b325c-0611-412a-983b-64efff09578d"}
+                             "rally"    #{#uuid"76a4323f-960b-4e03-adf3-a3c0d25b8e76" #uuid"5b5b325c-0611-412a-983b-64efff09578d"}
+                             "match"    #{#uuid"3e819b1f-705d-4369-863b-b58513288e4a" #uuid"5b5b325c-0611-412a-983b-64efff09578d"}})
+
+(def selections->topic-id {{:skill-level "beginner" :session-type "match"} #uuid"43fe92c3-1def-4051-aca0-ec4a5b175b0a"
+                           {:skill-level "beginner" :session-type "rally"} #uuid"76a4323f-960b-4e03-adf3-a3c0d25b8e76"
+                           {:skill-level "expert" :session-type "match"} #uuid"3e819b1f-705d-4369-863b-b58513288e4a"
+                           {:skill-level "expert" :session-type "rally"} #uuid"5b5b325c-0611-412a-983b-64efff09578d"})
+
+;(get selections->topic-id {:skill "beginner" :session-type "match"})
+
+;The below format can be used to store selections in :db/user
+;{:skill #{"beginner"} :session-type #{"match"}}
+
+
+
+(reg-event-fx
+  :add-topic-from-skill-level!
+  (fn [{db :db} [_ skill-level-item]]
+    (let [current-topic-ids-set (get-in db [:db/user :user/topic-ids])
+          skill-level-selections (map (fn [topic-id] (get (get topic-id->selections topic-id) :skill-level)) current-topic-ids-set)
+          session-type-selections (map (fn [topic-id] (get (get topic-id->selections topic-id) :session-type)) current-topic-ids-set)
+          topic-id (get selections->topic-id {:skill-level skill-level-item :session-type "match"})]
+      {:db   (-> db
+                 (update-in [:db/user :user/topic-ids] conj topic-id)
+                 #_(update-in [:db/topics topic-id :topic/user-count] (fnil inc 0)))
+       :ajax {:method :put
+              :uri    "/api/user/add-topic"
+              :params {:topic-id topic-id}}})))
+
+#_(reg-event-fx
+    :add-user-topic!
+    (fn [{db :db} [_ topic-id]]
+      {:db (-> db
+               (update-in [:db/user :user/topic-ids] conj topic-id)
+               (update-in [:db/topics topic-id :topic/user-count] (fnil inc 0)))
+       :ajax {:method :put
+              :uri "/api/user/add-topic"
+              :params {:topic-id topic-id}}}))
+
 (reg-fx :ajax
   (fn [opts]
     (let [request-id (gensym "request")]
@@ -23,8 +69,10 @@
 (reg-event-fx
   :initialize!
   (fn [_ _]
-    {:db {:db/checked-auth? false
-          :db/topics {}}
+    {:db         {:db/checked-auth? false
+                  :db/topics        {}
+                  :db/skill-level   {:beginner "beginner" :expert "expert"}
+                  :db/session-type {:match "match" :rally "rally"}}
      :dispatch-n [[:fetch-user!]]}))
 
 (reg-event-fx
@@ -208,6 +256,16 @@
   :topics
   (fn [db _]
     (vals (db :db/topics))))
+
+(reg-sub
+  :skill-level
+  (fn [db _]
+    (vals (db :db/skill-level))))
+
+(reg-sub
+  :session-type
+  (fn [db _]
+    (vals (db :db/session-type))))
 
 (reg-sub
   :events
