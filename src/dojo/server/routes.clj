@@ -61,12 +61,12 @@
               (update :user/topic-ids disj topic-id)
               db/save-user!)
       ;; delete topic if has 0 users
-      (->> (db/get-topics)
-           (filter (fn [topic] (and (= 0 (:topic/user-count topic))
-                                    (= (:topic/id topic) topic-id))))
-           (map (fn [topic]
-                  (db/delete-topic! (:topic/id topic))))
-           (dorun)))}
+      #_(->> (db/get-topics)
+             (filter (fn [topic] (and (= 0 (:topic/user-count topic))
+                                      (= (:topic/id topic) topic-id))))
+             (map (fn [topic]
+                    (db/delete-topic! (:topic/id topic))))
+             (dorun)))}
 
    {:id :update-availability!
     :route [:put "/api/user/update-availability"]

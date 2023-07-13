@@ -150,7 +150,7 @@
     {:db (-> db
              (update-in [:db/user :user/topic-ids] disj topic-id)
              (update-in [:db/topics topic-id :topic/user-count] dec)
-             (maybe-delete-topic topic-id))
+             #_(maybe-delete-topic topic-id))
      :ajax {:method :put
             :uri "/api/user/remove-topic"
             :params {:topic-id topic-id}}}))
