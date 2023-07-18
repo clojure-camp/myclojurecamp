@@ -33,18 +33,19 @@
       (db/create-topic! name))
     :return :tada/effect-return}
 
-   {:id :subscribe-to-topic!
-    :route [:put "/api/user/add-topic"]
-    :params {:user-id uuid?
-             :topic-id uuid?}
+   {:id     :subscribe-to-topics!
+    :route  [:put "/api/user/add-topics"]
+    :params {:user-id  uuid?
+             :topic-ids [uuid?]}
     :conditions
     (fn [{:keys [user-id topic-id]}]
       [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]
-       [#(db/entity-file-exists? :topic topic-id) :not-allowed "Topic with this ID does not exist."]])
+       #_[#(db/entity-file-exists? :topic topic-id) :not-allowed "Topic with this ID does not exist."]])
     :effect
-    (fn [{:keys [user-id topic-id]}]
+    (fn [{:keys [user-id topic-ids]}]
+      (println topic-ids)
       (some-> (db/get-user user-id)
-              (update :user/topic-ids conj topic-id)
+              (update :user/topic-ids into topic-ids)
               db/save-user!))}
 
    {:id :unsubscribe-from-topic!

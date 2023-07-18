@@ -31,21 +31,27 @@
 ;The below format can be used to store selections in :db/user
 ;{:skill #{"beginner"} :session-type #{"match"}}
 
+(defn topics->selections [user-topic-ids selection-key]
+  (set (map (fn [topic-id] (get (get topic-id->selections topic-id) selection-key)) user-topic-ids)))
 
+;TODO - alternate option: based on user selection - always recalculate all the topics - front-end tells server this is the entire list
+
+;can potentially assoc a whole new list of topic ids
 
 (reg-event-fx
   :add-topic-from-skill-level!
   (fn [{db :db} [_ skill-level-item]]
     (let [current-topic-ids-set (get-in db [:db/user :user/topic-ids])
-          skill-level-selections (map (fn [topic-id] (get (get topic-id->selections topic-id) :skill-level)) current-topic-ids-set)
-          session-type-selections (map (fn [topic-id] (get (get topic-id->selections topic-id) :session-type)) current-topic-ids-set)
-          topic-id (get selections->topic-id {:skill-level skill-level-item :session-type "match"})]
+          skill-level-selections (topics->selections current-topic-ids-set :skill-level)
+          session-type-selections (topics->selections current-topic-ids-set :session-type)
+          topic-ids (map (fn [session-type] (get selections->topic-id {:skill-level skill-level-item :session-type session-type})) session-type-selections)]
+      (println topic-ids)
       {:db   (-> db
-                 (update-in [:db/user :user/topic-ids] conj topic-id)
+                 (update-in [:db/user :user/topic-ids] into topic-ids)
                  #_(update-in [:db/topics topic-id :topic/user-count] (fnil inc 0)))
        :ajax {:method :put
-              :uri    "/api/user/add-topic"
-              :params {:topic-id topic-id}}})))
+              :uri    "/api/user/add-topics"
+              :params {:topic-ids topic-ids}}})))
 
 #_(reg-event-fx
     :add-user-topic!
