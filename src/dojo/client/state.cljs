@@ -40,13 +40,13 @@
 
 (reg-event-fx
   :add-selection!
-  (fn [{db :db} [_ selection-grouping]]
+  (fn [{db :db} [_ [selection grouping]]]
     {:db   (-> db
-               (update-in [:db/user :user/topic-ids :topic-ids/skill-level] conj (first selection-grouping)))
+               (update-in [:db/user :user/topic-ids grouping] conj selection))
      :ajax {:method :put
             :uri    "/api/user/add-topic"
-            :params {:topic-id (first selection-grouping)
-                     #_#_:grouping (second selection-grouping)}}}))
+            :params {:topic-id selection
+                     :grouping grouping}}}))
 
 #_(reg-event-fx
     :add-user-topic!

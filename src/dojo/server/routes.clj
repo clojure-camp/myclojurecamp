@@ -36,16 +36,17 @@
    {:id     :subscribe-to-topic!
     :route  [:put "/api/user/add-topic"]
     :params {:user-id  uuid?
-             :topic-id string?}
+             :topic-id string?
+             :grouping keyword?}
     :conditions
     (fn [{:keys [user-id topic-id]}]
       [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]
        #_[#(db/entity-file-exists? :topic topic-id) :not-allowed "Topic with this ID does not exist."]])
     :effect
-    (fn [{:keys [user-id topic-id]}]
-      (println "subscribe to topic function executes " user-id topic-id)
+    (fn [{:keys [user-id topic-id grouping]}]
+      (println "subscribe to topic function executes " topic-id grouping)
       (some-> (db/get-user user-id)
-              (update-in [:user/topic-ids :topic-ids/skill-level] conj topic-id)
+              (update-in [:user/topic-ids grouping] conj topic-id)
               db/save-user!))}
 
       {:id :unsubscribe-from-topic!
