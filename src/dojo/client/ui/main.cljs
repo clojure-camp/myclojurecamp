@@ -95,14 +95,12 @@
                              (dispatch [:new-topic! (string/trim value)]))))}
             "+ Add Topic"]]])])
 
-(defn topics->selections [user-topic-ids selection-key]
-  (set (map (fn [topic-id] (get (get state/topic-id->selections topic-id) selection-key)) user-topic-ids)))
 
 (defn skill-level-view []
   [:div.topics-view
    [:h4 "Skill Level"]
-   (let [user-topic-ids @(subscribe [:user-profile-value :user/topic-ids])
-         user-skill-levels (topics->selections user-topic-ids :skill-level)]
+   (let [grouping :topic-ids/skill-level
+         user-skill-levels (@(subscribe [:user-profile-value :user/topic-ids]) grouping)]
      [:<>
       (when (and (empty? user-skill-levels)
                  @(subscribe [:user-profile-value :user/pair-next-week?]))
@@ -110,46 +108,45 @@
          [fa/fa-exclamation-triangle-solid]
          "You need to select at least one skill level to be matched with someone."])
       [:div.topics
-       (for [skill-level-item @(subscribe [:skill-level])
-             :let [checked? (contains? user-skill-levels skill-level-item)]]
-         ^{:key skill-level-item}
+       (for [skill-level @(subscribe [:skill-level])
+             :let [checked? (contains? user-skill-levels skill-level)]]
+         ^{:key skill-level}
          [:label.topic
           [:input {:type    "checkbox"
                    :checked checked?
                    :on-change
                    (fn []
                      (if checked?
-                       (dispatch [:remove-skill-level! skill-level-item])
-                       (dispatch [:add-topic-from-skill-level! skill-level-item])))}]
-          [:span.name skill-level-item] " "
-          #_[:span.count (:topic/user-count topic)]])]])])
+                       (dispatch [:remove-skill-level! skill-level])
+                       (dispatch [:add-selection! [skill-level grouping]])))}]
+          [:span.name skill-level] " "])]])])
 
 
 (defn session-type-view []
   [:div.topics-view
    [:h4 "Session Type"]
-   (let [user-topic-ids @(subscribe [:user-profile-value :user/topic-ids])
-         user-session-types (topics->selections user-topic-ids :session-type)]
+   (let [grouping :topic-ids/session-type
+         user-session-types (@(subscribe [:user-profile-value :user/topic-ids]) grouping)]
      [:<>
       (when (and (empty? user-session-types)
                  @(subscribe [:user-profile-value :user/pair-next-week?]))
         [:p.warning
          [fa/fa-exclamation-triangle-solid]
-         "You need to select at least one session type to be matched with someone."])
+         "You need to select at least one skill level to be matched with someone."])
       [:div.topics
-       (for [session-type-item @(subscribe [:session-type])
-             :let [checked? (contains? user-session-types session-type-item)]]
-         ^{:key session-type-item}
+       (for [session-type @(subscribe [:session-type])
+             :let [checked? (contains? user-session-types session-type)]]
+         ^{:key session-type}
          [:label.topic
+
           [:input {:type    "checkbox"
                    :checked checked?
                    :on-change
                    (fn []
                      (if checked?
-                       (dispatch [:remove-session-type! session-type-item])
-                       (dispatch [:add-topic! session-type-item])))}]
-          [:span.name session-type-item] " "
-          #_[:span.count (:topic/user-count topic)]])]])])
+                       (dispatch [:remove-session-type! session-type])
+                       (dispatch [:add-selection! [session-type grouping]])))}]
+          [:span.name session-type] " "])]])])
 
 
 

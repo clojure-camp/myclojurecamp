@@ -39,19 +39,14 @@
 ;can potentially assoc a whole new list of topic ids
 
 (reg-event-fx
-  :add-topic-from-skill-level!
-  (fn [{db :db} [_ skill-level-item]]
-    (let [current-topic-ids-set (get-in db [:db/user :user/topic-ids])
-          skill-level-selections (topics->selections current-topic-ids-set :skill-level)
-          session-type-selections (topics->selections current-topic-ids-set :session-type)
-          topic-ids (map (fn [session-type] (get selections->topic-id {:skill-level skill-level-item :session-type session-type})) session-type-selections)]
-      (println topic-ids)
-      {:db   (-> db
-                 (update-in [:db/user :user/topic-ids] into topic-ids)
-                 #_(update-in [:db/topics topic-id :topic/user-count] (fnil inc 0)))
-       :ajax {:method :put
-              :uri    "/api/user/add-topics"
-              :params {:topic-ids topic-ids}}})))
+  :add-selection!
+  (fn [{db :db} [_ selection-grouping]]
+    {:db   (-> db
+               (update-in [:db/user :user/topic-ids :topic-ids/skill-level] conj (first selection-grouping)))
+     :ajax {:method :put
+            :uri    "/api/user/add-topic"
+            :params {:topic-id (first selection-grouping)
+                     #_#_:grouping (second selection-grouping)}}}))
 
 #_(reg-event-fx
     :add-user-topic!
