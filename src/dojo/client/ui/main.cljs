@@ -117,8 +117,8 @@
                    :on-change
                    (fn []
                      (if checked?
-                       (dispatch [:remove-skill-level! skill-level])
-                       (dispatch [:add-selection! [skill-level grouping]])))}]
+                       (dispatch [:remove-user-selection! [skill-level grouping]])
+                       (dispatch [:add-user-selection! [skill-level grouping]])))}]
           [:span.name skill-level] " "])]])])
 
 
@@ -144,8 +144,8 @@
                    :on-change
                    (fn []
                      (if checked?
-                       (dispatch [:remove-session-type! session-type])
-                       (dispatch [:add-selection! [session-type grouping]])))}]
+                       (dispatch [:remove-user-selection! [session-type grouping]])
+                       (dispatch [:add-user-selection! [session-type grouping]])))}]
           [:span.name session-type] " "])]])])
 
 

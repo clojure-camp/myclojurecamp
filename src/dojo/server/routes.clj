@@ -44,31 +44,31 @@
        #_[#(db/entity-file-exists? :topic topic-id) :not-allowed "Topic with this ID does not exist."]])
     :effect
     (fn [{:keys [user-id topic-id grouping]}]
-      (println "subscribe to topic function executes " topic-id grouping)
       (some-> (db/get-user user-id)
               (update-in [:user/topic-ids grouping] conj topic-id)
               db/save-user!))}
 
-      {:id :unsubscribe-from-topic!
-       :route [:put "/api/user/remove-topic"]
-       :params {:user-id uuid?
-                :topic-id uuid?}
-       :conditions
-       (fn [{:keys [user-id topic-id]}]
-         [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]
-          [#(db/entity-file-exists? :topic topic-id) :not-allowed "Topic with this ID does not exist."]])
-       :effect
-       (fn [{:keys [user-id topic-id]}]
-         (some-> (db/get-user user-id)
-                 (update :user/topic-ids disj topic-id)
-                 db/save-user!)
-         ;; delete topic if has 0 users
-         #_(->> (db/get-topics)
-                (filter (fn [topic] (and (= 0 (:topic/user-count topic))
-                                         (= (:topic/id topic) topic-id))))
-                (map (fn [topic]
-                       (db/delete-topic! (:topic/id topic))))
-                (dorun)))}
+   {:id     :unsubscribe-from-topic!
+    :route  [:put "/api/user/remove-topic"]
+    :params {:user-id  uuid?
+             :topic-id string?
+             :grouping keyword?}
+    :conditions
+    (fn [{:keys [user-id topic-id]}]
+      [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]
+       #_[#(db/entity-file-exists? :topic topic-id) :not-allowed "Topic with this ID does not exist."]])
+    :effect
+    (fn [{:keys [user-id topic-id grouping]}]
+      (some-> (db/get-user user-id)
+              (update-in [:user/topic-ids grouping] disj topic-id)
+              db/save-user!)
+      ;; delete topic if has 0 users
+      #_(->> (db/get-topics)
+             (filter (fn [topic] (and (= 0 (:topic/user-count topic))
+                                      (= (:topic/id topic) topic-id))))
+             (map (fn [topic]
+                    (db/delete-topic! (:topic/id topic))))
+             (dorun)))}
 
       {:id :update-availability!
        :route [:put "/api/user/update-availability"]

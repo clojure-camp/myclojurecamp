@@ -39,7 +39,7 @@
 ;can potentially assoc a whole new list of topic ids
 
 (reg-event-fx
-  :add-selection!
+  :add-user-selection!
   (fn [{db :db} [_ [selection grouping]]]
     {:db   (-> db
                (update-in [:db/user :user/topic-ids grouping] conj selection))
@@ -48,15 +48,15 @@
             :params {:topic-id selection
                      :grouping grouping}}}))
 
-#_(reg-event-fx
-    :add-user-topic!
-    (fn [{db :db} [_ topic-id]]
-      {:db (-> db
-               (update-in [:db/user :user/topic-ids] conj topic-id)
-               (update-in [:db/topics topic-id :topic/user-count] (fnil inc 0)))
-       :ajax {:method :put
-              :uri "/api/user/add-topic"
-              :params {:topic-id topic-id}}}))
+(reg-event-fx
+  :remove-user-selection!
+  (fn [{db :db} [_ [selection grouping]]]
+    {:db   (-> db
+               (update-in [:db/user :user/topic-ids grouping] disj selection))
+     :ajax {:method :put
+            :uri    "/api/user/remove-topic"
+            :params {:topic-id selection
+                     :grouping grouping}}}))
 
 (reg-fx :ajax
   (fn [opts]
@@ -177,32 +177,6 @@
             :params {:day day
                      :hour hour
                      :value value}}}))
-
-(reg-event-fx
-  :add-user-topic!
-  (fn [{db :db} [_ topic-id]]
-    {:db (-> db
-             (update-in [:db/user :user/topic-ids] conj topic-id)
-             (update-in [:db/topics topic-id :topic/user-count] (fnil inc 0)))
-     :ajax {:method :put
-            :uri "/api/user/add-topic"
-            :params {:topic-id topic-id}}}))
-
-(defn maybe-delete-topic [db topic-id]
-  (if (= 0 (get-in db [:db/topics topic-id :topic/user-count]))
-   (update db :db/topics dissoc topic-id)
-   db))
-
-(reg-event-fx
-  :remove-user-topic!
-  (fn [{db :db} [_ topic-id]]
-    {:db (-> db
-             (update-in [:db/user :user/topic-ids] disj topic-id)
-             (update-in [:db/topics topic-id :topic/user-count] dec)
-             #_(maybe-delete-topic topic-id))
-     :ajax {:method :put
-            :uri "/api/user/remove-topic"
-            :params {:topic-id topic-id}}}))
 
 (reg-event-fx
   :opt-in-for-pairing!
