@@ -7,6 +7,8 @@
     [pairing-scheduler.core :as ps]
     [dojo.email :as email]
     [dojo.db :as db])
+
+
   (:import
     (java.time Period DayOfWeek ZonedDateTime ZoneId LocalTime LocalDate)
     (java.time.format DateTimeFormatter)
@@ -55,27 +57,43 @@
 (defn ->inst [zoned-date-time]
   (java.util.Date/from (.toInstant zoned-date-time)))
 
+(def selections->topic-id {{:skill-level "beginner" :session-type "match"} #uuid"43fe92c3-1def-4051-aca0-ec4a5b175b0a"
+                           {:skill-level "beginner" :session-type "rally"} #uuid"76a4323f-960b-4e03-adf3-a3c0d25b8e76"
+                           {:skill-level "expert" :session-type "match"} #uuid"3e819b1f-705d-4369-863b-b58513288e4a"
+                           {:skill-level "expert" :session-type "rally"} #uuid"5b5b325c-0611-412a-983b-64efff09578d"})
+
+(defn selections->topic-ids [selections]
+  (let [skill-levels (:topic-ids/skill-level selections)
+        session-types (:topic-ids/session-type selections)]
+    (set (mapcat
+           (fn [session-type]
+             (map (fn [skill-level]
+                    (selections->topic-id {:skill-level skill-level :session-type session-type}))
+                  skill-levels))
+           session-types))))
+
 (defn prep-input-for-schedule
-  [users local-date-start-of-week]
-  {:times-to-pair 1
-   :max-events-per-day (mapify :user/id :user/max-pair-per-day users)
-   :max-events-per-week (mapify :user/id :user/max-pair-per-week users)
-   :topics (mapify :user/id :user/topic-ids users)
-   :timezones (mapify :user/id :user/time-zone users)
-   :availabilities (mapify :user/id
-                           ;; stored as {[:monday 10] :available
-                           ;;            [:tuesday 10] :preferred
-                           ;;            [:wednesday 10] nil)
-                           ;; but need #{[:monday 10 :available]
-                           ;;            [:tuesday 10 :preferred]}
-                           ;; also, remove when value is nil
-                           (fn [user]
-                             (->> (:user/availability user)
-                                  (filter (fn [[_ v]] v))
-                                  (map (fn [[k v]]
-                                         [(->inst (convert-time k (:user/time-zone user) local-date-start-of-week)) v]))
-                                  set))
-                           users)})
+  [users-raw local-date-start-of-week]
+  (let [users (map (fn [user] (update user :user/topic-ids selections->topic-ids)) users-raw)]
+   {:times-to-pair       1
+    :max-events-per-day  (mapify :user/id :user/max-pair-per-day users)
+    :max-events-per-week (mapify :user/id :user/max-pair-per-week users)
+    :topics              (mapify :user/id :user/topic-ids users)
+    :timezones           (mapify :user/id :user/time-zone users)
+    :availabilities      (mapify :user/id
+                                 ;; stored as {[:monday 10] :available
+                                 ;;            [:tuesday 10] :preferred
+                                 ;;            [:wednesday 10] nil)
+                                 ;; but need #{[:monday 10 :available]
+                                 ;;            [:tuesday 10 :preferred]}
+                                 ;; also, remove when value is nil
+                                 (fn [user]
+                                   (->> (:user/availability user)
+                                        (filter (fn [[_ v]] v))
+                                        (map (fn [[k v]]
+                                               [(->inst (convert-time k (:user/time-zone user) local-date-start-of-week)) v]))
+                                        set))
+                                 users)}))
 
 #_(prep-input-for-schedule (db/get-users) (LocalDate/now))
 
@@ -206,13 +224,13 @@
              "With: "
              [:span.guest
               (:user/name partner)
-              " (" (:user/email partner) ")"]
-             [:br]
-             "Topics: "
-             (->topics event)
-             [:br]
+              " (" (:user/email partner) ")"]])
+             ;[:br]
+             ;"Topics: "
+             ;(->topics event)
+             ;[:br]
              ;; hashing the event to get a unique short-ish id
-             [:a {:href (->jitsi-url event)} "Meeting Link"]])
+             ;[:a {:href (->jitsi-url event)} "Meeting Link"]])
            [:p "If you can't make a session, be sure to let your partner know!"]
            [:p "- DojoBot"]]}))
 

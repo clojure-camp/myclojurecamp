@@ -11,33 +11,6 @@
 
 (defonce ajax-state (r/atom {}))
 
-(def topic-id->selections {#uuid"43fe92c3-1def-4051-aca0-ec4a5b175b0a" {:skill-level "beginner" :session-type "match"}
-                           #uuid"76a4323f-960b-4e03-adf3-a3c0d25b8e76" {:skill-level "beginner" :session-type "rally"}
-                           #uuid"3e819b1f-705d-4369-863b-b58513288e4a" {:skill-level "expert" :session-type "match"}
-                           #uuid"5b5b325c-0611-412a-983b-64efff09578d" {:skill-level "expert" :session-type "rally"}})
-
-#_(def selections->topic-id {"beginner" #{#uuid"43fe92c3-1def-4051-aca0-ec4a5b175b0a" #uuid"76a4323f-960b-4e03-adf3-a3c0d25b8e76"}
-                             "expert"   #{#uuid"3e819b1f-705d-4369-863b-b58513288e4a" #uuid"5b5b325c-0611-412a-983b-64efff09578d"}
-                             "rally"    #{#uuid"76a4323f-960b-4e03-adf3-a3c0d25b8e76" #uuid"5b5b325c-0611-412a-983b-64efff09578d"}
-                             "match"    #{#uuid"3e819b1f-705d-4369-863b-b58513288e4a" #uuid"5b5b325c-0611-412a-983b-64efff09578d"}})
-
-(def selections->topic-id {{:skill-level "beginner" :session-type "match"} #uuid"43fe92c3-1def-4051-aca0-ec4a5b175b0a"
-                           {:skill-level "beginner" :session-type "rally"} #uuid"76a4323f-960b-4e03-adf3-a3c0d25b8e76"
-                           {:skill-level "expert" :session-type "match"} #uuid"3e819b1f-705d-4369-863b-b58513288e4a"
-                           {:skill-level "expert" :session-type "rally"} #uuid"5b5b325c-0611-412a-983b-64efff09578d"})
-
-;(get selections->topic-id {:skill "beginner" :session-type "match"})
-
-;The below format can be used to store selections in :db/user
-;{:skill #{"beginner"} :session-type #{"match"}}
-
-(defn topics->selections [user-topic-ids selection-key]
-  (set (map (fn [topic-id] (get (get topic-id->selections topic-id) selection-key)) user-topic-ids)))
-
-;TODO - alternate option: based on user selection - always recalculate all the topics - front-end tells server this is the entire list
-
-;can potentially assoc a whole new list of topic ids
-
 (reg-event-fx
   :add-user-selection!
   (fn [{db :db} [_ [selection grouping]]]

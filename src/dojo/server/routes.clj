@@ -8,6 +8,8 @@
     [dojo.emails.login-link :as emails.login-link]
     [dojo.model :as model]))
 
+;Note: on the client side (state.js), some event is doing ajax with that url and params (user-id gets added elsewhere to all requests). on the server-side, the corresponding tada "command" is found (based on the url), then the params are checked, then, the :effect function is called (with those same params)
+
 (def commands
   [{:id :request-login-link-email!
     :route [:put "/api/request-login-link-email"]
