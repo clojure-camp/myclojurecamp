@@ -111,7 +111,7 @@
       ;; for star-field:
       :z-index 1
       :position "relative"
-      :background clojure-camp-blue
+      :background clojure-green
       :color "white"}
 
      [:>.star-field
@@ -121,7 +121,7 @@
        :right 0
        :bottom 0
        :left 0
-       :background clojure-camp-blue}]
+       :background gray}]
 
      [:>img.logomark
       {:max-height "30vh"
@@ -137,7 +137,7 @@
      [:>form
       {:display "flex"
        :flex-direction "column"
-       :background clojure-camp-blue
+       :background clojure-green
        :padding "0.5em"
        :min-width "20em"
        :max-width "80vw"}
