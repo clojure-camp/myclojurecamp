@@ -16,7 +16,7 @@
     [:map
      [:port integer?]
      [:host string?]
-     [:ssl boolean?]
+     [:tls boolean?]
      [:from string?]
      [:user string?]
      [:pass string?]]]])
