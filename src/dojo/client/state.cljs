@@ -11,6 +11,26 @@
 
 (defonce ajax-state (r/atom {}))
 
+(reg-event-fx
+  :add-user-selection!
+  (fn [{db :db} [_ [selection grouping]]]
+    {:db   (-> db
+               (update-in [:db/user :user/topic-ids grouping] conj selection))
+     :ajax {:method :put
+            :uri    "/api/user/add-topic"
+            :params {:topic-id selection
+                     :grouping grouping}}}))
+
+(reg-event-fx
+  :remove-user-selection!
+  (fn [{db :db} [_ [selection grouping]]]
+    {:db   (-> db
+               (update-in [:db/user :user/topic-ids grouping] disj selection))
+     :ajax {:method :put
+            :uri    "/api/user/remove-topic"
+            :params {:topic-id selection
+                     :grouping grouping}}}))
+
 (reg-fx :ajax
   (fn [opts]
     (let [request-id (gensym "request")]
@@ -23,8 +43,10 @@
 (reg-event-fx
   :initialize!
   (fn [_ _]
-    {:db {:db/checked-auth? false
-          :db/topics {}}
+    {:db         {:db/checked-auth? false
+                  :db/topics        {}
+                  :db/skill-level   {:beginner "beginner" :expert "expert"}
+                  :db/session-type {:match "match" :rally "rally"}}
      :dispatch-n [[:fetch-user!]]}))
 
 (reg-event-fx
@@ -130,32 +152,6 @@
                      :value value}}}))
 
 (reg-event-fx
-  :add-user-topic!
-  (fn [{db :db} [_ topic-id]]
-    {:db (-> db
-             (update-in [:db/user :user/topic-ids] conj topic-id)
-             (update-in [:db/topics topic-id :topic/user-count] (fnil inc 0)))
-     :ajax {:method :put
-            :uri "/api/user/add-topic"
-            :params {:topic-id topic-id}}}))
-
-(defn maybe-delete-topic [db topic-id]
-  (if (= 0 (get-in db [:db/topics topic-id :topic/user-count]))
-   (update db :db/topics dissoc topic-id)
-   db))
-
-(reg-event-fx
-  :remove-user-topic!
-  (fn [{db :db} [_ topic-id]]
-    {:db (-> db
-             (update-in [:db/user :user/topic-ids] disj topic-id)
-             (update-in [:db/topics topic-id :topic/user-count] dec)
-             (maybe-delete-topic topic-id))
-     :ajax {:method :put
-            :uri "/api/user/remove-topic"
-            :params {:topic-id topic-id}}}))
-
-(reg-event-fx
   :opt-in-for-pairing!
   (fn [{db :db} [_ bool]]
     {:db (assoc-in db [:db/user :user/pair-next-week?] bool)
@@ -208,6 +204,16 @@
   :topics
   (fn [db _]
     (vals (db :db/topics))))
+
+(reg-sub
+  :skill-level
+  (fn [db _]
+    (vals (db :db/skill-level))))
+
+(reg-sub
+  :session-type
+  (fn [db _]
+    (vals (db :db/session-type))))
 
 (reg-sub
   :events

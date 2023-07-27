@@ -8,6 +8,8 @@
     [dojo.emails.login-link :as emails.login-link]
     [dojo.model :as model]))
 
+;Note: on the client side (state.js), some event is doing ajax with that url and params (user-id gets added elsewhere to all requests). on the server-side, the corresponding tada "command" is found (based on the url), then the params are checked, then, the :effect function is called (with those same params)
+
 (def commands
   [{:id :request-login-link-email!
     :route [:put "/api/request-login-link-email"]
@@ -33,127 +35,129 @@
       (db/create-topic! name))
     :return :tada/effect-return}
 
-   {:id :subscribe-to-topic!
-    :route [:put "/api/user/add-topic"]
-    :params {:user-id uuid?
-             :topic-id uuid?}
+   {:id     :subscribe-to-topic!
+    :route  [:put "/api/user/add-topic"]
+    :params {:user-id  uuid?
+             :topic-id string?
+             :grouping keyword?}
     :conditions
     (fn [{:keys [user-id topic-id]}]
       [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]
-       [#(db/entity-file-exists? :topic topic-id) :not-allowed "Topic with this ID does not exist."]])
+       #_[#(db/entity-file-exists? :topic topic-id) :not-allowed "Topic with this ID does not exist."]])
     :effect
-    (fn [{:keys [user-id topic-id]}]
+    (fn [{:keys [user-id topic-id grouping]}]
       (some-> (db/get-user user-id)
-              (update :user/topic-ids conj topic-id)
+              (update-in [:user/topic-ids grouping] conj topic-id)
               db/save-user!))}
 
-   {:id :unsubscribe-from-topic!
-    :route [:put "/api/user/remove-topic"]
-    :params {:user-id uuid?
-             :topic-id uuid?}
+   {:id     :unsubscribe-from-topic!
+    :route  [:put "/api/user/remove-topic"]
+    :params {:user-id  uuid?
+             :topic-id string?
+             :grouping keyword?}
     :conditions
     (fn [{:keys [user-id topic-id]}]
       [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]
-       [#(db/entity-file-exists? :topic topic-id) :not-allowed "Topic with this ID does not exist."]])
+       #_[#(db/entity-file-exists? :topic topic-id) :not-allowed "Topic with this ID does not exist."]])
     :effect
-    (fn [{:keys [user-id topic-id]}]
+    (fn [{:keys [user-id topic-id grouping]}]
       (some-> (db/get-user user-id)
-              (update :user/topic-ids disj topic-id)
+              (update-in [:user/topic-ids grouping] disj topic-id)
               db/save-user!)
       ;; delete topic if has 0 users
-      (->> (db/get-topics)
-           (filter (fn [topic] (and (= 0 (:topic/user-count topic))
-                                    (= (:topic/id topic) topic-id))))
-           (map (fn [topic]
-                  (db/delete-topic! (:topic/id topic))))
-           (dorun)))}
+      #_(->> (db/get-topics)
+             (filter (fn [topic] (and (= 0 (:topic/user-count topic))
+                                      (= (:topic/id topic) topic-id))))
+             (map (fn [topic]
+                    (db/delete-topic! (:topic/id topic))))
+             (dorun)))}
 
-   {:id :update-availability!
-    :route [:put "/api/user/update-availability"]
-    :params {:user-id uuid?
-             :hour (fn [h] (contains? (set model/hours) h))
-             :day (fn [d] (contains? (set model/days) d))
-             :value (fn [v] (contains? model/availability-values v))}
-    :conditions
-    (fn [{:keys [user-id]}]
-      [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]])
-    :effect
-    (fn [{:keys [user-id day hour value]}]
-      (some-> (db/get-user user-id)
-              (assoc-in [:user/availability [day hour]] value)
-              db/save-user!))}
+      {:id :update-availability!
+       :route [:put "/api/user/update-availability"]
+       :params {:user-id uuid?
+                :hour (fn [h] (contains? (set model/hours) h))
+                :day (fn [d] (contains? (set model/days) d))
+                :value (fn [v] (contains? model/availability-values v))}
+       :conditions
+       (fn [{:keys [user-id]}]
+         [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]])
+       :effect
+       (fn [{:keys [user-id day hour value]}]
+         (some-> (db/get-user user-id)
+                 (assoc-in [:user/availability [day hour]] value)
+                 db/save-user!))}
 
-   {:id :opt-in-for-pairing!
-    :route [:put "/api/user/opt-in-for-pairing"]
-    :params {:user-id uuid?
-             :value boolean?}
-    :conditions
-    (fn [{:keys [user-id]}]
-      [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]])
-    :effect
-    (fn [{:keys [user-id value]}]
-      (some-> (db/get-user user-id)
-              (assoc :user/pair-next-week? value)
-              db/save-user!))}
+      {:id :opt-in-for-pairing!
+       :route [:put "/api/user/opt-in-for-pairing"]
+       :params {:user-id uuid?
+                :value boolean?}
+       :conditions
+       (fn [{:keys [user-id]}]
+         [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]])
+       :effect
+       (fn [{:keys [user-id value]}]
+         (some-> (db/get-user user-id)
+                 (assoc :user/pair-next-week? value)
+                 db/save-user!))}
 
-   {:id :set-profile-value!
-    :route [:put "/api/user/set-profile-value"]
-    :params {:user-id uuid?
-             :k (fn [k]
-                  (contains? #{:user/max-pair-per-day
-                               :user/max-pair-per-week
-                               :user/time-zone
-                               :user/name}
-                             k))
-             :v any?}
-    :conditions
-    (fn [{:keys [user-id k v]}]
-      [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]
-       [#(case k
-           :user/max-pair-per-day (and (integer? v) (<= 1 v 24))
-           :user/max-pair-per-week (and (integer? v) (<= 1 v (* 24 7)))
-           :user/time-zone (and (string? v)
-                                (try
-                                  (java.time.ZoneId/of v)
-                                  (catch Exception _
-                                    false)))
-           :user/name (and (string? v)
-                           (not (string/blank? v))))
-        :not-allowed
-        "Value is of wrong type."]])
-    :effect
-    (fn [{:keys [user-id k v]}]
-      (some-> (db/get-user user-id)
-              (assoc k v)
-              db/save-user!))}
+      {:id :set-profile-value!
+       :route [:put "/api/user/set-profile-value"]
+       :params {:user-id uuid?
+                :k (fn [k]
+                     (contains? #{:user/max-pair-per-day
+                                  :user/max-pair-per-week
+                                  :user/time-zone
+                                  :user/name}
+                                k))
+                :v any?}
+       :conditions
+       (fn [{:keys [user-id k v]}]
+         [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]
+          [#(case k
+              :user/max-pair-per-day (and (integer? v) (<= 1 v 24))
+              :user/max-pair-per-week (and (integer? v) (<= 1 v (* 24 7)))
+              :user/time-zone (and (string? v)
+                                   (try
+                                     (java.time.ZoneId/of v)
+                                     (catch Exception _
+                                       false)))
+              :user/name (and (string? v)
+                              (not (string/blank? v))))
+           :not-allowed
+           "Value is of wrong type."]])
+       :effect
+       (fn [{:keys [user-id k v]}]
+         (some-> (db/get-user user-id)
+                 (assoc k v)
+                 db/save-user!))}
 
-   {:id :update-subscription!
-    :route [:put "/api/user/subscription"]
-    :params {:user-id uuid?
-             :status boolean?}
-    :conditions
-    (fn [{:keys [user-id]}]
-      [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]])
-    :effect
-    (fn [{:keys [user-id status]}]
-      (some-> (db/get-user user-id)
-              (assoc :user/subscribed? status)
-              db/save-user!))}
+      {:id :update-subscription!
+       :route [:put "/api/user/subscription"]
+       :params {:user-id uuid?
+                :status boolean?}
+       :conditions
+       (fn [{:keys [user-id]}]
+         [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]])
+       :effect
+       (fn [{:keys [user-id status]}]
+         (some-> (db/get-user user-id)
+                 (assoc :user/subscribed? status)
+                 db/save-user!))}
 
-   {:id :flag-user!
-    :route [:put "/api/event/flag-guest"]
-    :params {:user-id uuid?
-             :event-id uuid?
-             :value boolean?}
-    :conditions
-    (fn [{:keys [user-id event-id]}]
-      [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]
-       [#(db/entity-file-exists? :event event-id) :not-allowed "Event with this ID does not exist."]])
-    :effect
-    (fn [{:keys [user-id event-id value]}]
-      (some-> (db/get-event event-id)
-              ((partial model/flag-other-user value) user-id)
-              db/save-event!))}])
+      {:id :flag-user!
+       :route [:put "/api/event/flag-guest"]
+       :params {:user-id uuid?
+                :event-id uuid?
+                :value boolean?}
+       :conditions
+       (fn [{:keys [user-id event-id]}]
+         [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]
+          [#(db/entity-file-exists? :event event-id) :not-allowed "Event with this ID does not exist."]])
+       :effect
+       (fn [{:keys [user-id event-id value]}]
+         (some-> (db/get-event event-id)
+                 ((partial model/flag-other-user value) user-id)
+                 db/save-event!))}])
 
 #_(tada/do :request-login-link-email! {:email "foo@example.com"})
 

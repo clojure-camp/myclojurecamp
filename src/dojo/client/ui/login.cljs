@@ -11,7 +11,7 @@
   (let [w js/window.innerWidth
         h js/window.innerHeight
         star-count 300
-        base-star-size 12]
+        base-star-size 80]
     [:svg.star-field
      {:xmlns "http://www.w3.org/2000/svg"
       :width "100%"
@@ -31,7 +31,7 @@
                                            (repeat 3 0.15)
                                            (repeat 2 0.02)
                                            (repeat 1 0.025))))
-                         :fill "#fff"}])))]))
+                         :fill "#5FAD31"}])))]))
 
 (defn login-view []
   (let [sent-email (r/atom nil)]
@@ -39,12 +39,12 @@
       [:div.login
        [star-field-view]
        [:img.logomark
-        {:src "/logomark.svg"
+        {:src "/logotype.png"
          :alt "Logo of Clojure Camp. A star constellation in the shape of alambda."}]
-       [:h1
-        [:img.logotype
-         {:src "/logotype.svg"
-          :alt "Clojure Camp"}]]
+       #_[:h1
+          [:img.logotype
+           {:src "/logotype.svg"
+            :alt "Clojure Camp"}]]
        [:form
         {:on-submit (fn [e]
                       (let [email (.. e -target -elements -email -value)]
