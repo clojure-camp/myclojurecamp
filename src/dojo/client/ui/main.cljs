@@ -117,8 +117,8 @@
                    :on-change
                    (fn []
                      (if checked?
-                       (dispatch [:remove-user-selection! [skill-level grouping]])
-                       (dispatch [:add-user-selection! [skill-level grouping]])))}]
+                       (dispatch [:remove-user-selection! skill-level grouping])
+                       (dispatch [:add-user-selection! skill-level grouping])))}]
           [:span.name skill-level] " "])]])])
 
 
@@ -144,8 +144,8 @@
                    :on-change
                    (fn []
                      (if checked?
-                       (dispatch [:remove-user-selection! [session-type grouping]])
-                       (dispatch [:add-user-selection! [session-type grouping]])))}]
+                       (dispatch [:remove-user-selection! session-type grouping])
+                       (dispatch [:add-user-selection! session-type grouping])))}]
           [:span.name session-type] " "])]])])
 
 
@@ -322,7 +322,7 @@
     [max-limit-preferences-view]
     [skill-level-view]
     [session-type-view]
-    ;[time-zone-view]
+    [court-location-view]
     [:h4 "Please select times to pair below (A=Available  P=Preferred):"]
     [availability-view]
     ;[events-view]

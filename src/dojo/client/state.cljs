@@ -13,7 +13,7 @@
 
 (reg-event-fx
   :add-user-selection!
-  (fn [{db :db} [_ [selection grouping]]]
+  (fn [{db :db} [_ selection grouping]]
     {:db   (-> db
                (update-in [:db/user :user/topic-ids grouping] conj selection))
      :ajax {:method :put
@@ -23,7 +23,7 @@
 
 (reg-event-fx
   :remove-user-selection!
-  (fn [{db :db} [_ [selection grouping]]]
+  (fn [{db :db} [_ selection grouping]]
     {:db   (-> db
                (update-in [:db/user :user/topic-ids grouping] disj selection))
      :ajax {:method :put
@@ -45,6 +45,7 @@
   (fn [_ _]
     {:db         {:db/checked-auth? false
                   :db/topics        {}
+                  :db/court-location {:kissena "kissena" :flushing "flushing"}
                   :db/skill-level   {:beginner "beginner" :expert "expert"}
                   :db/session-type {:match "match" :rally "rally"}}
      :dispatch-n [[:fetch-user!]]}))

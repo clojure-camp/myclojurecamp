@@ -5,6 +5,7 @@
     [bloom.commons.uuid :as uuid]
     [chime.core :as chime]
     [pairing-scheduler.core :as ps]
+    [dojo.pairing-scheduler.core :as dps]
     [dojo.email :as email]
     [dojo.db :as db])
 
@@ -106,7 +107,7 @@
   (if (empty? users)
    []
    (->> (prep-input-for-schedule users local-date-start-of-week)
-        (ps/schedule)
+        (dps/schedule)
         :schedule
         (map (fn [event]
               (-> event
