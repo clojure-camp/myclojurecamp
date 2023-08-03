@@ -217,6 +217,11 @@
     (vals (db :db/session-type))))
 
 (reg-sub
+  :court-location
+  (fn [db _]
+    (vals (db :db/court-location))))
+
+(reg-sub
   :events
   (fn [db _]
     (vals (db :db/events))))

@@ -148,6 +148,31 @@
                        (dispatch [:add-user-selection! session-type grouping])))}]
           [:span.name session-type] " "])]])])
 
+(defn court-location-view []
+  [:div.topics-view
+   [:h4 "Preferred Court Location"]
+   (let [user-court-locations @(subscribe [:user-profile-value :user/court-locations])]
+     [:<>
+      (when (and (empty? user-court-locations)
+                 @(subscribe [:user-profile-value :user/pair-next-week?]))
+        [:p.warning
+         [fa/fa-exclamation-triangle-solid]
+         "You need to select at least one court selection to be matched with someone."])
+      [:div.topics
+       (for [court-location @(subscribe [:court-location])
+             :let [checked? (contains? user-court-locations court-location)]]
+         ^{:key court-location}
+         [:label.topic
+          [:input {:type    "checkbox"
+                   :checked checked?
+                   :on-change
+                   (fn []
+                     #_(if checked?
+                         (dispatch [:remove-user-topic! (:topic/id court-location)])
+                         (dispatch [:add-user-topic! (:topic/id court-location)])))}]
+          [:span.name court-location] " "])]])])
+          
+
 
 
 (defn availability-view []
