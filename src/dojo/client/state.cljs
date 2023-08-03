@@ -22,6 +22,25 @@
                      :grouping grouping}}}))
 
 (reg-event-fx
+  :add-user-court-selection!
+  (fn [{db :db} [_ selection]]
+    {:db   (-> db
+               (update-in [:db/user :user/court-locations] conj selection))
+     :ajax {:method :put
+            :uri    "/api/user/add-court-location"
+            :params {:court-location selection}}}))
+
+(reg-event-fx
+  :remove-user-court-selection!
+  (fn [{db :db} [_ selection]]
+    {:db   (-> db
+               (update-in [:db/user :user/court-locations] disj selection))
+     :ajax {:method :put
+            :uri    "/api/user/remove-court-location"
+            :params {:court-location selection}}}))
+
+
+(reg-event-fx
   :remove-user-selection!
   (fn [{db :db} [_ selection grouping]]
     {:db   (-> db

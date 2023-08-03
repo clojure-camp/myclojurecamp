@@ -167,11 +167,11 @@
                    :checked checked?
                    :on-change
                    (fn []
-                     #_(if checked?
-                         (dispatch [:remove-user-topic! (:topic/id court-location)])
-                         (dispatch [:add-user-topic! (:topic/id court-location)])))}]
+                     (if checked?
+                       (dispatch [:remove-user-court-selection! court-location])
+                       (dispatch [:add-user-court-selection! court-location])))}]
           [:span.name court-location] " "])]])])
-          
+
 
 
 
