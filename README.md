@@ -1,6 +1,6 @@
-# Dojo
+# Partner-Serve
 
-App for managing the Dojo.
+App for pairing users with a tennis partner based on availablility, skill level and location
 
 ## Developing
 
