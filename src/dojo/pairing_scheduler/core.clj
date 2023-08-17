@@ -75,7 +75,7 @@
 
 
 (defn individual-score
-  [guest-id {:keys [schedule availabilities timezones max-events-per-day max-events-per-week topics] :as context}]
+  [guest-id {:keys [schedule availabilities timezones max-events-per-day max-events-per-week topics locations] :as context}]
   (let [guest-events (->> schedule
                           (filter (fn [event]
                                     (contains? (event :guest-ids) guest-id))))
@@ -115,12 +115,13 @@
                               (map topics)
                               (apply set/intersection)
                               empty?))
+                    ;TODO give a high score if two mentors pair
                     99
                     (->> (event :guest-ids)
-                         (map topics)
+                         (map locations)
                          (apply set/intersection)
                          empty?)
-                    98
+                    80
                     ;; at preferred time
                     (contains? (availabilities guest-id) [(event :at) :preferred])
                     -5

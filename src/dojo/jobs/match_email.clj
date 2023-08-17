@@ -80,6 +80,7 @@
     :max-events-per-day  (mapify :user/id :user/max-pair-per-day users)
     :max-events-per-week (mapify :user/id :user/max-pair-per-week users)
     :topics              (mapify :user/id :user/topic-ids users)
+    :locations           (mapify :user/id :user/court-locations users)
     :timezones           (mapify :user/id :user/time-zone users)
     :availabilities      (mapify :user/id
                                  ;; stored as {[:monday 10] :available
