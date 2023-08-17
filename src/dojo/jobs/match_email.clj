@@ -5,6 +5,7 @@
     [bloom.commons.uuid :as uuid]
     [chime.core :as chime]
     [pairing-scheduler.core :as ps]
+    [dojo.pairing-scheduler.core :as dps]
     [dojo.email :as email]
     [dojo.db :as db])
 
@@ -79,6 +80,7 @@
     :max-events-per-day  (mapify :user/id :user/max-pair-per-day users)
     :max-events-per-week (mapify :user/id :user/max-pair-per-week users)
     :topics              (mapify :user/id :user/topic-ids users)
+    :locations           (mapify :user/id :user/court-locations users)
     :timezones           (mapify :user/id :user/time-zone users)
     :availabilities      (mapify :user/id
                                  ;; stored as {[:monday 10] :available
@@ -106,7 +108,7 @@
   (if (empty? users)
    []
    (->> (prep-input-for-schedule users local-date-start-of-week)
-        (ps/schedule)
+        (dps/schedule)
         :schedule
         (map (fn [event]
               (-> event

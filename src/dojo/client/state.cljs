@@ -13,7 +13,7 @@
 
 (reg-event-fx
   :add-user-selection!
-  (fn [{db :db} [_ [selection grouping]]]
+  (fn [{db :db} [_ selection grouping]]
     {:db   (-> db
                (update-in [:db/user :user/topic-ids grouping] conj selection))
      :ajax {:method :put
@@ -22,8 +22,27 @@
                      :grouping grouping}}}))
 
 (reg-event-fx
+  :add-user-court-selection!
+  (fn [{db :db} [_ selection]]
+    {:db   (-> db
+               (update-in [:db/user :user/court-locations] conj selection))
+     :ajax {:method :put
+            :uri    "/api/user/add-court-location"
+            :params {:court-location selection}}}))
+
+(reg-event-fx
+  :remove-user-court-selection!
+  (fn [{db :db} [_ selection]]
+    {:db   (-> db
+               (update-in [:db/user :user/court-locations] disj selection))
+     :ajax {:method :put
+            :uri    "/api/user/remove-court-location"
+            :params {:court-location selection}}}))
+
+
+(reg-event-fx
   :remove-user-selection!
-  (fn [{db :db} [_ [selection grouping]]]
+  (fn [{db :db} [_ selection grouping]]
     {:db   (-> db
                (update-in [:db/user :user/topic-ids grouping] disj selection))
      :ajax {:method :put
@@ -45,6 +64,7 @@
   (fn [_ _]
     {:db         {:db/checked-auth? false
                   :db/topics        {}
+                  :db/court-location {:kissena "kissena" :flushing "flushing"}
                   :db/skill-level   {:beginner "beginner" :expert "expert"}
                   :db/session-type {:match "match" :rally "rally"}}
      :dispatch-n [[:fetch-user!]]}))
@@ -214,6 +234,11 @@
   :session-type
   (fn [db _]
     (vals (db :db/session-type))))
+
+(reg-sub
+  :court-location
+  (fn [db _]
+    (vals (db :db/court-location))))
 
 (reg-sub
   :events
