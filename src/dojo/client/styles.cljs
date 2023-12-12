@@ -3,13 +3,22 @@
     [garden.stylesheet :refer [at-import at-keyframes]]
     [garden.color :refer [darken]]))
 
-(def accent-light "#45c077")
-(def accent-dark "#2b8d53")
+(def accent-light "#4576bf")
+(def accent-dark "#2b468d")
+
 (def gray "#f3f3f3")
 (def clojure-green "#5FAD31")
 (def clojure-blue "#567ED2")
 (def clojure-blue-darker "#396CD5")
 (def clojure-camp-blue "#181742")
+(def light-text "#bbb")
+
+(defn text-input []
+  [:&
+   {:font-size "1.1em"
+    :padding "0.25em"
+    :font-weight 300
+    :font-family "Roboto, sans-serif"}])
 
 (defn button []
   [:&
@@ -36,49 +45,10 @@
      ["0%" {:transform "rotate(0deg)"}]
      ["100%" {:transform "rotate(359deg)"}])
 
-   [:table.events
-    [:>tbody
-     [:>tr
-      [:&.past
-       {:opacity "0.5"}]
-
-      [:>th
-       {:vertical-align "top"
-        :text-align "right"
-        :padding "0.5em"}]
-
-      [:>td
-       {:padding "0.5em"}
-
-       [:>.actions
-        {:display "flex"
-         :gap "0.5em"
-         :align-items "center"}
-
-        [:>.link
-         [:>svg
-          {:width "1em"}]]
-
-        [:>button.flag
-         {:cursor "pointer"
-          :border "none"
-          :background "none"
-          :padding 0
-          :color "#AAA"}
-
-         [:&:hover
-          {:transform "scale(1.25)"}]
-
-         [:&.flagged
-          {:color "red"}]
-
-         [:>svg
-          {:width "1em"}]]]]]]]
-
    [:.ajax-status
     {:position "fixed"
      :top "1em"
-     :left "1em"
+     :left "3em"
      :right 0}
 
     [:>svg
@@ -87,16 +57,14 @@
 
     [:&.loading>svg
      {:animation "spin 1s infinite linear"
-      :color "gray"}]
+      :color "white"}]
 
     [:&.normal>svg
-     {:animation "fade-out 1s forwards ease-in-out"}]]
-
-
+     {:animation "fade-out 1s forwards ease-in-out"
+      :color "white"}]]
 
    [:body
-    {;;:background (str "linear-gradient(-225deg, " clojure-green "ee, " clojure-blue "ee)")
-     :font-family "Roboto, sans-serif"
+    {:font-family "Roboto, sans-serif"
      :margin 0}]
 
    [:#app
@@ -165,7 +133,6 @@
 
     [:.main
 
-
      [:>.header
       {:background clojure-camp-blue
        :display "flex"
@@ -192,149 +159,203 @@
        :display "flex"
        :flex-direction "column"
        :align-items "center"
-       :gap "2rem"}
-      {:max-width "40em"
+       :max-width "40em"
        :margin "0 auto"
        :background "white"}
 
-      [:>.opt-in
-       {:display "flex"
-        :align-items "center"
-        :font-size "2rem"
-        :background gray
-        :border [["1px" "solid" (darken gray 10)]]
-        :padding "1rem"
-        :border-radius "0.5rem"
-        :font-weight "bold"
-        :cursor "pointer"}
+      [:section.field
+       {:width "100%"
+        :padding "1rem 0"
+        :border-bottom [["1px" "solid" "#ccc"]]
+        :font-weight 300}
 
-       [:&:hover
-        {:background (darken gray 5)}]
+       [:h1
+        {:font-size "1.1rem"
+         :font-weight 700
+         :margin [[0 0 "1rem" 0]]
+         :display "flex"
+         :align-items "center"
+         :gap "0.4em"}]
 
-       [:&.active
-        {:background accent-light
-         :border [["1px" "solid" (darken accent-light 10)]]}
+       [:.info
+        {:position "relative"}
+
+        [:svg
+         {:width "0.85em"
+          :height "0.85em"
+          :color light-text}]
+
+        [:.popover
+         {:display "none"
+          :border [["1px" "solid" "#ccc"]]
+          :position "absolute"
+          :background "white"
+          :padding "0.5em"
+          :width "100vw"
+          :left "1em"
+          :top 0
+          :max-width "30em"
+          :font-weight 300
+          :font-size "1rem"}]
 
         [:&:hover
-         {:background (darken accent-light 5)}]]
+         [:.popover
+          {:display "block"}]]]
 
-       [:>svg
-        {:width "2rem"
-         :margin-right "0.5rem"}]
+       ;; specific sections
 
-       [:>input
-        {:display "none"}]]
+       [:&.name
+        :&.max-pair-day
+        :&.max-pair-week
+        "" ;; ¯\_(ツ)_/¯
+        [:input
+         (text-input)]]
 
-      [:>.topics-view
-       [:>.warning
-        {:color "red"
-         :background "#ffe9e9"
-         :padding "0.25em"
-         :border-radius "0.25em"
-         :border "1px solid #ffc4c4"}
+       [:&.topics
+        [:>.warning
+         {:color "red"
+          :background "#ffe9e9"
+          :padding "0.25em"
+          :border-radius "0.25em"
+          :border "1px solid #ffc4c4"}
 
-        [:>svg
-         {:width "1em"
-          :margin-right "0.25em"}]]
+         [:>svg
+          {:width "1em"
+           :margin-right "0.25em"}]]
 
-       [:>.topics
-        {:columns "3"}
+        [:>.topics
+         {:columns "3"}
 
-        [:>.topic
-         {:display "block"
-          :margin-bottom "0.5rem"
-          :cursor "pointer"
-          :vertical-align "center"
-          :white-space "nowrap"}
+         [:>.topic
+          {:display "block"
+           :margin-bottom "0.5rem"
+           :cursor "pointer"
+           :vertical-align "center"
+           :white-space "nowrap"}
 
-         [:>.count
-          {:color "#ccc"}]]
-
-        [:>button
-         (button)]]]
-
-      [:>.max-limit-preferences
-
-       [:>label
-        {:display "block"
-         :padding "0.5rem"}
-
-        [:>input
-         {:margin-left "0.5rem"}]]]
-
-      [:>.time-zone
-       {:display "flex"
-        :gap "0.25em"
-        :align-items "center"}
-       [:>button
-        (button)]]
-
-      [:section.availability
-       [:>h1
-        {:text-align "center"}]
-
-       [:>p
-        {:font-weight "normal"
-         :text-align "center"}]
-
-       [:>table
-        {:border-spacing 0
-         :width "100%"}
-
-        [:th.day
-         {:font-weight "normal"
-          :padding-bottom "1rem"}
-
-         [:>.day-of-week]
-
-         [:>.date
-          {:color "#aaa"}]]
-
-        [:td.hour
-         {:text-align "right"
-          :padding-right "1rem"
-          :vertical-align "top"
-          :transform "translateY(-0.5rem)"}]
-
-        [:td
-         {:padding 0}
+          [:>.count
+           {:color "#ccc"}]]
 
          [:>button
-          {:width "100%"
-           :border "none"
-           :cursor "pointer"
-           :padding "1em"
-           :height "6em"
-           :display "flex"
-           :justify-content "center"
-           :align-items "center"}
+          (button)]]]
 
-          [:&.empty
-           {:background "#fff"
-            :color "#aaa"}
+       [:&.time-zone
+        [:button
+         (button)]]
 
-           [:>.wrapper
-            {:border "1px dashed #ccc"
-             :height "4em"
-             :width "100%"
-             :line-height "4em"}]
+       [:&.role
+        :&.opt-in
+        :&.subscribed
+        "" ;; ¯\_(ツ)_/¯
+        [:.choices
+         {:display "flex"
+          :gap "1em"}
 
-           [:&:hover
-            {:background (darken "#fff" 5)}]]
+         [:label
+          {:cursor "pointer"
+           :font-size "1.1em"}
 
-          [:&.preferred
-           {:background accent-dark
-            :color "white"}
+          [:.label
+           {:margin-left "0.1em"}]]]]
 
-           [:&:hover
-            {:background (darken accent-dark 5)}]]
+       [:&.availability
+        [:>table
+         {:border-spacing 0
+          :width "100%"}
 
-          [:&.available
-           {:background accent-light
-            :color "white"}
+         [:th.day
+          {:font-weight "normal"
+           :padding-bottom "1rem"}
 
-           [:&:hover
-            {:background (darken accent-light 5)}]]]]]]
+          [:>.day-of-week]
+
+          [:>.date
+           {:color "#aaa"}]]
+
+         [:td.hour
+          {:text-align "right"
+           :padding-right "1rem"
+           :vertical-align "top"
+           :transform "translateY(-0.5rem)"}]
+
+         [:td
+          {:padding 0}
+
+          [:>button
+           {:width "100%"
+            :border "none"
+            :cursor "pointer"
+            :padding "1em"
+            :height "6em"
+            :display "flex"
+            :justify-content "center"
+            :align-items "center"}
+
+           [:&.empty
+            {:background "#fff"
+             :color "#aaa"}
+
+            [:>.wrapper
+             {:border "1px dashed #ccc"
+              :height "4em"
+              :width "100%"
+              :line-height "4em"}]
+
+            [:&:hover
+             {:background (darken "#fff" 10)}]]
+
+           [:&.preferred
+            {:background accent-dark
+             :color "white"}
+
+            [:&:hover
+             {:background (darken accent-dark 10)}]]
+
+           [:&.available
+            {:background accent-light
+             :color "white"}
+
+            [:&:hover
+             {:background (darken accent-light 10)}]]]]]]]
 
       [:>.unsubscribe
-       (button)]]]]])
+       (button)]]
+
+     [:table.events
+      [:>tbody
+       [:>tr
+        [:&.past
+         {:opacity "0.5"}]
+
+        [:>th
+         {:vertical-align "top"
+          :text-align "right"
+          :padding "0.5em"}]
+
+        [:>td
+         {:padding "0.5em"}
+
+         [:>.actions
+          {:display "flex"
+           :gap "0.5em"
+           :align-items "center"}
+
+          [:>.link
+           [:>svg
+            {:width "1em"}]]
+
+          [:>button.flag
+           {:cursor "pointer"
+            :border "none"
+            :background "none"
+            :padding 0
+            :color "#AAA"}
+
+           [:&:hover
+            {:transform "scale(1.25)"}]
+
+           [:&.flagged
+            {:color "red"}]
+
+           [:>svg
+            {:width "1em"}]]]]]]]]]])

@@ -7,28 +7,41 @@
     [dojo.client.state :as state]
     [dojo.model :as model]))
 
+(defn popover-view
+  [content]
+  [:div.info
+   [fa/fa-question-circle-solid]
+   [:div.popover
+    content]])
+
 (defn max-limit-preferences-view []
-  [:div.max-limit-preferences
-   [:label
-    "Max pair per day"
-    [:input {:type "number"
-             :value @(subscribe [:user-profile-value :user/max-pair-per-day])
-             :min 1
-             :max 24
-             :on-change (fn [e]
+  [:<>
+   [:section.field.max-pair-day
+    [:label
+     [:h1
+      "Max pairings per day"
+      [popover-view "Maximum number of times you will be scheduled in a given day."]]
+     [:input {:type "number"
+              :value @(subscribe [:user-profile-value :user/max-pair-per-day])
+              :min 1
+              :max 24
+              :on-change (fn [e]
                            (dispatch [:set-user-value!
                                       :user/max-pair-per-day
-                                      (js/parseInt (.. e -target -value) 10)]))}]]
-   [:label
-    "Max pair per week"
-    [:input {:type "number"
-             :value @(subscribe [:user-profile-value :user/max-pair-per-week])
-             :min 1
-             :max (* 24 7)
-             :on-change (fn [e]
+                                      (js/parseInt (.. e -target -value) 10)]))}]]]
+   [:section.field.max-pair-week
+    [:label
+     [:h1
+     "Max pairings per week"
+     [popover-view "Maximum number of times you will be scheduled in a given week."]]
+     [:input {:type "number"
+              :value @(subscribe [:user-profile-value :user/max-pair-per-week])
+              :min 1
+              :max (* 24 7)
+              :on-change (fn [e]
                            (dispatch [:set-user-value!
                                       :user/max-pair-per-week
-                                      (js/parseInt (.. e -target -value) 10)]))}]]])
+                                      (js/parseInt (.. e -target -value) 10)]))}]]]])
 
 (defn next-day-of-week
   "Calculates next date with day of week as given"
@@ -62,8 +75,9 @@
            date))
 
 (defn topics-view []
-  [:div.topics-view
-   [:h1 "Topics"]
+  [:section.field.topics
+   [:h1 "Topics to Pair On"
+    [popover-view "Topics you'd like to pair on. You will be matched so that you have at least one topic in common. The number beside each topic indicates how many other people have that topic selected."]]
    (let [user-topic-ids @(subscribe [:user-profile-value :user/topic-ids])]
     [:<>
      (when (and (empty? user-topic-ids)
@@ -92,26 +106,33 @@
                         (dispatch [:new-topic! (string/trim value)]))))}
        "+ Add Topic"]]])])
 
+
 (defn role-view []
   (let [role @(subscribe [:user-profile-value :user/role])]
-    [:section.role
-     [:h1 "Role"]
-     [:p.info "Students are scheduled with other students and mentors. Mentors are only scheduled with students."]
-     (for [[value label] [[:role/student "Student"]
-                          [:role/mentor "Mentor"]]]
-       ^{:key value}
-       [:label
-        [:input {:type "radio"
-                 :checked (= role value)
-                 :on-change (fn [_]
-                              (dispatch [:set-user-value! :user/role value]))}]
-        label])]))
+    [:section.field.role
+     [:h1 "Role"
+      [popover-view
+       [:<>
+        [:div "Students are scheduled with other students and mentors."]
+        [:div "Mentors are only scheduled with students."]]]]
+     [:div.choices
+      (for [[value label] [[:role/student "Student"]
+                           [:role/mentor "Mentor"]]]
+        ^{:key value}
+        [:label
+         [:input {:type "radio"
+                  :checked (= role value)
+                  :on-change (fn [_]
+                               (dispatch [:set-user-value! :user/role value]))}]
+         [:span.label label]])]]))
 
 (defn availability-view []
-  [:section.availability
-   [:h1 "Availability"]
-   [:p "Click below to indicate your availability."]
-   [:p "A = available, P = preferred"]
+  [:section.field.availability
+   [:h1 "Availability"
+    [popover-view
+     [:<>
+      [:div "Click in the calendar grid below to indicate your time availability."]
+      [:div "A = available, P = preferred"]]]]
 
    (when-let [availability @(subscribe [:user-profile-value :user/availability])]
      [:table
@@ -156,35 +177,43 @@
                        nil "")]])]))]))]])])
 
 (defn opt-in-view []
-  (let [checked? @(subscribe [:user-profile-value :user/pair-next-week?])]
-   [:button.opt-in
-    {:class (when checked? "active")
-     :on-click (fn []
-                 (dispatch
-                  [:opt-in-for-pairing! (not checked?)]))}
-    (if checked?
-      [fa/fa-check-square-regular]
-      [fa/fa-square-regular])
-    "Pair next week?"]))
+  (let [opt-in? @(subscribe [:user-profile-value :user/pair-next-week?])]
+    [:section.field.opt-in
+     [:h1 "Opt-in for pairing next week?"]
+     [:div.choices
+      (for [[value label] [[true "Yes"]
+                           [false "No"]]]
+        ^{:key value}
+        [:label
+         [:input {:type "radio"
+                  :checked (= opt-in? value)
+                  :on-change (fn [_]
+                               (dispatch [:opt-in-for-pairing! value]))}]
+         [:span.label label]])]]))
 
 (defn name-view []
-  [:label.name "Name "
-   [:input {:type "text"
-            :value @(subscribe [:user-profile-value :user/name])
-            :on-change (fn [e]
+  [:section.field.name
+   [:label.name
+    [:h1 "Name"]
+    [:input {:type "text"
+             :value @(subscribe [:user-profile-value :user/name])
+             :on-change (fn [e]
                           (dispatch
-                            [:set-user-value! :user/name (.. e -target -value)]))}]])
+                            [:set-user-value! :user/name (.. e -target -value)]))}]]])
 
 (defn time-zone-view []
-  [:label.time-zone "Time Zone "
-   [:input {:type "text"
-            :disabled true
-            :value @(subscribe [:user-profile-value :user/time-zone])}]
-   [:button
-    {:on-click (fn []
+  [:section.field.time-zone
+   [:label
+    [:h1 "Time Zone"
+     [popover-view "Your time-zone. If the Auto-Detection is incorrect, email raf@clojure.camp"]]
+    [:input {:type "text"
+             :disabled true
+             :value @(subscribe [:user-profile-value :user/time-zone])}]
+    [:button
+     {:on-click (fn []
                   (dispatch
                     [:set-user-value! :user/time-zone (.. js/Intl DateTimeFormat resolvedOptions -timeZone)]))}
-    "Update"]])
+     "Re-Auto-Detect"]]])
 
 (defn ajax-status-view []
   [:div.ajax-status {:class (if (empty? @state/ajax-state) "normal" "loading")}
@@ -193,16 +222,20 @@
      [fa/fa-circle-notch-solid])])
 
 (defn subscription-toggle-view []
-  (if @(subscribe [:user-profile-value :user/subscribed?])
-    [:button.unsubscribe
-     {:on-click (fn []
-                  (when (js/window.confirm "Are you sure you want to unsubscribe?")
-                    (dispatch [:update-subscription! false])))}
-     "Unsubscribe"]
-    [:button.subscribe
-     {:on-click (fn []
-                  (dispatch [:update-subscription! true]))}
-     "Re-Subscribe"]))
+  (let [subscribed? @(subscribe [:user-profile-value :user/subscribed?])]
+    [:section.field.subscription
+     [:h1 "Subscribed?"
+      [popover-view "Set to No to stop receiving emails."]]
+     [:div.choices
+      (for [[value label] [[true "Yes"]
+                           [false "No"]]]
+        ^{:key value}
+        [:label
+         [:input {:type "radio"
+                  :checked (= subscribed? value)
+                  :on-change (fn [_]
+                               (dispatch [:update-subscription! value]))}]
+         [:span.label label]])]]))
 
 (defn format-date-2 [date]
   (.format (js/Intl.DateTimeFormat. "default" #js {:day "numeric"
@@ -280,8 +313,8 @@
     [name-view]
     [role-view]
     [topics-view]
-    [max-limit-preferences-view]
-    [time-zone-view]
     [availability-view]
+    [time-zone-view]
+    [max-limit-preferences-view]
     [events-view]
     [subscription-toggle-view]]])
