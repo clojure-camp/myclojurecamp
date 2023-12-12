@@ -98,6 +98,7 @@
               :user/pair-next-week? false
               :user/email (normalize-email email)
               :user/name (extract-name-from-email email)
+              :user/role :role/student
               :user/max-pair-per-day 1
               :user/max-pair-per-week 1
               :user/topic-ids #{}

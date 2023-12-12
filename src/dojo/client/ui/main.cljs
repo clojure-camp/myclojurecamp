@@ -92,6 +92,21 @@
                         (dispatch [:new-topic! (string/trim value)]))))}
        "+ Add Topic"]]])])
 
+(defn role-view []
+  (let [role @(subscribe [:user-profile-value :user/role])]
+    [:section.role
+     [:h1 "Role"]
+     [:p.info "Students are scheduled with other students and mentors. Mentors are only scheduled with students."]
+     (for [[value label] [[:role/student "Student"]
+                          [:role/mentor "Mentor"]]]
+       ^{:key value}
+       [:label
+        [:input {:type "radio"
+                 :checked (= role value)
+                 :on-change (fn [_]
+                              (dispatch [:set-user-value! :user/role value]))}]
+        label])]))
+
 (defn availability-view []
   [:section.availability
    [:h1 "Availability"]
@@ -263,6 +278,7 @@
    [:div.content
     [opt-in-view]
     [name-view]
+    [role-view]
     [topics-view]
     [max-limit-preferences-view]
     [time-zone-view]

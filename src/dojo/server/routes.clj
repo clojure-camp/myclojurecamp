@@ -103,13 +103,15 @@
                   (contains? #{:user/max-pair-per-day
                                :user/max-pair-per-week
                                :user/time-zone
-                               :user/name}
+                               :user/name
+                               :user/role}
                              k))
              :v any?}
     :conditions
     (fn [{:keys [user-id k v]}]
       [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]
        [#(case k
+           :user/role (#{:role/student :role/mentor} v)
            :user/max-pair-per-day (and (integer? v) (<= 1 v 24))
            :user/max-pair-per-week (and (integer? v) (<= 1 v (* 24 7)))
            :user/time-zone (and (string? v)
