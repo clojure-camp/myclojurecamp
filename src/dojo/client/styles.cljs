@@ -269,64 +269,72 @@
        [:>button
         (button)]]
 
-      [:>table.availability
-       {:border-spacing 0
-        :width "100%"}
+      [:section.availability
+       [:>h1
+        {:text-align "center"}]
 
-       [:th.day
+       [:>p
         {:font-weight "normal"
-         :padding-bottom "1rem"}
+         :text-align "center"}]
 
-        [:>.day-of-week]
+       [:>table
+        {:border-spacing 0
+         :width "100%"}
 
-        [:>.date
-         {:color "#aaa"}]]
+        [:th.day
+         {:font-weight "normal"
+          :padding-bottom "1rem"}
 
-       [:td.hour
-        {:text-align "right"
-         :padding-right "1rem"
-         :vertical-align "top"
-         :transform "translateY(-0.5rem)"}]
+         [:>.day-of-week]
 
-       [:td
-        {:padding 0}
+         [:>.date
+          {:color "#aaa"}]]
 
-        [:>button
-         {:width "100%"
-          :border "none"
-          :cursor "pointer"
-          :padding "1em"
-          :height "6em"
-          :display "flex"
-          :justify-content "center"
-          :align-items "center"}
+        [:td.hour
+         {:text-align "right"
+          :padding-right "1rem"
+          :vertical-align "top"
+          :transform "translateY(-0.5rem)"}]
 
-         [:&.empty
-          {:background "#fff"
-           :color "#aaa"}
+        [:td
+         {:padding 0}
 
-          [:>.wrapper
-           {:border "1px dashed #ccc"
-            :height "4em"
-            :width "100%"
-            :line-height "4em"}]
+         [:>button
+          {:width "100%"
+           :border "none"
+           :cursor "pointer"
+           :padding "1em"
+           :height "6em"
+           :display "flex"
+           :justify-content "center"
+           :align-items "center"}
 
-          [:&:hover
-           {:background (darken "#fff" 5)}]]
+          [:&.empty
+           {:background "#fff"
+            :color "#aaa"}
 
-         [:&.preferred
-          {:background accent-dark
-           :color "white"}
+           [:>.wrapper
+            {:border "1px dashed #ccc"
+             :height "4em"
+             :width "100%"
+             :line-height "4em"}]
 
-          [:&:hover
-           {:background (darken accent-dark 5)}]]
+           [:&:hover
+            {:background (darken "#fff" 5)}]]
 
-         [:&.available
-          {:background accent-light
-           :color "white"}
+          [:&.preferred
+           {:background accent-dark
+            :color "white"}
 
-          [:&:hover
-           {:background (darken accent-light 5)}]]]]]
+           [:&:hover
+            {:background (darken accent-dark 5)}]]
+
+          [:&.available
+           {:background accent-light
+            :color "white"}
+
+           [:&:hover
+            {:background (darken accent-light 5)}]]]]]]
 
       [:>.unsubscribe
        (button)]]]]])

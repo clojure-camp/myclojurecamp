@@ -93,47 +93,52 @@
        "+ Add Topic"]]])])
 
 (defn availability-view []
-  (when-let [availability @(subscribe [:user-profile-value :user/availability])]
-    [:table.availability
-     [:thead
-      [:tr
-       [:th]
-       (let [next-monday (next-day-of-week (js/Date.) :monday)]
-         (for [[i day] (map-indexed (fn [i d] [i d]) model/days)]
-          (let [[day-of-week date] (string/split (format-date (add-days next-monday i)) #",")]
-           ^{:key day}
-           [:th.day
-            [:div.day-of-week day-of-week]
-            [:div.date date]])))]]
-     [:tbody
-      (doall
-       (for [hour model/hours]
-         ^{:key hour}
-         [:tr
-          [:td.hour
-           hour]
-          (doall
-           (for [day model/days]
-             ^{:key day}
-             [:td
-              (let [value (availability [day hour])]
-                [:button
-                 {:class (case value
-                           :preferred "preferred"
-                           :available "available"
-                           nil "empty")
-                  :on-click (fn [_]
-                              (dispatch [:set-availability!
-                                         [day hour]
-                                         (case value
-                                           :preferred nil
-                                           :available :preferred
-                                           nil :available)]))}
-                 [:div.wrapper
-                  (case value
-                    :preferred "P"
-                    :available "A"
-                    nil "")]])]))]))]]))
+  [:section.availability
+   [:h1 "Availability"]
+   [:p "Click below to indicate your availability."]
+   [:p "A = available, P = preferred"]
+
+   (when-let [availability @(subscribe [:user-profile-value :user/availability])]
+     [:table
+      [:thead
+       [:tr
+        [:th]
+        (let [next-monday (next-day-of-week (js/Date.) :monday)]
+          (for [[i day] (map-indexed (fn [i d] [i d]) model/days)]
+            (let [[day-of-week date] (string/split (format-date (add-days next-monday i)) #",")]
+              ^{:key day}
+              [:th.day
+               [:div.day-of-week day-of-week]
+               [:div.date date]])))]]
+      [:tbody
+       (doall
+         (for [hour model/hours]
+           ^{:key hour}
+           [:tr
+            [:td.hour
+             hour]
+            (doall
+              (for [day model/days]
+                ^{:key day}
+                [:td
+                 (let [value (availability [day hour])]
+                   [:button
+                    {:class (case value
+                              :preferred "preferred"
+                              :available "available"
+                              nil "empty")
+                     :on-click (fn [_]
+                                 (dispatch [:set-availability!
+                                            [day hour]
+                                            (case value
+                                              :preferred nil
+                                              :available :preferred
+                                              nil :available)]))}
+                    [:div.wrapper
+                     (case value
+                       :preferred "P"
+                       :available "A"
+                       nil "")]])]))]))]])])
 
 (defn opt-in-view []
   (let [checked? @(subscribe [:user-profile-value :user/pair-next-week?])]
