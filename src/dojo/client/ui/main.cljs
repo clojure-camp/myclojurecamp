@@ -316,5 +316,5 @@
     [availability-view]
     [time-zone-view]
     [max-limit-preferences-view]
-    [events-view]
-    [subscription-toggle-view]]])
+    [subscription-toggle-view]
+    [events-view]]])
