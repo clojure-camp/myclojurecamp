@@ -62,6 +62,16 @@
    :max-events-per-week (mapify :user/id :user/max-pair-per-week users)
    :topics (mapify :user/id :user/topic-ids users)
    :timezones (mapify :user/id :user/time-zone users)
+   :roles (-> (mapify :user/id :user/role users)
+              (update-vals (fn [role]
+                             #{role})))
+   :roles-to-pair-with (-> (mapify :user/id :user/role users)
+                           (update-vals (fn [role]
+                                          (case role
+                                            :role/student
+                                            #{:role/student :role/mentor}
+                                            :role/mentor
+                                            #{:role/student}))))
    :availabilities (mapify :user/id
                            ;; stored as {[:monday 10] :available
                            ;;            [:tuesday 10] :preferred

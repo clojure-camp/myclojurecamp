@@ -1,4 +1,4 @@
-{:deps {org.clojure/clojure {:mvn/version "1.10.1"}
+{:deps {org.clojure/clojure {:mvn/version "1.11.1"}
         jarohen/chime {:mvn/version "0.3.2"}
         com.draines/postal {:mvn/version "2.0.5"}
         io.bloomventures/omni {:mvn/version "0.32.2"}
@@ -11,4 +11,4 @@
         ;org.clojure/clojurescript {:mvn/version "1.10.764"}
         ;hiccup/hiccup {:mvn/version "1.0.5"}
         pairing-scheduler/pairing-scheduler {:git/url "https://github.com/clojodojo/pairing-scheduler"
-                                             :sha "d89da6d4ddf88c8a2266af63c33170d5bea5605c"}}}
+                                             :sha "0a3919b7894db6d4138a06d7d66a7bcdcd54dcf0"}}}
