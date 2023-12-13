@@ -472,4 +472,33 @@
                         :times-to-pair 1}
                        ps/schedule
                        :schedule
-                       set))))))))
+                       set)))))))
+
+  (testing "takes roles into consideration"
+    (is (= #{{:guest-ids #{"mentor-a" "student-a"}
+              :at #inst "2022-01-01T10:00:00.000-00:00"}
+             {:guest-ids #{"student-b" "student-a"}
+              :at #inst "2021-01-01T10:00:00.000-00:00"}}
+           (->> {:roles {"student-a" #{:student}
+                         "student-b" #{:student}
+                         "mentor-a" #{:mentor}
+                         "mentor-b" #{:mentor}}
+                 :roles-to-pair-with {"student-a" #{:student :mentor}
+                                      "student-b" #{:student :mentor}
+                                      "mentor-a" #{:student}
+                                      "mentor-b" #{:student}}
+                 ;; student-a - student-b  2021
+                 ;; mentor-a  -  student-a  2022
+                 ;; mentor-a  x  mentor-b  2023
+                 :availabilities {"student-a" #{[#inst "2021-01-01T10" :available]
+                                                [#inst "2022-01-01T10" :available]}
+                                  "student-b" #{[#inst "2021-01-01T10" :available]}
+                                  "mentor-a" #{[#inst "2022-01-01T10" :available]
+                                               [#inst "2023-01-01T10" :available]}
+                                  "mentor-b" #{[#inst "2023-01-01T10" :available]}}
+                 :times-to-pair 1}
+                ps/schedule
+                :schedule
+                set)))))
+
+#_(clojure.test/run-tests)

@@ -75,7 +75,7 @@
 
 
 (defn individual-score-meta
-  [guest-id {:keys [schedule availabilities timezones max-events-per-day max-events-per-week topics] :as context}]
+  [guest-id {:keys [schedule availabilities timezones max-events-per-day max-events-per-week topics roles roles-to-pair-with] :as context}]
   (let [guest-events (->> schedule
                           (filter (fn [event]
                                     (contains? (event :guest-ids) guest-id))))
@@ -129,6 +129,18 @@
                            empty?))
                     {:factor/id :factor.id/without-matching-topics
                      :factor/score 99}
+                    ;; matched with wrong role
+                    (and
+                      roles
+                      roles-to-pair-with
+                      (let [my-role-prefs (roles-to-pair-with guest-id)
+                            others-roles (-> (event :guest-ids)
+                                             (disj  guest-id)
+                                             first
+                                             roles)]
+                        (empty? (set/intersection my-role-prefs others-roles))))
+                    {:factor/id :factor.id/without-matching-role
+                     :factor/score 95}
                     ;; at preferred time
                     (and
                       availabilities
