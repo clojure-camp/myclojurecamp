@@ -74,26 +74,32 @@
                                       :guest-ids #{"alice" "bob"}}]})
 
 
-(defn individual-score
+(defn individual-score-meta
   [guest-id {:keys [schedule availabilities timezones max-events-per-day max-events-per-week topics] :as context}]
   (let [guest-events (->> schedule
                           (filter (fn [event]
                                     (contains? (event :guest-ids) guest-id))))
-        guest-open-times  (->> (availabilities guest-id)
-                               (map first)
-                               set)
-        guest-event-times (->> guest-events
-                               (map :at))]
-    (+ ;; above max for day
-      (* 50 (days-over-max guest-id context))
+        guest-open-times  (and availabilities
+                            (->> (availabilities guest-id)
+                                 (map first)
+                                 set))]
+    (concat
+      ;; above max for day
+      (let [day-count (days-over-max guest-id context)]
+        (when (< 0 day-count)
+          [{:factor/id :factor.id/over-max-per-day
+            :factor/score (* 50 day-count)
+            :factor/meta {:days-over-max day-count}}]))
 
       ;; above max for week
-      (if (and max-events-per-week
-               (max-events-per-week guest-id)
-               (< (max-events-per-week guest-id)
-                  (count guest-events)))
-       100
-       0)
+      (when (and max-events-per-week
+              (max-events-per-week guest-id)
+              (< (max-events-per-week guest-id)
+                 (count guest-events)))
+        [{:factor/id :factor.id/over-max-per-week
+          :factor/score 100
+          :factor/meta {:max (max-events-per-week guest-id)
+                        :count (count guest-events)}}])
 
       ;; per event
       (->> guest-events
@@ -102,27 +108,45 @@
                   ;; b/c otherwise, an empty schedule would always be a perfect schedule
                   (cond
                     ;; double-scheduled
-                    (< 1 (->> guest-event-times
+                    (< 1 (->> guest-events
+                              (map :at)
                               (filter (partial = (event :at)))
                               count))
-                    200
+                    {:factor/id :factor.id/double-scheduled
+                     :factor/score 200}
                     ;; outside of any available times
-                    (not (contains? guest-open-times (event :at)))
-                    100
+                    (and
+                      availabilities
+                      (not (contains? guest-open-times (event :at))))
+                    {:factor/id :factor.id/outside-of-available-times
+                     :factor/score 100}
                     ;; if it's not with someone with matching topics
-                    (and topics ;; ignore this criterion ifno topics passed in
-                         (->> (event :guest-ids)
-                              (map topics)
-                              (apply set/intersection)
-                              empty?))
-                    99
+                    (and
+                      topics ;; ignore this criterion if no topics passed in
+                      (->> (event :guest-ids)
+                           (map topics)
+                           (apply set/intersection)
+                           empty?))
+                    {:factor/id :factor.id/without-matching-topics
+                     :factor/score 99}
                     ;; at preferred time
-                    (contains? (availabilities guest-id) [(event :at) :preferred])
-                    -5
+                    (and
+                      availabilities
+                      (contains? (availabilities guest-id) [(event :at) :preferred]))
+                    {:factor/id :factor.id/at-preferred-time
+                     :factor/score -5}
                     ;; at available time
-                    (contains? (availabilities guest-id) [(event :at) :available])
-                    -1)))
-           (reduce +)))))
+                    (and
+                      availabilities
+                      (contains? (availabilities guest-id) [(event :at) :available]))
+                    {:factor/id :factor.id/at-available-time
+                     :factor/score -1})))))))
+
+(defn individual-score
+  [guest-id context]
+  (->> (individual-score-meta guest-id context)
+       (map :factor/score)
+       (reduce +)))
 
 (defn schedule-score
   [{:keys [schedule availabilities] :as context}]

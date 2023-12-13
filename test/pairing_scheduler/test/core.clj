@@ -15,22 +15,43 @@
  "DH" #{}}
 
 
-(deftest individual-score
-  (testing "double-scheduling"
-    (is (= 400
-           (ps/individual-score
+(defn has-factor?
+  [factor-id results]
+  (->> results
+       (filter (fn [r]
+                 (= factor-id (r :factor/id))))
+       seq
+       boolean))
+
+(deftest individual-score-meta
+  (testing "respect roles"
+    (is (has-factor?
+          :factor.id/without-matching-role
+          (ps/individual-score-meta
             "raf"
             {:schedule
              [{:guest-ids #{"raf" "dh"}
-               :at #inst "2021-01-01T09"}
-              {:guest-ids #{"raf" "berk"}
                :at #inst "2021-01-01T09"}]
-             :availabilities
-             {"raf" #{[#inst "2021-01-01T09" :preferred]}}}))))
+             :roles {"raf" #{:mentor}
+                     "dh" #{:mentor}}
+             :roles-to-pair-with {"raf" #{:student}
+                                  "dh" #{:student}}}))))
+
+  (testing "double-scheduling"
+    (is (has-factor?
+         :factor.id/double-scheduled
+         (ps/individual-score-meta
+           "raf"
+           {:schedule
+            [{:guest-ids #{"raf" "dh"}
+              :at #inst "2021-01-01T09"}
+             {:guest-ids #{"raf" "berk"}
+              :at #inst "2021-01-01T09"}]}))))
 
   (testing "not within available times"
-    (is (= 100
-           (ps/individual-score
+    (is (has-factor?
+          :factor.id/outside-of-available-times
+          (ps/individual-score-meta
             "raf"
             {:schedule
              [{:guest-ids #{"raf" "dh"}
@@ -39,8 +60,9 @@
              {"raf" #{}}}))))
 
   (testing "above max-events-per-day"
-    (is (= 47
-           (ps/individual-score
+    (is (has-factor?
+          :factor.id/over-max-per-day
+          (ps/individual-score-meta
             "raf"
             {:schedule
              [{:guest-ids #{"raf" "dh"}
@@ -64,30 +86,32 @@
                      [#inst "2021-01-01T11" :available]}}}))))
 
   (testing "above max-events-per-week"
-    (is (= 97
-           (ps/individual-score
-            "raf"
-            {:schedule
-             [{:guest-ids #{"raf" "dh"}
-               :at #inst "2021-01-01T09"}
-              {:guest-ids #{"raf" "dh"}
-               :at #inst "2021-01-01T10"}
-              {:guest-ids #{"raf" "dh"}
-               :at #inst "2021-01-01T11"}]
-             :max-events-per-week
-             {"raf" 2
-              "dh" 2}
-             :availabilities
-             {"raf" #{[#inst "2021-01-01T09" :available]
-                      [#inst "2021-01-01T10" :available]
-                      [#inst "2021-01-01T11" :available]}
-              "dh" #{[#inst "2021-01-01T09" :available]
+    (is (has-factor?
+         :factor.id/over-max-per-week
+         (ps/individual-score-meta
+           "raf"
+           {:schedule
+            [{:guest-ids #{"raf" "dh"}
+              :at #inst "2021-01-01T09"}
+             {:guest-ids #{"raf" "dh"}
+              :at #inst "2021-01-01T10"}
+             {:guest-ids #{"raf" "dh"}
+              :at #inst "2021-01-01T11"}]
+            :max-events-per-week
+            {"raf" 2
+             "dh" 2}
+            :availabilities
+            {"raf" #{[#inst "2021-01-01T09" :available]
                      [#inst "2021-01-01T10" :available]
-                     [#inst "2021-01-01T11" :available]}}}))))
+                     [#inst "2021-01-01T11" :available]}
+             "dh" #{[#inst "2021-01-01T09" :available]
+                    [#inst "2021-01-01T10" :available]
+                    [#inst "2021-01-01T11" :available]}}}))))
 
   (testing "within available times"
-    (is (= -1
-           (ps/individual-score
+    (is (has-factor?
+          :factor.id/at-available-time
+          (ps/individual-score-meta
             "raf"
             {:schedule
              [{:guest-ids #{"raf" "dh"}
@@ -97,8 +121,9 @@
               "dh" #{[#inst "2021-01-01T09" :available]}}}))))
 
   (testing "within preferred times"
-    (is (= -5
-           (ps/individual-score
+    (is (has-factor?
+          :factor.id/at-preferred-time
+          (ps/individual-score-meta
             "raf"
             {:schedule
              [{:guest-ids #{"raf" "dh"}
@@ -389,6 +414,7 @@
 
   (testing "handles timezones"
     ;; timezones are only relevant for figuring out max-events-per-day
+    ;; because event times are and availabilities are insts
     (is (= 1
            (->> {:max-events-per-day {"alice" 1
                                       "bob" 1}
@@ -418,16 +444,17 @@
                 count))))
 
   (testing "takes topics into consideration"
-    (is (= 99
-           (ps/individual-score
-              "raf"
-              {:schedule
-               [{:guest-ids #{"raf" "dh"}
-                 :at #inst "2021-01-03T15"}]
-               :topics {"raf" #{3}
-                        "dh" #{1 2}}
-               :availabilities
-               {"raf" #{[#inst "2021-01-03T15" :preferred]}}})))
+    (is (has-factor?
+         :factor.id/without-matching-topics
+         (ps/individual-score-meta
+           "raf"
+           {:schedule
+            [{:guest-ids #{"raf" "dh"}
+              :at #inst "2021-01-03T15"}]
+            :topics {"raf" #{3}
+                     "dh" #{1 2}}
+            :availabilities
+            {"raf" #{[#inst "2021-01-03T15" :preferred]}}})))
     (is (= #{#{{:guest-ids #{"alice" "bob"}
                 :at #inst "2021-01-01T10"}
                {:guest-ids #{"cathy" "donald"}
