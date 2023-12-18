@@ -4,7 +4,6 @@
     [bloom.omni.core :as omni]
     [dojo.jobs.opt-in-email :as jobs.opt-in-email]
     [dojo.jobs.match-email :as jobs.match-email]
-    [dojo.config :as config]
     [dojo.omni-config :refer [omni-config]]
     [dojo.seed :as seed]))
 
