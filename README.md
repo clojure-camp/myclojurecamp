@@ -1,6 +1,6 @@
-# Dojo
+# My Clojure Camp
 
-App for managing the Dojo.
+App for managing pairing scheduler and other services of clojure camp.
 
 ## Developing
 
@@ -12,6 +12,4 @@ App for managing the Dojo.
 
 connect to the repl from your text editor
 
-in `dojo.core`, run `(config/generate!)` to generate a starter config
-
-then, in `dojo.core`, run `(start!)` and `(seed/seed!)`
+in `dojo.core`, run `(start!)` and `(seed/seed!)`

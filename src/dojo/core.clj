@@ -27,6 +27,5 @@
 (defn -main []
   (start!))
 
-#_(config/generate!)
 #_(start!)
 #_(seed/seed!)
