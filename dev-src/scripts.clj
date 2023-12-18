@@ -1,8 +1,8 @@
 (ns scripts)
 
 ;; add :role/student to all users
-#_(->> (dojo.db/get-users)
+#_(->> (mycc.db/get-users)
        (map (fn [u]
               (assoc u :user/role :role/student)))
-       (map dojo.db/save-user!)
+       (map mycc.db/save-user!)
        doall)

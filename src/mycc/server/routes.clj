@@ -1,12 +1,12 @@
-(ns dojo.server.routes
+(ns mycc.server.routes
   (:require
     [clojure.string :as string]
     [tada.events.core :as tada]
     [tada.events.ring]
-    [dojo.db :as db]
-    [dojo.email :as email]
-    [dojo.emails.login-link :as emails.login-link]
-    [dojo.model :as model]))
+    [mycc.db :as db]
+    [mycc.email :as email]
+    [mycc.emails.login-link :as emails.login-link]
+    [mycc.model :as model]))
 
 (def commands
   [{:id :request-login-link-email!

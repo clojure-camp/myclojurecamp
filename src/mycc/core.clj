@@ -1,11 +1,11 @@
-(ns dojo.core
+(ns mycc.core
   (:gen-class)
   (:require
     [bloom.omni.core :as omni]
-    [dojo.jobs.opt-in-email :as jobs.opt-in-email]
-    [dojo.jobs.match-email :as jobs.match-email]
-    [dojo.omni-config :refer [omni-config]]
-    [dojo.seed :as seed]))
+    [mycc.jobs.opt-in-email :as jobs.opt-in-email]
+    [mycc.jobs.match-email :as jobs.match-email]
+    [mycc.omni-config :refer [omni-config]]
+    [mycc.seed :as seed]))
 
 (defn set-default-exception-handler
   []

@@ -12,4 +12,4 @@ App for managing pairing scheduler and other services of clojure camp.
 
 connect to the repl from your text editor
 
-in `dojo.core`, run `(start!)` and `(seed/seed!)`
+in `mycc.core`, run `(start!)` and `(seed/seed!)`

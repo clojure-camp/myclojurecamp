@@ -1,9 +1,9 @@
 (ns ^:figwheel-hooks
-  dojo.client.core
+  mycc.client.core
   (:require
    [re-frame.core :refer [dispatch]]
    [reagent.dom :as rdom]
-   [dojo.client.ui.app :as app]))
+   [mycc.client.ui.app :as app]))
 
 (defn render []
   (rdom/render

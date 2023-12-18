@@ -1,7 +1,7 @@
-(ns dojo.emails.login-link
+(ns mycc.emails.login-link
   (:require
     [bloom.omni.auth.token :as token]
-    [dojo.config :refer [config]]))
+    [mycc.config :refer [config]]))
 
 (defn login-email-template [user]
   {:to (:user/email user)

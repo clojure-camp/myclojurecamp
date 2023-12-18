@@ -1,10 +1,10 @@
-(ns dojo.jobs.opt-in-email
+(ns mycc.jobs.opt-in-email
   (:require
     [bloom.omni.auth.token :as token]
     [chime.core :as chime]
-    [dojo.config :refer [config]]
-    [dojo.email :as email]
-    [dojo.db :as db])
+    [mycc.config :refer [config]]
+    [mycc.email :as email]
+    [mycc.db :as db])
   (:import
     (java.time Period DayOfWeek ZonedDateTime ZoneId LocalTime)
     (java.time.format DateTimeFormatter)

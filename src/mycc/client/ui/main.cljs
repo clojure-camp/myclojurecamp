@@ -1,11 +1,11 @@
-(ns dojo.client.ui.main
+(ns mycc.client.ui.main
   (:require
     [clojure.string :as string]
     [re-frame.core :refer [dispatch subscribe]]
     [bloom.commons.fontawesome :as fa]
-    [dojo.client.ui.debug :as debug]
-    [dojo.client.state :as state]
-    [dojo.model :as model]))
+    [mycc.client.ui.debug :as debug]
+    [mycc.client.state :as state]
+    [mycc.model :as model]))
 
 (defn popover-view
   [content]

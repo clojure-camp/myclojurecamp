@@ -1,11 +1,11 @@
-(ns dojo.db
+(ns mycc.db
   (:require
     [clojure.edn :as edn]
     [clojure.java.io :as java.io]
     [clojure.string :as string]
     [bloom.commons.uuid :as uuid]
     [bloom.commons.thread-safe-io :as io]
-    [dojo.config :refer [config]]))
+    [mycc.config :refer [config]]))
 
 ;; three main types of entities:
 ;;    user, topic, event

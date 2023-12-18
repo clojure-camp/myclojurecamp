@@ -1,4 +1,4 @@
-(ns dojo.client.styles
+(ns mycc.client.styles
   (:require
     [garden.stylesheet :refer [at-import at-keyframes]]
     [garden.color :refer [darken]]))

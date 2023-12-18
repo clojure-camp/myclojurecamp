@@ -1,12 +1,12 @@
-(ns dojo.jobs.match-email
+(ns mycc.jobs.match-email
   (:require
     [clojure.string :as string]
     [clojure.set :as set]
     [bloom.commons.uuid :as uuid]
     [chime.core :as chime]
     [pairing-scheduler.core :as ps]
-    [dojo.email :as email]
-    [dojo.db :as db])
+    [mycc.email :as email]
+    [mycc.db :as db])
   (:import
     (java.time Period DayOfWeek ZonedDateTime ZoneId LocalTime LocalDate)
     (java.time.format DateTimeFormatter)

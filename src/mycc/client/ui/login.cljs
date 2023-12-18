@@ -1,4 +1,4 @@
-(ns dojo.client.ui.login
+(ns mycc.client.ui.login
   (:require
     [clojure.string :as string]
     [reagent.core :as r]

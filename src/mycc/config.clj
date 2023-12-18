@@ -1,4 +1,4 @@
-(ns dojo.config
+(ns mycc.config
   (:require
     [clojure.java.io :as io]
     [bloom.commons.config :as config]))

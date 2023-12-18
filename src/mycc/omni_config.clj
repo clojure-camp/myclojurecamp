@@ -1,13 +1,13 @@
-(ns dojo.omni-config
+(ns mycc.omni-config
   (:require
-    [dojo.config :refer [config]]
-    [dojo.server.routes :as routes]))
+    [mycc.config :refer [config]]
+    [mycc.server.routes :as routes]))
 
 (defn omni-config []
   {:omni/http-port (@config :http-port)
    :omni/title "Clojure Camp"
    :omni/environment (@config :environment)
-   :omni/cljs {:main "dojo.client.core"}
+   :omni/cljs {:main "mycc.client.core"}
    :omni/auth (-> {:cookie {:name "clojurecamp"
                             :secret (@config :auth-cookie-secret)}
                    :token {:secret (@config :auth-token-secret)}})

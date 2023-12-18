@@ -1,10 +1,10 @@
-(ns dojo.client.ui.app
+(ns mycc.client.ui.app
   (:require
     [garden.core :as garden]
     [re-frame.core :refer [subscribe]]
-    [dojo.client.styles :refer [styles]]
-    [dojo.client.ui.main :refer [main-view]]
-    [dojo.client.ui.login :refer [login-view]]))
+    [mycc.client.styles :refer [styles]]
+    [mycc.client.ui.main :refer [main-view]]
+    [mycc.client.ui.login :refer [login-view]]))
 
 (defonce favicon
  (let [element (.createElement js/document "link")]

@@ -1,10 +1,10 @@
-(ns dojo.seed
+(ns mycc.seed
   (:require
    [clojure.java.io :as io]
    [bloom.commons.uuid :as uuid]
-   [dojo.config :refer [config]]
-   [dojo.model :as model]
-   [dojo.db :as db]))
+   [mycc.config :refer [config]]
+   [mycc.model :as model]
+   [mycc.db :as db]))
 
 (defn seed! []
   (let [topics (for [topic ["react" "clojure" "reagent" "re-frame" "javascript"]]

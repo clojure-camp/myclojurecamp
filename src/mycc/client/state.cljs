@@ -1,9 +1,9 @@
-(ns dojo.client.state
+(ns mycc.client.state
   (:require
     [bloom.commons.ajax :as ajax]
     [reagent.core :as r]
     [re-frame.core :refer [reg-event-fx reg-fx reg-sub dispatch]]
-    [dojo.model :as model]))
+    [mycc.model :as model]))
 
 (defn key-by [f coll]
   (zipmap (map f coll)

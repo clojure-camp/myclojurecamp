@@ -1,8 +1,8 @@
-(ns dojo.email
+(ns mycc.email
   (:require
     [postal.core :as postal]
     [hiccup.core :as hiccup]
-    [dojo.config :refer [config]]))
+    [mycc.config :refer [config]]))
 
 (defn strip-classes-and-ids [k]
   (keyword (first (clojure.string/split (name k) #"[.#]"))))

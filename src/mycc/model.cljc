@@ -1,4 +1,4 @@
-(ns dojo.model
+(ns mycc.model
   (:require
     [clojure.string :as string])
   #?(:clj (:import

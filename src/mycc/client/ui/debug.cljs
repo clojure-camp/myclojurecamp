@@ -1,4 +1,4 @@
-(ns dojo.client.ui.debug
+(ns mycc.client.ui.debug
   (:require
     [clojure.pprint :as pprint]
     [reagent.core :as r]
