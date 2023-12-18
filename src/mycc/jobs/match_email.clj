@@ -5,6 +5,7 @@
     [bloom.commons.uuid :as uuid]
     [chime.core :as chime]
     [pairing-scheduler.core :as ps]
+    [mycc.model :as model]
     [mycc.email :as email]
     [mycc.db :as db])
   (:import
@@ -121,14 +122,6 @@
                                     (ZoneId/of "UTC"))
            (DateTimeFormatter/ofPattern "yyyy-MM-dd")))
 
-(defn ->jitsi-url [event]
-  (str "https://meet.jit.si/" "clojodojo-" (->date-string (:event/at event)) "-" (:event/id event)))
-
-#_(->jitsi-url {:event/guest-ids #{(:user/id (first (db/get-users)))
-                                   (:user/id (last (db/get-users)))}
-                :event/at #inst "2021-11-08T14:00:00.000-00:00"
-                :event/id #uuid "22675d48-b361-4598-b447-4a23b492f4fc"})
-
 (defn ->topics [event]
   (->> (:event/guest-ids event)
        (map db/get-user)
@@ -173,7 +166,7 @@
          ["ATTENDEE" (str "mailto:" (:user/email (last guests)))]
          ["UID" id]
          ["DESCRIPTION" (str "Potential topics: " (->topics event))]
-         ["LOCATION" (->jitsi-url event)]
+         ["LOCATION" (model/->jitsi-url event)]
          ["DTSTART" (format start)]
          ["DTEND" (format end)]
          ["DTSTAMP" (format (.toInstant (java.util.Date.)))]
@@ -222,7 +215,7 @@
              (->topics event)
              [:br]
              ;; hashing the event to get a unique short-ish id
-             [:a {:href (->jitsi-url event)} "Meeting Link"]])
+             [:a {:href (model/->jitsi-url event)} "Meeting Link"]])
            [:p "If you can't make a session, be sure to let your partner know!"]
            [:p "- Clojure Camp Bot"]]}))
 
