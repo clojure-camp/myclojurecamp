@@ -96,38 +96,34 @@
               (assoc :user/pair-next-week? value)
               db/save-user!))}
 
-   {:id :set-profile-value!
-    :route [:put "/api/user/set-profile-value"]
-    :params {:user-id uuid?
-             :k (fn [k]
-                  (contains? #{:user/max-pair-per-day
-                               :user/max-pair-per-week
-                               :user/time-zone
-                               :user/name
-                               :user/role}
-                             k))
-             :v any?}
-    :conditions
-    (fn [{:keys [user-id k v]}]
-      [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]
-       [#(case k
-           :user/role (#{:role/student :role/mentor} v)
-           :user/max-pair-per-day (and (integer? v) (<= 1 v 24))
-           :user/max-pair-per-week (and (integer? v) (<= 1 v (* 24 7)))
-           :user/time-zone (and (string? v)
+   (let [validations
+         {:user/role #(#{:role/student :role/mentor} %)
+          :user/max-pair-per-day #(and (integer? %) (<= 1 % 24))
+          :user/max-pair-per-week #(and (integer? %) (<= 1 % (* 24 7)))
+          :user/time-zone #(and (string? %)
                                 (try
-                                  (java.time.ZoneId/of v)
+                                  (java.time.ZoneId/of %)
                                   (catch Exception _
                                     false)))
-           :user/name (and (string? v)
-                           (not (string/blank? v))))
-        :not-allowed
-        "Value is of wrong type."]])
-    :effect
-    (fn [{:keys [user-id k v]}]
-      (some-> (db/get-user user-id)
-              (assoc k v)
-              db/save-user!))}
+          :user/name #(and (string? %)
+                           (not (string/blank? %)))}]
+     {:id :set-profile-value!
+      :route [:put "/api/user/set-profile-value"]
+      :params {:user-id uuid?
+               :k (fn [k]
+                    (contains? validations k))
+               :v any?}
+      :conditions
+      (fn [{:keys [user-id k v]}]
+        [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]
+         [#((validations k) v)
+          :not-allowed
+          "Value is of wrong type."]])
+      :effect
+      (fn [{:keys [user-id k v]}]
+        (some-> (db/get-user user-id)
+                (assoc k v)
+                db/save-user!))})
 
    {:id :update-subscription!
     :route [:put "/api/user/subscription"]
