@@ -1,38 +1,34 @@
-(ns mycc.db
+(ns mycc.common.db
   (:require
     [clojure.edn :as edn]
     [clojure.java.io :as java.io]
     [clojure.string :as string]
     [bloom.commons.uuid :as uuid]
     [bloom.commons.thread-safe-io :as io]
-    [mycc.config :refer [config]]))
+    [mycc.api :as api]))
 
-;; three main types of entities:
-;;    user, topic, event
-;; which are maps
+;; entities, which are maps
 ;; stored as edn files in folder path defined in config.edn
-
-;; note: not thread-safe
 
 ;; generic
 
-(defn- parse-file
+(defn parse-file
   [f]
   (edn/read-string (io/slurp f)))
 
-(defn- ->path
+(defn ->path
   "File path for given entity-type and (optional) entity-id "
   ([entity-type]
-   (str (:data-path @config) "/" (name entity-type)))
+   (str (api/config :data-path) "/" (name entity-type)))
   ([entity-type entity-id]
-   (str (:data-path @config) "/" (name entity-type) "/" entity-id ".edn")))
+   (str (api/config :data-path) "/" (name entity-type) "/" entity-id ".edn")))
 
 (defn entity-file-exists?
   "Return if an entity file exists?"
   [type id]
   (.exists (java.io/file (->path type id))))
 
-(defn- get-entities
+(defn get-entities
   [entity-type]
   (->> (java.io/file (->path entity-type))
        file-seq
@@ -42,7 +38,7 @@
                  (string/ends-with? (.getName f) "edn")))
        (map parse-file)))
 
-(defn- save!
+(defn save!
   "Write content to file-path. (If parent directory doesn't exist, it will be created.)"
   [file-path content]
   (.mkdirs (.getParentFile (java.io/file file-path)))
@@ -107,77 +103,3 @@
               :user/subscribed? true}]
     (save-user! user)
     user))
-
-;; topic
-
-(defn get-topic
-  "Return topic matching topic-id (without :topic/user-count)"
-  [topic-id]
-  (when topic-id
-    (parse-file (->path :topic topic-id))))
-
-(defn- user-topic-frequencies
-  "Returns a map of topic-id->user-count"
-  []
-  (->> (get-users)
-       (mapcat :user/topic-ids)
-       frequencies))
-
-(defn- get-topics-raw
-  "Return topics (without :topic/user-count)"
-  []
-  (get-entities :topic))
-
-(defn get-topics
-  "Return topics, with :topic/user-count"
-  []
-  (let [topic-id->count (user-topic-frequencies)]
-    (->> (get-topics-raw)
-         (map (fn [topic]
-                (assoc topic :topic/user-count
-                  (or (topic-id->count (:topic/id topic))
-                      0)))))))
-
-(defn topic-name-exists?
-  "Returns true if any topic already has name"
-  [name]
-  (->> (get-topics)
-       (some (fn [topic]
-               (= (:topic/name topic) name)))))
-
-(defn save-topic!
-  [topic]
-  (save! (->path :topic (:topic/id topic)) topic))
-
-(defn create-topic!
-  "Given topic name, create and save map of topic details."
-  [name]
-  (let [topic {:topic/id (uuid/random)
-               :topic/name name
-               :topic/user-count 0}]
-    (save-topic! topic)
-    topic))
-
-(defn delete-topic!
-  [topic-id]
-  (java.io/delete-file (->path :topic topic-id)))
-
-;; event
-
-(defn get-event
-  "Return event for given event-id"
-  [event-id]
-  (when event-id
-    (parse-file (->path :event event-id))))
-
-(defn get-events-for-user
-  "Return events that include user with given `user-id`"
-  [user-id]
-  (->> (get-entities :event)
-       (filter (fn [event]
-                 (contains? (:event/guest-ids event) user-id)))))
-
-(defn save-event!
-  [event]
-  (save! (->path :event (:event/id event)) event))
-

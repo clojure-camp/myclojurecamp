@@ -1,13 +1,14 @@
-(ns mycc.jobs.match-email
+(ns mycc.p2p.match-email-job
   (:require
     [clojure.string :as string]
     [clojure.set :as set]
     [bloom.commons.uuid :as uuid]
     [chime.core :as chime]
     [pairing-scheduler.core :as ps]
-    [mycc.model :as model]
-    [mycc.email :as email]
-    [mycc.db :as db])
+    [mycc.p2p.util :as util]
+    [mycc.common.email :as email]
+    [mycc.common.db :as db]
+    [mycc.p2p.db :as p2p.db])
   (:import
     (java.time Period DayOfWeek ZonedDateTime ZoneId LocalTime LocalDate)
     (java.time.format DateTimeFormatter)
@@ -127,7 +128,7 @@
        (map db/get-user)
        (map :user/topic-ids)
        (apply set/intersection)
-       (map db/get-topic)
+       (map p2p.db/get-topic)
        (map :topic/name)
        (string/join ", ")))
 
@@ -166,7 +167,7 @@
          ["ATTENDEE" (str "mailto:" (:user/email (last guests)))]
          ["UID" id]
          ["DESCRIPTION" (str "Potential topics: " (->topics event))]
-         ["LOCATION" (model/->jitsi-url event)]
+         ["LOCATION" (util/->jitsi-url event)]
          ["DTSTART" (format start)]
          ["DTEND" (format end)]
          ["DTSTAMP" (format (.toInstant (java.util.Date.)))]
@@ -215,7 +216,7 @@
              (->topics event)
              [:br]
              ;; hashing the event to get a unique short-ish id
-             [:a {:href (model/->jitsi-url event)} "Meeting Link"]])
+             [:a {:href (util/->jitsi-url event)} "Meeting Link"]])
            [:p "If you can't make a session, be sure to let your partner know!"]
            [:p "- Clojure Camp Bot"]]}))
 
@@ -245,7 +246,7 @@
         unmatched-user-ids (set/difference opted-in-user-ids
                                            matched-user-ids)]
    (doseq [event events]
-     (db/save-event! event))
+     (p2p.db/save-event! event))
 
    (doseq [user-id unmatched-user-ids]
      (email/send! (unmatched-email-template user-id))

@@ -5,7 +5,7 @@
     [bloom.commons.fontawesome :as fa]
     [mycc.client.ui.debug :as debug]
     [mycc.client.state :as state]
-    [mycc.model :as model]))
+    [mycc.p2p.util :as util]))
 
 (defn popover-view
   [content]
@@ -140,7 +140,7 @@
        [:tr
         [:th]
         (let [next-monday (next-day-of-week (js/Date.) :monday)]
-          (for [[i day] (map-indexed (fn [i d] [i d]) model/days)]
+          (for [[i day] (map-indexed (fn [i d] [i d]) util/days)]
             (let [[day-of-week date] (string/split (format-date (add-days next-monday i)) #",")]
               ^{:key day}
               [:th.day
@@ -148,13 +148,13 @@
                [:div.date date]])))]]
       [:tbody
        (doall
-         (for [hour model/hours]
+         (for [hour util/hours]
            ^{:key hour}
            [:tr
             [:td.hour
              hour]
             (doall
-              (for [day model/days]
+              (for [day util/days]
                 ^{:key day}
                 [:td
                  (let [value (availability [day hour])]
@@ -260,7 +260,7 @@
      [:div.actions
       [:a.link {:href (str "mailto:" (:user/email (:event/other-guest event)))}
        [fa/fa-envelope-solid]]
-      [:a.link {:href (model/->jitsi-url event)}
+      [:a.link {:href (util/->jitsi-url event)}
        [fa/fa-video-solid]]
       [:button.flag
        {:class (when other-guest-flagged? "flagged")

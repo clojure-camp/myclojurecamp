@@ -1,4 +1,4 @@
-(ns mycc.model
+(ns mycc.p2p.util
   (:require
     [clojure.string :as string])
   #?(:clj (:import

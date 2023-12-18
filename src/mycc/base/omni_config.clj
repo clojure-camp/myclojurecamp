@@ -1,7 +1,7 @@
-(ns mycc.omni-config
+(ns mycc.base.omni-config
   (:require
-    [mycc.config :refer [config]]
-    [mycc.server.routes :as routes]))
+    [mycc.base.config :refer [config]]
+    [mycc.base.routes :as routes]))
 
 (defn omni-config []
   {:omni/http-port (@config :http-port)

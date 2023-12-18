@@ -3,7 +3,7 @@
     [bloom.commons.ajax :as ajax]
     [reagent.core :as r]
     [re-frame.core :refer [reg-event-fx reg-fx reg-sub dispatch]]
-    [mycc.model :as model]))
+    [mycc.p2p.util :as util]))
 
 (defn key-by [f coll]
   (zipmap (map f coll)
@@ -183,7 +183,7 @@
 (reg-event-fx
   :flag-event-guest!
   (fn [{db :db} [_ event-id value]]
-    {:db (update-in db [:db/events event-id] (partial model/flag-other-user value) (get-in db [:db/user :user/id]))
+    {:db (update-in db [:db/events event-id] (partial util/flag-other-user value) (get-in db [:db/user :user/id]))
      :ajax {:method :put
             :uri "/api/event/flag-guest"
             :params {:event-id event-id

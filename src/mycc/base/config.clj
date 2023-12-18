@@ -1,4 +1,4 @@
-(ns mycc.config
+(ns mycc.base.config
   (:require
     [clojure.java.io :as io]
     [bloom.commons.config :as config]))
@@ -44,4 +44,4 @@
       (generate!))
     (config/read "config.edn" schema)))
 
-
+#_(deref config)

@@ -1,8 +1,8 @@
-(ns mycc.email
+(ns mycc.common.email
   (:require
     [postal.core :as postal]
     [hiccup.core :as hiccup]
-    [mycc.config :refer [config]]))
+    [mycc.api :as api]))
 
 (defn strip-classes-and-ids [k]
   (keyword (first (clojure.string/split (name k) #"[.#]"))))
@@ -38,8 +38,8 @@
   (println (textify body))
   (try
     (postal/send-message
-      (:smtp-credentials @config)
-      {:from (:from (:smtp-credentials @config))
+      (api/config :smtp-credentials)
+      {:from (:from (api/config :smtp-credentials))
        :to to
        :subject subject
        :List-Unsubscribe "<mailto: unsubscribe@clojure.camp?subject=unsubscribe>"
