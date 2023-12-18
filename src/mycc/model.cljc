@@ -29,7 +29,7 @@
                    (DateTimeFormatter/ofPattern "yyyy-MM-dd"))))
 
 (defn ->jitsi-url [event]
-  (str "https://meet.jit.si/" "clojodojo-" (->date-string (:event/at event)) "-" (:event/id event)))
+  (str "https://meet.jit.si/" "clojure-camp-" (->date-string (:event/at event)) "-" (:event/id event)))
 
 #_(->jitsi-url {:event/guest-ids #{(:user/id (first (db/get-users)))
                                    (:user/id (last (db/get-users)))}

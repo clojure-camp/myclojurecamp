@@ -42,7 +42,7 @@
       {:from (:from (:smtp-credentials @config))
        :to to
        :subject subject
-       :List-Unsubscribe "<mailto: unsubscribe@clojodojo.com?subject=unsubscribe>"
+       :List-Unsubscribe "<mailto: unsubscribe@clojure.camp?subject=unsubscribe>"
        :body (concat [[:alternative
                        {:type "text/plain; charset=utf-8"
                         :content (textify body)}

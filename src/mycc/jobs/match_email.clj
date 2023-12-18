@@ -224,7 +224,7 @@
              ;; hashing the event to get a unique short-ish id
              [:a {:href (->jitsi-url event)} "Meeting Link"]])
            [:p "If you can't make a session, be sure to let your partner know!"]
-           [:p "- DojoBot"]]}))
+           [:p "- Clojure Camp Bot"]]}))
 
 #_(email/send! (matched-email-template
                  (:user/id (first (db/get-users)))
