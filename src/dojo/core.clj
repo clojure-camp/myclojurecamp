@@ -19,7 +19,9 @@
   (set-default-exception-handler)
   (omni/start! omni/system (omni-config))
   (jobs.opt-in-email/schedule-email-job!)
-  (jobs.match-email/schedule-email-job!))
+  (jobs.match-email/schedule-email-job!)
+  ;; return nil, b/c output for jobs stalls some REPLs
+  nil)
 
 (defn stop! []
   (omni/stop!))
