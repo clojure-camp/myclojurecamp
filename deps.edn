@@ -10,5 +10,5 @@
         ;reagent/reagent {:mvn/version "0.10.0"}
         ;org.clojure/clojurescript {:mvn/version "1.10.764"}
         ;hiccup/hiccup {:mvn/version "1.0.5"}
-        pairing-scheduler/pairing-scheduler {:git/url "https://github.com/clojure-camp/pairing-scheduler"
+        pairing-scheduler/pairing-scheduler {:git/url "https://github.com/clojodojo/pairing-scheduler"
                                              :sha "0a3919b7894db6d4138a06d7d66a7bcdcd54dcf0"}}}
