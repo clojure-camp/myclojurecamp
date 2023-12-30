@@ -1,4 +1,4 @@
-(ns mycc.client.ui.debug
+(ns mycc.base.client.ui.debug
   (:require
     [clojure.pprint :as pprint]
     [reagent.core :as r]

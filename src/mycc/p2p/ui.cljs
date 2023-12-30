@@ -1,11 +1,10 @@
-(ns mycc.client.ui.main
+(ns mycc.p2p.ui
   (:require
     [clojure.string :as string]
-    [re-frame.core :refer [dispatch subscribe]]
     [bloom.commons.fontawesome :as fa]
-    [mycc.client.ui.debug :as debug]
-    [mycc.client.state :as state]
-    [mycc.p2p.util :as util]))
+    [mycc.api :as api]
+    [mycc.p2p.util :as util]
+    [mycc.p2p.styles :as styles]))
 
 (defn popover-view
   [content]
@@ -22,26 +21,26 @@
       "Max pairings per day"
       [popover-view "Maximum number of times you will be scheduled in a given day."]]
      [:input {:type "number"
-              :value @(subscribe [:user-profile-value :user/max-pair-per-day])
+              :value @(api/subscribe [:user-profile-value :user/max-pair-per-day])
               :min 1
               :max 24
               :on-change (fn [e]
-                           (dispatch [:set-user-value!
-                                      :user/max-pair-per-day
-                                      (js/parseInt (.. e -target -value) 10)]))}]]]
+                           (api/dispatch [:set-user-value!
+                                          :user/max-pair-per-day
+                                          (js/parseInt (.. e -target -value) 10)]))}]]]
    [:section.field.max-pair-week
     [:label
      [:h1
      "Max pairings per week"
      [popover-view "Maximum number of times you will be scheduled in a given week."]]
      [:input {:type "number"
-              :value @(subscribe [:user-profile-value :user/max-pair-per-week])
+              :value @(api/subscribe [:user-profile-value :user/max-pair-per-week])
               :min 1
               :max (* 24 7)
               :on-change (fn [e]
-                           (dispatch [:set-user-value!
-                                      :user/max-pair-per-week
-                                      (js/parseInt (.. e -target -value) 10)]))}]]]])
+                           (api/dispatch [:set-user-value!
+                                          :user/max-pair-per-week
+                                          (js/parseInt (.. e -target -value) 10)]))}]]]])
 
 (defn next-day-of-week
   "Calculates next date with day of week as given"
@@ -78,15 +77,15 @@
   [:section.field.topics
    [:h1 "Topics to Pair On"
     [popover-view "Topics you'd like to pair on. You will be matched so that you have at least one topic in common. The number beside each topic indicates how many other people have that topic selected."]]
-   (let [user-topic-ids @(subscribe [:user-profile-value :user/topic-ids])]
+   (let [user-topic-ids @(api/subscribe [:user-profile-value :user/topic-ids])]
     [:<>
      (when (and (empty? user-topic-ids)
-                @(subscribe [:user-profile-value :user/pair-next-week?]))
+                @(api/subscribe [:user-profile-value :user/pair-next-week?]))
       [:p.warning
        [fa/fa-exclamation-triangle-solid]
        "You need to select at least one topic to be matched with someone."])
      [:div.topics
-      (for [topic (sort-by :topic/name @(subscribe [:topics]))
+      (for [topic (sort-by :topic/name @(api/subscribe [:topics]))
             :let [checked? (contains? user-topic-ids (:topic/id topic))]]
         ^{:key (:topic/id topic)}
         [:label.topic
@@ -95,20 +94,20 @@
                   :on-change
                   (fn []
                     (if checked?
-                      (dispatch [:remove-user-topic! (:topic/id topic)])
-                      (dispatch [:add-user-topic! (:topic/id topic)])))}]
+                      (api/dispatch [:remove-user-topic! (:topic/id topic)])
+                      (api/dispatch [:add-user-topic! (:topic/id topic)])))}]
          [:span.name (:topic/name topic)] " "
          [:span.count (:topic/user-count topic)]])
       [:button
        {:on-click (fn [_]
                     (let [value (js/prompt "Enter a new topic:")]
                       (when (not (string/blank? value))
-                        (dispatch [:new-topic! (string/trim value)]))))}
+                        (api/dispatch [:new-topic! (string/trim value)]))))}
        "+ Add Topic"]]])])
 
 
 (defn role-view []
-  (let [role @(subscribe [:user-profile-value :user/role])]
+  (let [role @(api/subscribe [:user-profile-value :user/role])]
     [:section.field.role
      [:h1 "Role"
       [popover-view
@@ -123,7 +122,7 @@
          [:input {:type "radio"
                   :checked (= role value)
                   :on-change (fn [_]
-                               (dispatch [:set-user-value! :user/role value]))}]
+                               (api/dispatch [:set-user-value! :user/role value]))}]
          [:span.label label]])]]))
 
 (defn availability-view []
@@ -134,7 +133,7 @@
       [:div "Click in the calendar grid below to indicate your time availability."]
       [:div "A = available, P = preferred"]]]]
 
-   (when-let [availability @(subscribe [:user-profile-value :user/availability])]
+   (when-let [availability @(api/subscribe [:user-profile-value :user/availability])]
      [:table
       [:thead
        [:tr
@@ -164,12 +163,12 @@
                               :available "available"
                               nil "empty")
                      :on-click (fn [_]
-                                 (dispatch [:set-availability!
-                                            [day hour]
-                                            (case value
-                                              :preferred nil
-                                              :available :preferred
-                                              nil :available)]))}
+                                 (api/dispatch [:set-availability!
+                                                [day hour]
+                                                (case value
+                                                  :preferred nil
+                                                  :available :preferred
+                                                  nil :available)]))}
                     [:div.wrapper
                      (case value
                        :preferred "P"
@@ -177,7 +176,7 @@
                        nil "")]])]))]))]])])
 
 (defn opt-in-view []
-  (let [opt-in? @(subscribe [:user-profile-value :user/pair-next-week?])]
+  (let [opt-in? @(api/subscribe [:user-profile-value :user/pair-next-week?])]
     [:section.field.opt-in
      [:h1 "Opt-in for pairing next week?"]
      [:div.choices
@@ -188,18 +187,8 @@
          [:input {:type "radio"
                   :checked (= opt-in? value)
                   :on-change (fn [_]
-                               (dispatch [:opt-in-for-pairing! value]))}]
+                               (api/dispatch [:opt-in-for-pairing! value]))}]
          [:span.label label]])]]))
-
-(defn name-view []
-  [:section.field.name
-   [:label.name
-    [:h1 "Name"]
-    [:input {:type "text"
-             :value @(subscribe [:user-profile-value :user/name])
-             :on-change (fn [e]
-                          (dispatch
-                            [:set-user-value! :user/name (.. e -target -value)]))}]]])
 
 (defn time-zone-view []
   [:section.field.time-zone
@@ -208,21 +197,15 @@
      [popover-view "Your time-zone. If the Auto-Detection is incorrect, email raf@clojure.camp"]]
     [:input {:type "text"
              :disabled true
-             :value @(subscribe [:user-profile-value :user/time-zone])}]
+             :value @(api/subscribe [:user-profile-value :user/time-zone])}]
     [:button
      {:on-click (fn []
-                  (dispatch
+                  (api/dispatch
                     [:set-user-value! :user/time-zone (.. js/Intl DateTimeFormat resolvedOptions -timeZone)]))}
      "Re-Auto-Detect"]]])
 
-(defn ajax-status-view []
-  [:div.ajax-status {:class (if (empty? @state/ajax-state) "normal" "loading")}
-   (if (empty? @state/ajax-state)
-     [fa/fa-check-circle-solid]
-     [fa/fa-circle-notch-solid])])
-
 (defn subscription-toggle-view []
-  (let [subscribed? @(subscribe [:user-profile-value :user/subscribed?])]
+  (let [subscribed? @(api/subscribe [:user-profile-value :user/subscribed?])]
     [:section.field.subscription
      [:h1 "Subscribed?"
       [popover-view "Set to No to stop receiving emails."]]
@@ -234,7 +217,7 @@
          [:input {:type "radio"
                   :checked (= subscribed? value)
                   :on-change (fn [_]
-                               (dispatch [:update-subscription! value]))}]
+                               (api/dispatch [:update-subscription! value]))}]
          [:span.label label]])]]))
 
 (defn format-date-2 [date]
@@ -266,13 +249,13 @@
        {:class (when other-guest-flagged? "flagged")
         :on-click (fn []
                     (if other-guest-flagged?
-                      (dispatch [:flag-event-guest! (:event/id event) false])
+                      (api/dispatch [:flag-event-guest! (:event/id event) false])
                       (when (js/confirm (str "Are you sure you want to report " guest-name " for not showing up?"))
-                       (dispatch [:flag-event-guest! (:event/id event) true]))))}
+                       (api/dispatch [:flag-event-guest! (:event/id event) true]))))}
        [fa/fa-flag-solid]]]]]))
 
 (defn events-view []
-  (let [events @(subscribe [:events])
+  (let [events @(api/subscribe [:events])
         [upcoming-events past-events] (->> events
                                            (sort-by :event/at)
                                            reverse
@@ -287,34 +270,23 @@
        ^{:key (:event/id event)}
        [event-view (when (= 0 index) "Past Sessions") event])]]))
 
-(defn header-view []
-  [:div.header
-   [:img.logomark
-    {:src "/logomark.svg"
-     :alt "Logo of Clojure Camp. A star constellation in the shape of alambda."}]
-   [:div.gap]
-   [:img.logotype
-    {:src "/logotype.svg"
-     :alt "Clojure Camp"}]
-   [:div.gap]
-   [:button.log-out
-    {:on-click (fn []
-                 (dispatch [:log-out!]))}
-    "Log Out"]])
+(defn p2p-page-view []
+  [:div.page.p2p
+   [opt-in-view]
+   [role-view]
+   [topics-view]
+   [availability-view]
+   [time-zone-view]
+   [max-limit-preferences-view]
+   [subscription-toggle-view]
+   [events-view]])
 
-(defn main-view []
-  [:div.main
-   [ajax-status-view]
-   [header-view]
-   (when debug/debug?
-     [debug/db-view])
-   [:div.content
-    [opt-in-view]
-    [name-view]
-    [role-view]
-    [topics-view]
-    [availability-view]
-    [time-zone-view]
-    [max-limit-preferences-view]
-    [subscription-toggle-view]
-    [events-view]]])
+(api/register-page!
+  {:page/id :page.id/p2p
+   :page/path "/p3p"
+   :page/nav-label "Pairing"
+   :page/view #'p2p-page-view
+   :page/styles styles/styles
+   :page/on-enter! (fn []
+                     (api/dispatch [:p2p/fetch-topics!])
+                     (api/dispatch [:p2p/fetch-events!]))})

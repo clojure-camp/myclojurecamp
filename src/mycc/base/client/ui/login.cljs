@@ -1,4 +1,4 @@
-(ns mycc.client.ui.login
+(ns mycc.base.client.ui.login
   (:require
     [clojure.string :as string]
     [reagent.core :as r]
