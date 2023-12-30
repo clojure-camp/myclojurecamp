@@ -260,7 +260,7 @@
      [:div.actions
       [:a.link {:href (str "mailto:" (:user/email (:event/other-guest event)))}
        [fa/fa-envelope-solid]]
-      [:a.link {:href (util/->jitsi-url event)}
+      [:a.link {:href (util/->event-url event)}
        [fa/fa-video-solid]]
       [:button.flag
        {:class (when other-guest-flagged? "flagged")

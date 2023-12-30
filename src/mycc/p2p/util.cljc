@@ -28,10 +28,11 @@
                                             (ZoneId/of "UTC"))
                    (DateTimeFormatter/ofPattern "yyyy-MM-dd"))))
 
-(defn ->jitsi-url [event]
-  (str "https://meet.jit.si/" "clojure-camp-" (->date-string (:event/at event)) "-" (:event/id event)))
+(defn ->event-url [event]
+  "Discord"
+  #_(str "https://meet.jit.si/" "clojure-camp-" (->date-string (:event/at event)) "-" (:event/id event)))
 
-#_(->jitsi-url {:event/guest-ids #{(:user/id (first (db/get-users)))
+#_(->event-url {:event/guest-ids #{(:user/id (first (db/get-users)))
                                    (:user/id (last (db/get-users)))}
                 :event/at #inst "2021-11-08T14:00:00.000-00:00"
                 :event/id #uuid "22675d48-b361-4598-b447-4a23b492f4fc"})

@@ -167,7 +167,7 @@
          ["ATTENDEE" (str "mailto:" (:user/email (last guests)))]
          ["UID" id]
          ["DESCRIPTION" (str "Potential topics: " (->topics event))]
-         ["LOCATION" (util/->jitsi-url event)]
+         ["LOCATION" (util/->event-url event)]
          ["DTSTART" (format start)]
          ["DTEND" (format end)]
          ["DTSTAMP" (format (.toInstant (java.util.Date.)))]
@@ -215,8 +215,7 @@
              "Topics: "
              (->topics event)
              [:br]
-             ;; hashing the event to get a unique short-ish id
-             [:a {:href (util/->jitsi-url event)} "Meeting Link"]])
+             [:a {:href (util/->event-url event)} "Meeting Link"]])
            [:p "If you can't make a session, be sure to let your partner know!"]
            [:p "- Clojure Camp Bot"]]}))
 
