@@ -17,5 +17,8 @@
 (defn current-page-view []
   (bloom.pages/current-page-view))
 
+(defn active? [& args]
+  (apply bloom.pages/active? args))
+
 (defn initialize! []
   (bloom.pages/initialize! []))

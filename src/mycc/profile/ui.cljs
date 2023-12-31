@@ -1,6 +1,7 @@
 (ns mycc.profile.ui
   (:require
     [re-frame.core :refer [dispatch subscribe]]
+    [mycc.common.mixins :as mixins]
     [mycc.api :as api]))
 
 (defn name-view []
@@ -22,5 +23,6 @@
    :page/path "/"
    :page/view #'profile-page-view
    :page/nav-label "Profile"
-   :page/on-enter! (fn []
-                     )})
+   :page/styles [:.page.profile
+                 (mixins/field)]
+   :page/on-enter! (fn [])})

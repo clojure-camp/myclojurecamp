@@ -6,46 +6,9 @@
 
 (def styles
   [:.page.p2p
+
    [:section.field
-    {:width "100%"
-     :padding "1rem 0"
-     :border-bottom [["1px" "solid" "#ccc"]]
-     :font-weight 300}
-
-    [:h1
-     {:font-size "1.1rem"
-      :font-weight 700
-      :margin [[0 0 "1rem" 0]]
-      :display "flex"
-      :align-items "center"
-      :gap "0.4em"}]
-
-    [:.info
-     {:position "relative"}
-
-     [:svg
-      {:width "0.85em"
-       :height "0.85em"
-       :color colors/light-text}]
-
-     [:.popover
-      {:display "none"
-       :border [["1px" "solid" "#ccc"]]
-       :position "absolute"
-       :background "white"
-       :padding "0.5em"
-       :width "100vw"
-       :left "1em"
-       :top 0
-       :max-width "30em"
-       :font-weight 300
-       :font-size "1rem"}]
-
-     [:&:hover
-      [:.popover
-       {:display "block"}]]]
-
-    ;; specific sections
+    (mixins/field)
 
     [:&.name
      :&.max-pair-day
@@ -53,34 +16,6 @@
      "" ;; ¯\_(ツ)_/¯
      [:input
       (mixins/text-input)]]
-
-    [:&.topics
-     [:>.warning
-      {:color "red"
-       :background "#ffe9e9"
-       :padding "0.25em"
-       :border-radius "0.25em"
-       :border "1px solid #ffc4c4"}
-
-      [:>svg
-       {:width "1em"
-        :margin-right "0.25em"}]]
-
-     [:>.topics
-      {:columns "3"}
-
-      [:>.topic
-       {:display "block"
-        :margin-bottom "0.5rem"
-        :cursor "pointer"
-        :vertical-align "center"
-        :white-space "nowrap"}
-
-       [:>.count
-        {:color "#ccc"}]]
-
-      [:>button
-       (mixins/button)]]]
 
     [:&.time-zone
      [:button
@@ -159,7 +94,35 @@
           :color "white"}
 
          [:&:hover
-          {:background (darken colors/accent-light 10)}]]]]]]]
+          {:background (darken colors/accent-light 10)}]]]]]]
+
+    [:&.topics
+     [:>.warning
+      {:color "red"
+       :background "#ffe9e9"
+       :padding "0.25em"
+       :border-radius "0.25em"
+       :border "1px solid #ffc4c4"}
+
+      [:>svg
+       {:width "1em"
+        :margin-right "0.25em"}]]
+
+     [:>.topics
+      {:columns "3"}
+
+      [:>.topic
+       {:display "block"
+        :margin-bottom "0.5rem"
+        :cursor "pointer"
+        :vertical-align "center"
+        :white-space "nowrap"}
+
+       [:>.count
+        {:color "#ccc"}]]
+
+      [:>button
+       (mixins/button)]]]]
 
    [:table.events
     [:>tbody

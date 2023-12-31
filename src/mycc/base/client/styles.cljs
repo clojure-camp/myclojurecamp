@@ -1,6 +1,7 @@
 (ns mycc.base.client.styles
   (:require
     [garden.stylesheet :refer [at-import at-keyframes]]
+    [garden.color :refer [lighten]]
     [mycc.common.colors :as colors]
     [mycc.common.mixins :as mixins]))
 
@@ -123,6 +124,29 @@
 
       [:>.log-out
        (mixins/button)]]
+
+     [:>.nav
+      {:background (lighten colors/clojure-camp-blue 20)}
+
+      [:>.items
+       {:max-width "40em"
+        :display "flex"
+        :justify-content "center"
+        :margin "0 auto"
+        :gap "1em"}
+
+       [:>a
+        {:padding "0.75em"
+         :text-transform "uppercase"
+         :letter-spacing "0.1em"
+         :color "white"
+         :text-decoration "none"}
+
+        {:opacity 0.5}
+
+        [:&.active
+         {:opacity 1
+          :border-bottom "2px solid white"}]]]]
 
      [:>.content
       {:padding "2em"

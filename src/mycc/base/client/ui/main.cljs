@@ -36,17 +36,22 @@
 
 (defn nav-view []
   [:div.nav
-   (for [page (vals @(pages/all))
-         :when (:page/nav-label page)]
-     ^{:key (:page/id page)}
-     [:a {:href (pages/path-for [(:page/id page)])}
-      (:page/nav-label page)])])
+   [:div.items
+    (doall
+      (for [page (vals @(pages/all))
+            :when (:page/nav-label page)]
+        ^{:key (:page/id page)}
+        [:a {:href (pages/path-for [(:page/id page)])
+             :class (when (pages/active? [(:page/id page)])
+                      "active")}
+         (:page/nav-label page)]))]])
 
 (defn main-view []
   [:div.main
    [ajax-status-view]
    [header-view]
    [nav-view]
-   [pages/current-page-view]
+   [:div.content
+    [pages/current-page-view]]
    (when debug/debug?
      [debug/db-view])])
