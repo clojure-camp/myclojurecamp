@@ -22,7 +22,7 @@
           [:p "Hey " (:user/name user) ","]
           [:p "If you want to pair next week, "
               [:a {:href (str (api/config :app-domain)
-                              "/?"
+                              "/p2p?"
                               (token/login-query-string (:user/id user) (api/config :auth-token-secret)))} "opt-in and update your availability schedule"] "."]
           [:p "The schedule will be sent Sunday night."]
           [:p "- Clojure Camp scheduler bot"]]})

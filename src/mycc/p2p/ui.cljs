@@ -283,7 +283,7 @@
 
 (api/register-page!
   {:page/id :page.id/p2p
-   :page/path "/p3p"
+   :page/path "/p2p"
    :page/nav-label "Pairing"
    :page/view #'p2p-page-view
    :page/styles styles/styles
