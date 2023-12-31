@@ -49,3 +49,5 @@
                    (= DayOfWeek/FRIDAY (.getDayOfWeek instant)))))
     (fn [_]
       (send-friday-emails!))))
+
+(api/register-job! ::job schedule-email-job!)

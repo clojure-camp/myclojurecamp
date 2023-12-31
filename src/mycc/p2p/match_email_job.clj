@@ -8,7 +8,8 @@
     [mycc.p2p.util :as util]
     [mycc.common.email :as email]
     [mycc.common.db :as db]
-    [mycc.p2p.db :as p2p.db])
+    [mycc.p2p.db :as p2p.db]
+    [mycc.api :as api])
   (:import
     (java.time Period DayOfWeek ZonedDateTime ZoneId LocalTime LocalDate)
     (java.time.format DateTimeFormatter)
@@ -267,3 +268,5 @@
                    (= DayOfWeek/SUNDAY (.getDayOfWeek instant)))))
     (fn [_]
      (send-sunday-emails!))))
+
+(api/register-job! ::job schedule-email-job!)

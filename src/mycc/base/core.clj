@@ -2,8 +2,7 @@
   (:require
     [bloom.omni.core :as omni]
     [mycc.base.cqrs] ;; for side-effects
-    [mycc.p2p.opt-in-email-job :as p2p.opt-in-email]
-    [mycc.p2p.match-email-job :as p2p.match-email]
+    [mycc.base.jobs :as jobs]
     [mycc.base.omni-config :refer [omni-config]]))
 
 (defn set-default-exception-handler
@@ -16,10 +15,7 @@
 (defn start! []
   (set-default-exception-handler)
   (omni/start! omni/system (omni-config))
-  (p2p.opt-in-email/schedule-email-job!)
-  (p2p.match-email/schedule-email-job!)
-  ;; return nil, b/c output for jobs stalls some REPLs
-  nil)
+  (jobs/initialize!))
 
 (defn stop! []
   (omni/stop!))
