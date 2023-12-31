@@ -1,7 +1,10 @@
 (ns mycc.base.core
   (:require
     [mycc.base.cqrs] ;; for side-effects
-    [modulo.api :as mod]))
+    [modulo.api :as mod]
+    ;; modules
+    [mycc.p2p.core]
+    [mycc.profile.core]))
 
 (def config-schema
   [:map

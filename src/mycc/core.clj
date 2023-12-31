@@ -1,10 +1,7 @@
 (ns mycc.core
   (:gen-class)
   (:require
-    [mycc.base.core :as base]
-    ;; modules
-    [mycc.p2p.core]
-    [mycc.profile.core]))
+    [mycc.base.core :as base]))
 
 (defn -main []
   (base/start!))
