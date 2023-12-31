@@ -4,7 +4,7 @@
     [bloom.commons.fontawesome :as fa]
     [mycc.base.client.ui.debug :as debug]
     [mycc.base.client.state :as state]
-    [mycc.base.client.pages :as pages]))
+    [modulo.api :as mod]))
 
 (defn popover-view
   [content]
@@ -38,11 +38,11 @@
   [:div.nav
    [:div.items
     (doall
-      (for [page (vals @(pages/all))
+      (for [page (vals @(mod/pages))
             :when (:page/nav-label page)]
         ^{:key (:page/id page)}
-        [:a {:href (pages/path-for [(:page/id page)])
-             :class (when (pages/active? [(:page/id page)])
+        [:a {:href (mod/path-for [(:page/id page)])
+             :class (when (mod/active? [(:page/id page)])
                       "active")}
          (:page/nav-label page)]))]])
 
@@ -52,6 +52,6 @@
    [header-view]
    [nav-view]
    [:div.content
-    [pages/current-page-view]]
+    [mod/current-page-view]]
    (when debug/debug?
      [debug/db-view])])

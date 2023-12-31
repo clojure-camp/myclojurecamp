@@ -2,8 +2,8 @@
   (:require
     [garden.core :as garden]
     [re-frame.core :refer [subscribe]]
+    [modulo.api :as mod]
     [mycc.base.client.styles :refer [styles]]
-    [mycc.base.client.pages :as pages]
     [mycc.base.client.ui.main :refer [main-view]]
     [mycc.base.client.ui.login :refer [login-view]]))
 
@@ -18,7 +18,7 @@
   [:<>
    [:style
     (garden/css (concat styles
-                        (->> @(pages/all)
+                        (->> @(mod/pages)
                              vals
                              (keep :page/styles))))]
 

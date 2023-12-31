@@ -1,9 +1,10 @@
-(ns mycc.base.routes
+(ns modulo.routes
   (:require
     [bloom.omni.impl.ring :as omni.ring]
     [tada.events.ring]
     [tada.events.core :as tada]
-    [mycc.base.cqrs-registry :as cqrs]
+    [modulo.cqrs-registry :as cqrs]
+    ;; TODO db should be under modulo, or passed in via opts to modulo.api/start!
     [mycc.common.db :as db]))
 
 (defonce dynamic-cqrs-handler

@@ -19,12 +19,15 @@ in `mycc.dev` (`dev-src/mycc/dev.clj`), run `(start!)` and `(seed/seed!)`
 
 ### Modules
 
+
 Project is organized into feature-based modules:
 
-- base - underlying "frameworky" glue code, shouldn't be called by any other modules
-- common - utility namespaces used by other modules
 - p2p - p2p scheduler
-- fotd - fotd
+- profile - basic profile stuff
+- fotd - function of the day
 
-Also of note are:
-- mycc.api, which exposes certain framework fns to enable feature-based modules
+And supporting parts:
+
+- modulo - our homebrew "frameworky" glue code, should only be accessed via `modulo.api`
+- base - set up of non-module stuff, like header, auth - shouldn't be called by any other modules
+- common - utility namespaces for use by modules

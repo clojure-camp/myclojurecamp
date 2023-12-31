@@ -2,7 +2,7 @@
   (:require
     [re-frame.core :refer [dispatch subscribe]]
     [mycc.common.mixins :as mixins]
-    [mycc.api :as api]))
+    [modulo.api :as mod]))
 
 (defn name-view []
   [:section.field.name
@@ -18,7 +18,7 @@
   [:div.page.profile
    [name-view]])
 
-(api/register-page!
+(mod/register-page!
   {:page/id :page.id/profile
    :page/path "/"
    :page/view #'profile-page-view

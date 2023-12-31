@@ -1,4 +1,4 @@
-(ns mycc.base.cqrs-registry)
+(ns modulo.cqrs-registry)
 
 (defonce cqrs-registry
   (atom {}))

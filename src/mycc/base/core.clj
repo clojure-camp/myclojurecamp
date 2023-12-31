@@ -1,21 +1,47 @@
 (ns mycc.base.core
   (:require
-    [bloom.omni.core :as omni]
     [mycc.base.cqrs] ;; for side-effects
-    [mycc.base.jobs :as jobs]
-    [mycc.base.omni-config :refer [omni-config]]))
+    [modulo.api :as mod]))
 
-(defn set-default-exception-handler
-  []
-  (Thread/setDefaultUncaughtExceptionHandler
-   (reify Thread$UncaughtExceptionHandler
-     (uncaughtException [_ thread ex]
-       (println ex "Uncaught exception " (.getName thread))))))
+(def config-schema
+  [:map
+   [:http-port integer?]
+   [:app-domain [:and
+                 string?
+                 #_[:re #"^https?://.*$"]]]
+   [:environment [:enum :dev :prod]]
+   [:auth-cookie-secret string?]
+   [:auth-token-secret string?]
+   [:data-path string?]
+   [:smtp-credentials
+    [:map
+     [:port integer?]
+     [:host string?]
+     [:tls boolean?]
+     [:from string?]
+     [:user string?]
+     [:pass string?]]]])
+
+(def config-default
+  {:app-domain "http://localhost:8025"
+   :auth-cookie-secret "1234567890123456"
+   :auth-token-secret "1234567890123456"
+   :data-path "external"
+   :environment :dev
+   :http-port 8025
+   :smtp-credentials {:from ""
+                      :host ""
+                      :pass ""
+                      :port 0
+                      :tls false
+                      :user ""}})
 
 (defn start! []
-  (set-default-exception-handler)
-  (omni/start! omni/system (omni-config))
-  (jobs/initialize!))
+  (mod/start!
+    {:config-schema config-schema
+     :config-default config-default
+     :page-title "Clojure Camp"
+     :cookie-name "clojurecamp"}))
 
 (defn stop! []
-  (omni/stop!))
+  (mod/stop!))

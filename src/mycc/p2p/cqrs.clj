@@ -4,7 +4,7 @@
     [mycc.common.db :as db]
     [mycc.p2p.db :as p2p.db]
     [mycc.p2p.util :as util]
-    [mycc.api :as api]))
+    [modulo.api :as mod]))
 
 (def commands
   [{:id :create-topic!
@@ -127,5 +127,5 @@
                        db/get-user
                        (select-keys [:user/id :user/name :user/email])))))))} ])
 
-(api/register-cqrs! :p2p/commands commands)
-(api/register-cqrs! :p2p/queries queries)
+(mod/register-cqrs! :p2p/commands commands)
+(mod/register-cqrs! :p2p/queries queries)

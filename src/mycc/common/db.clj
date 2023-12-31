@@ -5,7 +5,9 @@
     [clojure.string :as string]
     [bloom.commons.uuid :as uuid]
     [bloom.commons.thread-safe-io :as io]
-    [mycc.api :as api]))
+    ;; TODO using directly b/c of circular dependency
+    ;; parts of this namespace should be moved under modulo anyway
+    [modulo.config :as mod]))
 
 ;; entities, which are maps
 ;; stored as edn files in folder path defined in config.edn
@@ -19,9 +21,9 @@
 (defn ->path
   "File path for given entity-type and (optional) entity-id "
   ([entity-type]
-   (str (api/config :data-path) "/" (name entity-type)))
+   (str (mod/config :data-path) "/" (name entity-type)))
   ([entity-type entity-id]
-   (str (api/config :data-path) "/" (name entity-type) "/" entity-id ".edn")))
+   (str (mod/config :data-path) "/" (name entity-type) "/" entity-id ".edn")))
 
 (defn entity-file-exists?
   "Return if an entity file exists?"

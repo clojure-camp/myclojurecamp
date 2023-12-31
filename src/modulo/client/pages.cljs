@@ -1,4 +1,4 @@
-(ns mycc.base.client.pages
+(ns modulo.client.pages
   (:require
     [reagent.core :as r]
     [bloom.commons.pages :as bloom.pages]))

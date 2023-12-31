@@ -1,4 +1,4 @@
-(ns mycc.base.jobs)
+(ns modulo.jobs)
 
 (defonce jobs
   (atom {}))

@@ -9,7 +9,7 @@
     [mycc.common.email :as email]
     [mycc.common.db :as db]
     [mycc.p2p.db :as p2p.db]
-    [mycc.api :as api])
+    [modulo.api :as mod])
   (:import
     (java.time Period DayOfWeek ZonedDateTime ZoneId LocalTime LocalDate)
     (java.time.format DateTimeFormatter)
@@ -269,4 +269,4 @@
     (fn [_]
      (send-sunday-emails!))))
 
-(api/register-job! ::job schedule-email-job!)
+(mod/register-job! ::job schedule-email-job!)

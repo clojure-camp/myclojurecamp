@@ -4,7 +4,7 @@
     [mycc.common.db :as db]
     [mycc.common.email :as email]
     [mycc.base.login-link-email :as emails.login-link]
-    [mycc.api :as api]))
+    [modulo.api :as mod]))
 
 (def commands
   [{:id :request-login-link-email!
@@ -71,5 +71,5 @@
     (fn [{:keys [user-id]}]
       (db/get-user user-id))}])
 
-(api/register-cqrs! :base/commands commands)
-(api/register-cqrs! :base/queries queries)
+(mod/register-cqrs! :base/commands commands)
+(mod/register-cqrs! :base/queries queries)

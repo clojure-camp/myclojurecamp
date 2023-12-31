@@ -2,7 +2,7 @@
   (:require
     [bloom.omni.auth.token :as token]
     [chime.core :as chime]
-    [mycc.api :as api]
+    [modulo.api :as mod]
     [mycc.common.email :as email]
     [mycc.common.db :as db])
   (:import
@@ -21,9 +21,9 @@
    :body [:div
           [:p "Hey " (:user/name user) ","]
           [:p "If you want to pair next week, "
-              [:a {:href (str (api/config :app-domain)
+              [:a {:href (str (mod/config :app-domain)
                               "/p2p?"
-                              (token/login-query-string (:user/id user) (api/config :auth-token-secret)))} "opt-in and update your availability schedule"] "."]
+                              (token/login-query-string (:user/id user) (mod/config :auth-token-secret)))} "opt-in and update your availability schedule"] "."]
           [:p "The schedule will be sent Sunday night."]
           [:p "- Clojure Camp scheduler bot"]]})
 
@@ -50,4 +50,4 @@
     (fn [_]
       (send-friday-emails!))))
 
-(api/register-job! ::job schedule-email-job!)
+(mod/register-job! ::job schedule-email-job!)
