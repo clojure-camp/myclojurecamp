@@ -2,9 +2,8 @@
   (:require
     [mycc.base.cqrs] ;; for side-effects
     [modulo.api :as mod]
-    ;; modules
-    [mycc.p2p.core]
-    [mycc.profile.core]))
+    [mycc.modules] ;; to register modules
+    ))
 
 (def config-schema
   [:map
@@ -48,3 +47,6 @@
 
 (defn stop! []
   (mod/stop!))
+
+
+

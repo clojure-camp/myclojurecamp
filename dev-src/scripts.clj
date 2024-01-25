@@ -1,6 +1,4 @@
-(ns scripts
-  (:import
-    [java.nio.file Files FileSystems LinkOption]))
+(ns scripts)
 
 ;; add :role/student to all users
 #_(->> (mycc.common.db/get-users)
@@ -9,29 +7,20 @@
        (map mycc.common.db/save-user!)
        doall)
 
-(defn file-attribute
-  "Return the value of the specified `attribute` of the file at `file-path`
-  in the current default file system. The argument `attribute` may be passed
-  as a keyword or a string, but must be an attribute name understood be
-  `java.nio.file.Files`."
-  [file-path attribute]
-  (Files/getAttribute
-    (.getPath
-      (FileSystems/getDefault)
-      (str file-path)
-      (into-array java.lang.String []))
-    (name attribute)
-    (into-array LinkOption [])))
-
 ;; add :user/created-at to all users, based on system file creation time
 #_(->> (mycc.common.db/get-users)
        (remove :user/created-at)
        (map (fn [{:user/keys [id] :as u}]
               (assoc u :user/created-at
-                     (java.util.Date.
-                      (.toMillis (file-attribute
-                                  (db/->path :user id)
-                                  :creationTime))))))
+                (->> (mycc.common.db/->path :user id)
+                     ;; using ext4, have creation date
+                     ;; if this didn't work, could fall back to modified date (%Y)
+                     (clojure.java.shell/sh "stat" "-c" "%W" )
+                     :out
+                     clojure.string/trim
+                     (memfn Long.)
+                     (* 1000)
+                     (memfn java.util.Date.)))))
        (map mycc.common.db/save-user!)
        doall)
 
@@ -41,3 +30,16 @@
               (assoc u :user/max-pair-same-user 2)))
        (map mycc.common.db/save-user!)
        doall)
+
+;; add emtpy :user/pair-opt-in-history
+#_(->> (mycc.common.db/get-users)
+       (map (fn [u]
+              (assoc u :user/pair-opt-in-history #{})))
+       (map mycc.common.db/save-user!)
+       doall)
+
+;; validate users
+#_(->> (mycc.common.db/get-users)
+       (map (fn [u]
+              (malli.error/humanize (malli.core/explain mycc.base.schema/User u))))
+       first)

@@ -37,4 +37,5 @@ And supporting parts:
 - common - utility namespaces for use by modules
 
 Note:
- - new modules have to be required in `mycc.base.core` and `mycc.base.client.core`
+ - new modules have to be required in `mycc.modules`
+ - modules should have a `core.cljc` file
