@@ -131,7 +131,7 @@
      [:div.choices.long
       (for [[value label] [[:pair-with/only-mentors "Mentors Only"]
                            [:pair-with/prefer-mentors "Mentors Preferred"]
-                           [:pair-with/no-preference "No Preference"]
+                           [nil "No Preference"]
                            [:pair-with/prefer-students "Students Preferred"]
                            [:pair-with/only-students "Students Only"]]]
         ^{:key value}
