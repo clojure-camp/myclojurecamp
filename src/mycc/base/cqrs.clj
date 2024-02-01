@@ -22,7 +22,7 @@
          {:user/role #(#{:role/student :role/mentor} %)
           :user/pair-with #{:pair-with/only-mentors
                             :pair-with/prefer-mentors
-                            :pair-with/no-preference
+                            nil
                             :pair-with/prefer-students
                             :pair-with/only-students}
           :user/max-pair-per-day #(and (integer? %) (<= 1 % 24))
