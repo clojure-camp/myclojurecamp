@@ -129,18 +129,32 @@
                            empty?))
                     {:factor/id :factor.id/without-matching-topics
                      :factor/score 99}
-                    ;; matched with wrong role
+                    ;; matched with no acceptable role
                     (and
                       roles
                       roles-to-pair-with
-                      (let [my-role-prefs (roles-to-pair-with guest-id)
+                      (:acceptable (roles-to-pair-with guest-id))
+                      (let [my-role-prefs (:acceptable (roles-to-pair-with guest-id))
                             others-roles (-> (event :guest-ids)
-                                             (disj  guest-id)
+                                             (disj guest-id)
                                              first
                                              roles)]
                         (empty? (set/intersection my-role-prefs others-roles))))
-                    {:factor/id :factor.id/without-matching-role
+                    {:factor/id :factor.id/without-matching-acceptable-role
                      :factor/score 95}
+                    ;; matched with no preferred role
+                    (and
+                      roles
+                      roles-to-pair-with
+                      (:preferred (roles-to-pair-with guest-id))
+                      (let [my-role-prefs (:preferred (roles-to-pair-with guest-id))
+                            others-roles (-> (event :guest-ids)
+                                             (disj guest-id)
+                                             first
+                                             roles)]
+                        (empty? (set/intersection my-role-prefs others-roles))))
+                    {:factor/id :factor.id/without-matching-preferred-role
+                     :factor/score 5}
                     ;; at preferred time
                     (and
                       availabilities
@@ -152,7 +166,11 @@
                       availabilities
                       (contains? (availabilities guest-id) [(event :at) :available]))
                     {:factor/id :factor.id/at-available-time
-                     :factor/score -1})))))))
+                     :factor/score -1}
+                    :else
+                    {:factor/id :factor.id/default
+                     :factor/score 0})))))))
+
 
 (defn individual-score
   [guest-id context]

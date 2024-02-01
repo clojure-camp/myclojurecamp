@@ -26,7 +26,7 @@
 (deftest individual-score-meta
   (testing "respect roles"
     (is (has-factor?
-          :factor.id/without-matching-role
+          :factor.id/without-matching-acceptable-role
           (ps/individual-score-meta
             "raf"
             {:schedule
@@ -34,8 +34,36 @@
                :at #inst "2021-01-01T09"}]
              :roles {"raf" #{:mentor}
                      "dh" #{:mentor}}
-             :roles-to-pair-with {"raf" #{:student}
-                                  "dh" #{:student}}}))))
+             :roles-to-pair-with {"raf" {:acceptable #{:student}}
+                                  "dh" {:acceptable #{:student}}}})))
+
+    (is (has-factor?
+          :factor.id/without-matching-preferred-role
+          (ps/individual-score-meta
+            "raf"
+            {:schedule
+             [{:guest-ids #{"raf" "dh"}
+               :at #inst "2021-01-01T09"}]
+             :roles {"raf" #{:mentor}
+                     "dh" #{:mentor}}
+             :roles-to-pair-with {"raf" {:acceptable #{:student :mentor}
+                                         :preferred #{:student}}
+                                  "dh" {:acceptable #{:student :mentor}
+                                        :preferred #{:student}}}})))
+
+    (is (has-factor?
+          :factor.id/default
+          (ps/individual-score-meta
+            "raf"
+            {:schedule
+             [{:guest-ids #{"raf" "dh"}
+               :at #inst "2021-01-01T09"}]
+             :roles {"raf" #{:mentor}
+                     "dh" #{:mentor}}
+             :roles-to-pair-with {"raf" {:acceptable #{:student :mentor}
+                                         :preferred #{:mentor}}
+                                  "dh" {:acceptable #{:student :mentor}
+                                        :preferred #{:mentor}}}}))))
 
   (testing "double-scheduling"
     (is (has-factor?
@@ -483,10 +511,10 @@
                          "student-b" #{:student}
                          "mentor-a" #{:mentor}
                          "mentor-b" #{:mentor}}
-                 :roles-to-pair-with {"student-a" #{:student :mentor}
-                                      "student-b" #{:student :mentor}
-                                      "mentor-a" #{:student}
-                                      "mentor-b" #{:student}}
+                 :roles-to-pair-with {"student-a" {:acceptable #{:student :mentor}}
+                                      "student-b" {:acceptable #{:student :mentor}}
+                                      "mentor-a" {:acceptable #{:student}}
+                                      "mentor-b" {:acceptable #{:student}}}
                  ;; student-a - student-b  2021
                  ;; mentor-a  -  student-a  2022
                  ;; mentor-a  x  mentor-b  2023
@@ -496,6 +524,26 @@
                                   "mentor-a" #{[#inst "2022-01-01T10" :available]
                                                [#inst "2023-01-01T10" :available]}
                                   "mentor-b" #{[#inst "2023-01-01T10" :available]}}
+                 :times-to-pair 1}
+                ps/schedule
+                :schedule
+                set))))
+
+  (testing "takes preferred roles into consideration"
+    (is (= #{{:guest-ids #{"mentor-a" "student-a"}
+              :at #inst "2021-01-01T10:00:00.000-00:00"}}
+           (->> {:roles {"student-a" #{:student}
+                         "student-b" #{:student}
+                         "mentor-a" #{:mentor}}
+                 :roles-to-pair-with {"student-a" {:acceptable #{:student :mentor}
+                                                   :preferred #{:mentor}}
+                                      "student-b" {:acceptable #{:student}
+                                                   :preferred #{:student}}
+                                      "mentor-a" {:acceptable #{:student}
+                                                  :preferred #{:student}}}
+                 :availabilities {"student-a" #{[#inst "2021-01-01T10" :available]}
+                                  "student-b" #{[#inst "2021-01-01T10" :available]}
+                                  "mentor-a" #{[#inst "2021-01-01T10" :available]}}
                  :times-to-pair 1}
                 ps/schedule
                 :schedule
