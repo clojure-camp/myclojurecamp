@@ -254,7 +254,9 @@
   [:div.page.p2p
    [opt-in-view]
    [pair-with-view]
-   [topics-view]
+   ;; disabling topics selection for now
+   ;; (it's hardcoded to "clojure-camp" in the backend)
+   #_[topics-view]
    [availability-view]
    [time-zone-view]
    [max-limit-preferences-view]
