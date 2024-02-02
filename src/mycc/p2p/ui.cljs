@@ -257,6 +257,12 @@
 
 (defn p2p-page-view []
   [:div.page.p2p
+   [ui/row
+    {}
+    [:div {:tw "text-sm space-y-2"}
+     [:p "Get scheduled weekly for casual 1:1 study sessions with another student or mentor."]
+     [:p "How it works: on Friday evening each week, you'll get an email asking if you're available for the next week. If you opt-in, on Sunday night you'll receive an email with your session schedule."]
+     [:p "You can configure your availability, max # of sessions, and other settings below."]]]
    (when @(mod/subscribe [:user-profile-value :user/subscribed?])
      [:<>
       [opt-in-view]
