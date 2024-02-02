@@ -102,6 +102,6 @@
               :user/topic-ids #{}
               :user/availability {}
               :user/email-validated? false
-              :user/subscribed? true}]
+              :user/subscribed? false}]
     (save-user! user)
     user))
