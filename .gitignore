@@ -2,6 +2,7 @@
 /classes
 /checkouts
 /resources/public/js
+/resources/public/css
 profiles.clj
 pom.xml
 pom.xml.asc
