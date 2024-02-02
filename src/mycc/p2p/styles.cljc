@@ -66,18 +66,6 @@
         {:background (darken colors/accent-light 10)}]]]]]
 
    [:.topics-section
-    [:>.warning
-     {:color "red"
-      :background "#ffe9e9"
-      :display "flex"
-      :padding "0.25em"
-      :margin-bottom "1em"
-      :border-radius "0.25em"
-      :border "1px solid #ffc4c4"}
-
-     [:>svg
-      {:width "1em"
-       :margin-right "0.25em"}]]
 
     [:>.topics
      {:columns "3"}

@@ -46,3 +46,9 @@
   [:button (assoc opts
              :tw "text-white font-light px-2 py-1 rounded cursor-pointer bg-clojure-blue hover:bg-clojure-blue-darker")
    content])
+
+(defn warning
+  [opts content]
+  [:div.warning {:tw "bg-#ffe9e9 text-red-500 flex p-1 mb-4 rounded border border-#ffc4c4 gap-1"}
+   [fa/fa-exclamation-triangle-solid {:tw "w-1em h-1em"}]
+   content])

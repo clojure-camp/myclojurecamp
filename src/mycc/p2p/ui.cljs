@@ -78,8 +78,7 @@
      [:div.topics-section
       (when (and (empty? user-topic-ids)
               @(mod/subscribe [:user-profile-value :user/pair-next-week?]))
-        [:p.warning
-         [fa/fa-exclamation-triangle-solid]
+        [ui/warning {}
          "You need to select at least one topic to be matched with someone."])
       [:div.topics
        (for [topic (sort-by :topic/name @(mod/subscribe [:topics]))
