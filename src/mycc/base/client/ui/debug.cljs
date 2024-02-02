@@ -31,6 +31,7 @@
         (pprint/pprint @(subscribe [:db])))]
     [:button {:style {:position "fixed"
                       :z-index 101
+                      :color "white"
                       :bottom 0
                       :left 0}
               :on-click (fn [] (reset! open? false))}

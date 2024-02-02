@@ -2,8 +2,7 @@
   (:require
     [garden.stylesheet :refer [at-import at-keyframes]]
     [garden.color :refer [lighten]]
-    [mycc.common.colors :as colors]
-    [mycc.common.mixins :as mixins]))
+    [mycc.common.colors :as colors]))
 
 (def styles
   [(at-import "https://fonts.googleapis.com/css2?family=Roboto:wght@300;500&family=Walter+Turncoat&display=swap")
@@ -20,7 +19,7 @@
     {:position "fixed"
      :top "1em"
      :left "3em"
-     :right 0}
+     :width "4em"}
 
     [:>svg
      {:width "1em"
@@ -120,10 +119,7 @@
         :padding-right "3em"}]
 
       [:>img.logotype
-       {:height "1.5em"}]
-
-      [:>.log-out
-       (mixins/button)]]
+       {:height "1.5em"}]]
 
      [:>.nav
       {:background (lighten colors/clojure-camp-blue 20)}

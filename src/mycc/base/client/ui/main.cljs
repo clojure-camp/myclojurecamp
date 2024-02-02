@@ -30,7 +30,8 @@
      :alt "Clojure Camp"}]
    [:div.gap]
    [:button.log-out
-    {:on-click (fn []
+    {:tw "cursor-pointer"
+     :on-click (fn []
                  (dispatch [:log-out!]))}
     "Log Out"]])
 

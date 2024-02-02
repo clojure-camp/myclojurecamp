@@ -3,6 +3,7 @@
     [garden.core :as garden]
     [re-frame.core :refer [subscribe]]
     [modulo.api :as mod]
+    [mycc.common.colors :as colors]
     [mycc.base.client.styles :refer [styles]]
     [mycc.base.client.ui.main :refer [main-view]]
     [mycc.base.client.ui.login :refer [login-view]]))
@@ -20,7 +21,8 @@
     (garden/css (concat styles
                         (->> @(mod/pages)
                              vals
-                             (keep :page/styles))))]
+                             (keep :page/styles))))
+    (colors/tailwind-color-styles)]
 
    (cond
      @(subscribe [:user])

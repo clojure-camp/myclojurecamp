@@ -1,131 +1,99 @@
 (ns mycc.p2p.styles
   (:require
     [garden.color :refer [darken]]
-    [mycc.common.colors :as colors]
-    [mycc.common.mixins :as mixins]))
+    [mycc.common.colors :as colors]))
 
 (def styles
   [:.page.p2p
 
-   [:section.field
-    (mixins/field)
+   [:table.availability
+    {:border-spacing 0
+     :width "100%"}
 
-    [:&.name
-     :&.max-pair-day
-     :&.max-pair-week
-     "" ;; ¯\_(ツ)_/¯
-     [:input
-      (mixins/text-input)]]
+    [:th.day
+     {:font-weight "normal"
+      :padding-bottom "1rem"}
 
-    [:&.time-zone
-     [:button
-      (mixins/button)]]
+     [:>.day-of-week]
 
-    [:&.role
-     :&.opt-in
-     :&.subscribed
-     "" ;; ¯\_(ツ)_/¯
-     [:.choices
-      {:display "flex"
-       :gap "1em"}
+     [:>.date
+      {:color "#aaa"}]]
 
-      [:&.long
-       {:flex-direction "column"}]
+    [:td.hour
+     {:text-align "right"
+      :padding-right "1rem"
+      :vertical-align "top"
+      :transform "translateY(-0.5rem)"}]
 
-      [:label
-       {:cursor "pointer"
-        :font-size "1.1em"}
+    [:td
+     {:padding 0}
 
-       [:.label
-        {:margin-left "0.1em"}]]]]
+     [:>button
+      {:width "100%"
+       :border "none"
+       :cursor "pointer"
+       :padding "1em"
+       :height "6em"
+       :display "flex"
+       :justify-content "center"
+       :align-items "center"}
 
-    [:&.availability
-     [:>table
-      {:border-spacing 0
-       :width "100%"}
+      [:&.empty
+       {:background "#fff"
+        :color "#aaa"}
 
-      [:th.day
-       {:font-weight "normal"
-        :padding-bottom "1rem"}
+       [:>.wrapper
+        {:border "1px dashed #ccc"
+         :height "4em"
+         :width "100%"
+         :line-height "4em"}]
 
-       [:>.day-of-week]
+       [:&:hover
+        {:background (darken "#fff" 10)}]]
 
-       [:>.date
-        {:color "#aaa"}]]
+      [:&.preferred
+       {:background colors/accent-dark
+        :color "white"}
 
-      [:td.hour
-       {:text-align "right"
-        :padding-right "1rem"
-        :vertical-align "top"
-        :transform "translateY(-0.5rem)"}]
+       [:&:hover
+        {:background (darken colors/accent-dark 10)}]]
 
-      [:td
-       {:padding 0}
+      [:&.available
+       {:background colors/accent-light
+        :color "white"}
 
-       [:>button
-        {:width "100%"
-         :border "none"
-         :cursor "pointer"
-         :padding "1em"
-         :height "6em"
-         :display "flex"
-         :justify-content "center"
-         :align-items "center"}
+       [:&:hover
+        {:background (darken colors/accent-light 10)}]]]]]
 
-        [:&.empty
-         {:background "#fff"
-          :color "#aaa"}
+   [:.topics-section
+    [:>.warning
+     {:color "red"
+      :background "#ffe9e9"
+      :display "flex"
+      :padding "0.25em"
+      :margin-bottom "1em"
+      :border-radius "0.25em"
+      :border "1px solid #ffc4c4"}
 
-         [:>.wrapper
-          {:border "1px dashed #ccc"
-           :height "4em"
-           :width "100%"
-           :line-height "4em"}]
+     [:>svg
+      {:width "1em"
+       :margin-right "0.25em"}]]
 
-         [:&:hover
-          {:background (darken "#fff" 10)}]]
+    [:>.topics
+     {:columns "3"}
 
-        [:&.preferred
-         {:background colors/accent-dark
-          :color "white"}
+     [:>.topic
+      {:display "block"
+       :margin-bottom "0.5rem"
+       :cursor "pointer"
+       :vertical-align "center"
+       :white-space "nowrap"}
 
-         [:&:hover
-          {:background (darken colors/accent-dark 10)}]]
+      [:>input
+       {:margin-right "0.25em"}]
 
-        [:&.available
-         {:background colors/accent-light
-          :color "white"}
-
-         [:&:hover
-          {:background (darken colors/accent-light 10)}]]]]]]
-
-    [:&.topics
-     [:>.warning
-      {:color "red"
-       :background "#ffe9e9"
-       :padding "0.25em"
-       :border-radius "0.25em"
-       :border "1px solid #ffc4c4"}
-
-      [:>svg
-       {:width "1em"
-        :margin-right "0.25em"}]]
-
-     [:>.topics
-      {:columns "3"}
-
-      [:>.topic
-       {:display "block"
-        :margin-bottom "0.5rem"
-        :cursor "pointer"
-        :vertical-align "center"
-        :white-space "nowrap"}
-
-       [:>.count
-        {:color "#ccc"}]]
-
-      [:>button
-       (mixins/button)]]]]
+      [:>.count
+       {:color "#ccc"}]]]]
 
    [:table.events
     [:>tbody

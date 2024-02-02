@@ -3,6 +3,7 @@
     [clojure.string :as string]
     [bloom.commons.fontawesome :as fa]
     [modulo.api :as mod]
+    [mycc.common.ui :as ui]
     [mycc.p2p.util :as util]
     [mycc.p2p.styles :as styles]))
 
@@ -15,32 +16,28 @@
 
 (defn max-limit-preferences-view []
   [:<>
-   [:section.field.max-pair-day
-    [:label
-     [:h1
-      "Max pairings per day"
-      [popover-view "Maximum number of times you will be scheduled in a given day."]]
-     [:input {:type "number"
-              :value @(mod/subscribe [:user-profile-value :user/max-pair-per-day])
-              :min 1
-              :max 24
-              :on-change (fn [e]
-                           (mod/dispatch [:set-user-value!
-                                          :user/max-pair-per-day
-                                          (js/parseInt (.. e -target -value) 10)]))}]]]
-   [:section.field.max-pair-week
-    [:label
-     [:h1
-     "Max pairings per week"
-     [popover-view "Maximum number of times you will be scheduled in a given week."]]
-     [:input {:type "number"
-              :value @(mod/subscribe [:user-profile-value :user/max-pair-per-week])
-              :min 1
-              :max (* 24 7)
-              :on-change (fn [e]
-                           (mod/dispatch [:set-user-value!
-                                          :user/max-pair-per-week
-                                          (js/parseInt (.. e -target -value) 10)]))}]]]])
+   [ui/row
+    {:title "Max pairings per day"
+     :info "Maximum number of times you will be scheduled in a given day."}
+    [ui/input {:type "number"
+               :value @(mod/subscribe [:user-profile-value :user/max-pair-per-day])
+               :min 1
+               :max 24
+               :on-change (fn [e]
+                            (mod/dispatch [:set-user-value!
+                                           :user/max-pair-per-day
+                                           (js/parseInt (.. e -target -value) 10)]))}]]
+   [ui/row
+    {:title "Max pairings per week"
+     :info "Maximum number of times you will be scheduled in a given week."}
+    [ui/input {:type "number"
+               :value @(mod/subscribe [:user-profile-value :user/max-pair-per-week])
+               :min 1
+               :max (* 24 7)
+               :on-change (fn [e]
+                            (mod/dispatch [:set-user-value!
+                                           :user/max-pair-per-week
+                                           (js/parseInt (.. e -target -value) 10)]))}]]])
 
 (defn next-day-of-week
   "Calculates next date with day of week as given"
@@ -74,168 +71,133 @@
            date))
 
 (defn topics-view []
-  [:section.field.topics
-   [:h1 "Topics to Pair On"
-    [popover-view "Topics you'd like to pair on. You will be matched so that you have at least one topic in common. The number beside each topic indicates how many other people have that topic selected."]]
+  [ui/row
+   {:title "Topics to Pair On"
+    :info "Topics you'd like to pair on. You will be matched so that you have at least one topic in common. The number beside each topic indicates how many other people have that topic selected."}
    (let [user-topic-ids @(mod/subscribe [:user-profile-value :user/topic-ids])]
-    [:<>
-     (when (and (empty? user-topic-ids)
-                @(mod/subscribe [:user-profile-value :user/pair-next-week?]))
-      [:p.warning
-       [fa/fa-exclamation-triangle-solid]
-       "You need to select at least one topic to be matched with someone."])
-     [:div.topics
-      (for [topic (sort-by :topic/name @(mod/subscribe [:topics]))
-            :let [checked? (contains? user-topic-ids (:topic/id topic))]]
-        ^{:key (:topic/id topic)}
-        [:label.topic
-         [:input {:type "checkbox"
-                  :checked checked?
-                  :on-change
-                  (fn []
-                    (if checked?
-                      (mod/dispatch [:remove-user-topic! (:topic/id topic)])
-                      (mod/dispatch [:add-user-topic! (:topic/id topic)])))}]
-         [:span.name (:topic/name topic)] " "
-         [:span.count (:topic/user-count topic)]])
-      [:button
-       {:on-click (fn [_]
-                    (let [value (js/prompt "Enter a new topic:")]
-                      (when (not (string/blank? value))
-                        (mod/dispatch [:new-topic! (string/trim value)]))))}
-       "+ Add Topic"]]])])
-
-(defn role-view []
-  (let [role @(mod/subscribe [:user-profile-value :user/role])]
-    [:section.field.role
-     [:h1 "Role"
-      [popover-view
-       [:<>
-        [:div "Students are scheduled with other students and mentors."]
-        [:div "Mentors are only scheduled with students."]]]]
-     [:div.choices
-      (for [[value label] [[:role/student "Student"]
-                           [:role/mentor "Mentor"]]]
-        ^{:key value}
-        [:label
-         [:input {:type "radio"
-                  :checked (= role value)
-                  :on-change (fn [_]
-                               (mod/dispatch [:set-user-value! :user/role value]))}]
-         [:span.label label]])]]))
+     [:div.topics-section
+      (when (and (empty? user-topic-ids)
+              @(mod/subscribe [:user-profile-value :user/pair-next-week?]))
+        [:p.warning
+         [fa/fa-exclamation-triangle-solid]
+         "You need to select at least one topic to be matched with someone."])
+      [:div.topics
+       (for [topic (sort-by :topic/name @(mod/subscribe [:topics]))
+             :let [checked? (contains? user-topic-ids (:topic/id topic))]]
+         ^{:key (:topic/id topic)}
+         [:label.topic
+          [:input {:type "checkbox"
+                   :checked checked?
+                   :on-change
+                   (fn []
+                     (if checked?
+                       (mod/dispatch [:remove-user-topic! (:topic/id topic)])
+                       (mod/dispatch [:add-user-topic! (:topic/id topic)])))}]
+          [:span.name (:topic/name topic)] " "
+          [:span.count (:topic/user-count topic)]])
+       [ui/button
+        {:on-click (fn [_]
+                     (let [value (js/prompt "Enter a new topic:")]
+                       (when (not (string/blank? value))
+                         (mod/dispatch [:new-topic! (string/trim value)]))))}
+        "+ Add Topic"]]])])
 
 (defn pair-with-view []
-  (let [pair-with @(mod/subscribe [:user-profile-value :user/pair-with])]
-    [:section.field.pair-with
-     [:h1 "Pair With"]
-     [:div.choices.long
-      (for [[value label] [[:pair-with/only-mentors "Mentors Only"]
-                           [:pair-with/prefer-mentors "Mentors Preferred"]
-                           [nil "No Preference"]
-                           [:pair-with/prefer-students "Students Preferred"]
-                           [:pair-with/only-students "Students Only"]]]
-        ^{:key value}
-        [:label
-         [:input {:type "radio"
-                  :checked (= pair-with value)
-                  :on-change (fn [_]
-                               (mod/dispatch [:set-user-value! :user/pair-with value]))}]
-         [:span.label label]])]]))
+  [ui/row
+   {:title "Pair with..."}
+   [ui/radio-list
+    {:choices [[:pair-with/only-mentors "Mentors Only"]
+               [:pair-with/prefer-mentors "Mentors Preferred"]
+               [nil "No Preference"]
+               [:pair-with/prefer-students "Students Preferred"]
+               [:pair-with/only-students "Students Only"]]
+     :value @(mod/subscribe [:user-profile-value :user/pair-with])
+     :direction :vertical
+     :on-change (fn [value]
+                  (mod/dispatch [:set-user-value! :user/pair-with value]))}]])
 
 (defn availability-view []
-  [:section.field.availability
-   [:h1 "Availability"
-    [popover-view
-     [:<>
-      [:div "Click in the calendar grid below to indicate your time availability."]
-      [:div "A = available, P = preferred"]]]]
-
-   (when-let [availability @(mod/subscribe [:user-profile-value :user/availability])]
-     [:table
-      [:thead
-       [:tr
-        [:th]
-        (let [next-monday (next-day-of-week (js/Date.) :monday)]
-          (for [[i day] (map-indexed (fn [i d] [i d]) util/days)]
-            (let [[day-of-week date] (string/split (format-date (add-days next-monday i)) #",")]
-              ^{:key day}
-              [:th.day
-               [:div.day-of-week day-of-week]
-               [:div.date date]])))]]
-      [:tbody
-       (doall
-         (for [hour util/hours]
-           ^{:key hour}
-           [:tr
-            [:td.hour
-             hour]
-            (doall
-              (for [day util/days]
-                ^{:key day}
-                [:td
-                 (let [value (availability [day hour])]
-                   [:button
-                    {:class (case value
-                              :preferred "preferred"
-                              :available "available"
-                              nil "empty")
-                     :on-click (fn [_]
-                                 (mod/dispatch [:set-availability!
-                                                [day hour]
-                                                (case value
-                                                  :preferred nil
-                                                  :available :preferred
-                                                  nil :available)]))}
-                    [:div.wrapper
-                     (case value
-                       :preferred "P"
-                       :available "A"
-                       nil "")]])]))]))]])])
+  [ui/row
+   {:title "Availability"
+    :info [:<>
+           [:div "Click in the calendar grid below to indicate your time availability."]
+           [:div "A = available, P = preferred"]]}]
+  (when-let [availability @(mod/subscribe [:user-profile-value :user/availability])]
+    [:table.availability
+     [:thead
+      [:tr
+       [:th]
+       (let [next-monday (next-day-of-week (js/Date.) :monday)]
+         (for [[i day] (map-indexed (fn [i d] [i d]) util/days)]
+           (let [[day-of-week date] (string/split (format-date (add-days next-monday i)) #",")]
+             ^{:key day}
+             [:th.day
+              [:div.day-of-week day-of-week]
+              [:div.date date]])))]]
+     [:tbody
+      (doall
+        (for [hour util/hours]
+          ^{:key hour}
+          [:tr
+           [:td.hour
+            hour]
+           (doall
+             (for [day util/days]
+               ^{:key day}
+               [:td
+                (let [value (availability [day hour])]
+                  [:button
+                   {:class (case value
+                             :preferred "preferred"
+                             :available "available"
+                             nil "empty")
+                    :on-click (fn [_]
+                                (mod/dispatch [:set-availability!
+                                               [day hour]
+                                               (case value
+                                                 :preferred nil
+                                                 :available :preferred
+                                                 nil :available)]))}
+                   [:div.wrapper
+                    (case value
+                      :preferred "P"
+                      :available "A"
+                      nil "")]])]))]))]]))
 
 (defn opt-in-view []
-  (let [opt-in? @(mod/subscribe [:user-profile-value :user/pair-next-week?])]
-    [:section.field.opt-in
-     [:h1 "Opt-in for pairing next week?"]
-     [:div.choices
-      (for [[value label] [[true "Yes"]
-                           [false "No"]]]
-        ^{:key value}
-        [:label
-         [:input {:type "radio"
-                  :checked (= opt-in? value)
-                  :on-change (fn [_]
-                               (mod/dispatch [:opt-in-for-pairing! value]))}]
-         [:span.label label]])]]))
+  [ui/row
+   {:title "Opt-in for pairing next week?"}
+   [ui/radio-list
+    {:choices [[true "Yes"]
+               [false "No"]]
+     :value @(mod/subscribe [:user-profile-value :user/pair-next-week?])
+     :on-change (fn [value]
+                  (mod/dispatch [:opt-in-for-pairing! value]))}]])
 
 (defn time-zone-view []
-  [:section.field.time-zone
-   [:label
-    [:h1 "Time Zone"
-     [popover-view "Your time-zone. If the Auto-Detection is incorrect, email raf@clojure.camp"]]
-    [:input {:type "text"
-             :disabled true
-             :value @(mod/subscribe [:user-profile-value :user/time-zone])}]
-    [:button
+  [ui/row
+   {:title "Time Zone"
+    :info "Your time-zone. If the Auto-Detection is incorrect, email raf@clojure.camp"}
+   [:label {:tw "flex gap-2"}
+    [ui/input {:type "text"
+               :disabled true
+               :value @(mod/subscribe [:user-profile-value :user/time-zone])}]
+    [ui/button
      {:on-click (fn []
                   (mod/dispatch
                     [:set-user-value! :user/time-zone (.. js/Intl DateTimeFormat resolvedOptions -timeZone)]))}
      "Re-Auto-Detect"]]])
 
 (defn subscription-toggle-view []
-  (let [subscribed? @(mod/subscribe [:user-profile-value :user/subscribed?])]
-    [:section.field.subscription
-     [:h1 "Subscribed?"
-      [popover-view "Set to No to stop receiving emails."]]
-     [:div.choices
-      (for [[value label] [[true "Yes"]
-                           [false "No"]]]
-        ^{:key value}
-        [:label
-         [:input {:type "radio"
-                  :checked (= subscribed? value)
-                  :on-change (fn [_]
-                               (mod/dispatch [:update-subscription! value]))}]
-         [:span.label label]])]]))
+  [ui/row
+   {:title "Participate in Weekly Pairing?"
+    :info "Set to No to stop receiving opt-in emails."}
+   [ui/radio-list
+    {:choices [[true "Yes"]
+               [false "No"]]
+     :value @(mod/subscribe [:user-profile-value :user/subscribed?])
+     :on-change (fn [value]
+                  (mod/dispatch [:update-subscription! value]))}]])
 
 (defn format-date-2 [date]
   (.format (js/Intl.DateTimeFormat. "default" #js {:day "numeric"
@@ -272,25 +234,26 @@
        [fa/fa-flag-solid]]]]]))
 
 (defn events-view []
-  (let [events @(mod/subscribe [:events])
-        [upcoming-events past-events] (->> events
-                                           (sort-by :event/at)
-                                           reverse
-                                           (split-with (fn [event]
-                                                         (< (js/Date.) (:event/at event)))))]
-   [:table.events
-    [:tbody
-     (for [[index event] (map-indexed vector upcoming-events)]
-       ^{:key (:event/id event)}
-       [event-view (when (= 0 index) "Upcoming Sessions") event])
-     (for [[index event] (map-indexed vector past-events)]
-       ^{:key (:event/id event)}
-       [event-view (when (= 0 index) "Past Sessions") event])]]))
+  [ui/row
+   {}
+   (let [events @(mod/subscribe [:events])
+         [upcoming-events past-events] (->> events
+                                            (sort-by :event/at)
+                                            reverse
+                                            (split-with (fn [event]
+                                                          (< (js/Date.) (:event/at event)))))]
+     [:table.events
+      [:tbody
+       (for [[index event] (map-indexed vector upcoming-events)]
+         ^{:key (:event/id event)}
+         [event-view (when (= 0 index) "Upcoming Sessions") event])
+       (for [[index event] (map-indexed vector past-events)]
+         ^{:key (:event/id event)}
+         [event-view (when (= 0 index) "Past Sessions") event])]])])
 
 (defn p2p-page-view []
   [:div.page.p2p
    [opt-in-view]
-   [role-view]
    [pair-with-view]
    [topics-view]
    [availability-view]
