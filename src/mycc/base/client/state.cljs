@@ -1,6 +1,8 @@
 (ns mycc.base.client.state
   (:require
+    [clojure.string :as string]
     [bloom.commons.ajax :as ajax]
+    [bloom.omni.fx.dispatch-debounce :as dispatch-debounce]
     [reagent.core :as r]
     [re-frame.core :refer [reg-event-fx reg-fx reg-sub dispatch]]))
 
@@ -18,6 +20,9 @@
                                             (swap! ajax-state dissoc request-id)
                                             (when (opts :on-success)
                                              ((opts :on-success) data))))))))
+
+
+(reg-fx :dispatch-debounce dispatch-debounce/fx)
 
 (reg-event-fx
   :initialize!
@@ -82,8 +87,16 @@
      :ajax {:method :put
             :uri "/api/user/set-profile-value"
             :params {:k k
-                     :v v}}}))
+                     :v (if (and (string? v) (string/blank? v))
+                          nil
+                          v)}}}))
 
+(reg-event-fx
+  :debounced-set-user-value!
+  (fn [_ [_ k v]]
+    {:dispatch-debounce [{:id [:set-user-value! k]
+                          :dispatch [:set-user-value! k v]
+                          :timeout 500}]}))
 (reg-sub
   :checked-auth?
   (fn [db _]

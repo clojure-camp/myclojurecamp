@@ -1,6 +1,7 @@
 (ns mycc.common.ui
   (:require
     [bloom.commons.fontawesome :as fa]
+    [bloom.commons.ui.textarea :as textarea]
     [mycc.common.colors :as colors]))
 
 (defn popover-view
@@ -12,14 +13,19 @@
     content]])
 
 (defn row
-  [{:keys [title info]} content]
+  [{:keys [title subtitle info]} content]
   [:div.row
-   {:tw "w-full min-w-30em py-4 border-b-1"}
-   (when title
-     [:h1 {:tw "font-bold mb-3 flex items-center gap-1"}
-      title
-      (when info
-        [popover-view info])])
+   {:tw "w-full min-w-30em py-4 border-b-1 space-y-3"}
+   (when (or title subtitle)
+     [:div
+      (when title
+        [:h1 {:tw "font-bold flex items-center gap-1"}
+         title
+         (when info
+           [popover-view info])])
+      (when subtitle
+        [:p {:tw "font-light"}
+         subtitle])])
    [:div.content {:tw "font-light"}
     content]])
 
@@ -41,6 +47,12 @@
   [opts]
   [:input (assoc opts
             :tw "p-1 border border-gray-300 font-light")])
+
+(defn textarea
+  [opts]
+  [textarea/textarea
+   (assoc opts
+     :tw "p-1 border border-gray-300 font-light w-full h-5em")])
 
 (defn button [opts content]
   [:button (assoc opts
