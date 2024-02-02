@@ -29,6 +29,9 @@
       {:display "flex"
        :gap "1em"}
 
+      [:&.long
+       {:flex-direction "column"}]
+
       [:label
        {:cursor "pointer"
         :font-size "1.1em"}

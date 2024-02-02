@@ -105,7 +105,6 @@
                         (mod/dispatch [:new-topic! (string/trim value)]))))}
        "+ Add Topic"]]])])
 
-
 (defn role-view []
   (let [role @(mod/subscribe [:user-profile-value :user/role])]
     [:section.field.role
@@ -123,6 +122,24 @@
                   :checked (= role value)
                   :on-change (fn [_]
                                (mod/dispatch [:set-user-value! :user/role value]))}]
+         [:span.label label]])]]))
+
+(defn pair-with-view []
+  (let [pair-with @(mod/subscribe [:user-profile-value :user/pair-with])]
+    [:section.field.pair-with
+     [:h1 "Pair With"]
+     [:div.choices.long
+      (for [[value label] [[:pair-with/only-mentors "Mentors Only"]
+                           [:pair-with/prefer-mentors "Mentors Preferred"]
+                           [nil "No Preference"]
+                           [:pair-with/prefer-students "Students Preferred"]
+                           [:pair-with/only-students "Students Only"]]]
+        ^{:key value}
+        [:label
+         [:input {:type "radio"
+                  :checked (= pair-with value)
+                  :on-change (fn [_]
+                               (mod/dispatch [:set-user-value! :user/pair-with value]))}]
          [:span.label label]])]]))
 
 (defn availability-view []
@@ -274,6 +291,7 @@
   [:div.page.p2p
    [opt-in-view]
    [role-view]
+   [pair-with-view]
    [topics-view]
    [availability-view]
    [time-zone-view]

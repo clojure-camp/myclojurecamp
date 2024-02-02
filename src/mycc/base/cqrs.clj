@@ -20,6 +20,11 @@
 
    (let [validations
          {:user/role #(#{:role/student :role/mentor} %)
+          :user/pair-with #{:pair-with/only-mentors
+                            :pair-with/prefer-mentors
+                            nil
+                            :pair-with/prefer-students
+                            :pair-with/only-students}
           :user/max-pair-per-day #(and (integer? %) (<= 1 % 24))
           :user/max-pair-per-week #(and (integer? %) (<= 1 % (* 24 7)))
           :user/time-zone #(and (string? %)

@@ -68,13 +68,24 @@
    :roles (-> (mapify :user/id :user/role users)
               (update-vals (fn [role]
                              #{role})))
-   :roles-to-pair-with (-> (mapify :user/id :user/role users)
-                           (update-vals (fn [role]
-                                          (case role
-                                            :role/student
-                                            #{:role/student :role/mentor}
-                                            :role/mentor
-                                            #{:role/student}))))
+   :roles-to-pair-with (-> (mapify :user/id :user/pair-with users)
+                           (update-vals (fn [pair-with]
+                                          (case pair-with
+                                            :pair-with/only-mentors
+                                            {:preferred #{:role/mentor}
+                                             :acceptable #{:role/mentor}}
+                                            :pair-with/prefer-mentors
+                                            {:preferred #{:role/mentor}
+                                             :acceptable #{:role/mentor :role/student}}
+                                            nil
+                                            {:preferred #{:role/mentor :role/student}
+                                             :acceptable #{:role/mentor :role/student}}
+                                            :pair-with/prefer-students
+                                            {:preferred #{:role/student}
+                                             :acceptable #{:role/mentor :role/student}}
+                                            :pair-with/only-students
+                                            {:preferred #{:role/student}
+                                             :acceptable #{:role/student}}))))
    :availabilities (mapify :user/id
                            ;; stored as {[:monday 10] :available
                            ;;            [:tuesday 10] :preferred
