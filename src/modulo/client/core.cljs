@@ -1,16 +1,14 @@
 (ns ^:figwheel-hooks
   modulo.client.core
   (:require
+   [bloom.omni.reagent :as rdom]
    [re-frame.core :refer [dispatch-sync]]
-   [reagent.dom :as rdom]
    [modulo.client.pages :as pages]))
 
 (defonce root-view (atom [:div]))
 
 (defn render []
-  (rdom/render
-   [@root-view]
-   (js/document.getElementById "app")))
+  (rdom/render [@root-view]))
 
 (defn init []
   (dispatch-sync [:initialize!])

@@ -20,6 +20,9 @@
    :omni/auth (-> {:cookie {:name (opts :cookie-name)
                             :secret (config/config :auth-cookie-secret)}
                    :token {:secret (config/config :auth-token-secret)}})
+   :omni/css {:tailwind? true
+              :tailwind-opts {:base-css-rules '[girouette.tw.preflight/preflight-v2_0_3]
+                              :garden-fn 'girouette.tw.default-api/tw-v3-class-name->garden}}
    :omni/api-routes #'routes/routes})
 
 (def prod-omni-config
