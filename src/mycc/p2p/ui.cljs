@@ -257,16 +257,18 @@
 
 (defn p2p-page-view []
   [:div.page.p2p
-   [opt-in-view]
-   [pair-with-view]
-   ;; disabling topics selection for now
-   ;; (it's hardcoded to "clojure-camp" in the backend)
-   #_[topics-view]
-   [availability-view]
-   [time-zone-view]
-   [max-limit-preferences-view]
-   [subscription-toggle-view]
-   [events-view]])
+   (when @(mod/subscribe [:user-profile-value :user/subscribed?])
+     [:<>
+      [opt-in-view]
+      [pair-with-view]
+      ;; disabling topics selection for now
+      ;; (it's hardcoded to "clojure-camp" in the backend)
+      #_[topics-view]
+      [availability-view]
+      [time-zone-view]
+      [max-limit-preferences-view]
+      [events-view]])
+   [subscription-toggle-view]])
 
 (mod/register-page!
   {:page/id :page.id/p2p
