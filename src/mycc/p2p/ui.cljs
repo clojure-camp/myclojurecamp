@@ -102,66 +102,67 @@
         "+ Add Topic"]]])])
 
 (defn pair-with-view []
-  [ui/row
-   {:title "Pair with..."}
-   [ui/radio-list
-    {:choices [[:pair-with/only-mentors "Mentors Only"]
-               [:pair-with/prefer-mentors "Mentors Preferred"]
-               [nil "No Preference"]
-               [:pair-with/prefer-students "Students Preferred"]
-               [:pair-with/only-students "Students Only"]]
-     :value @(mod/subscribe [:user-profile-value :user/pair-with])
-     :direction :vertical
-     :on-change (fn [value]
-                  (mod/dispatch [:set-user-value! :user/pair-with value]))}]])
+  (when (= :role/student @(mod/subscribe [:user-profile-value :user/role]))
+    [ui/row
+     {:title "Pair with..."}
+     [ui/radio-list
+      {:choices [[:pair-with/only-mentors "Mentors Only"]
+                 [:pair-with/prefer-mentors "Mentors Preferred"]
+                 [nil "No Preference"]
+                 [:pair-with/prefer-students "Students Preferred"]
+                 [:pair-with/only-students "Students Only"]]
+       :value @(mod/subscribe [:user-profile-value :user/pair-with])
+       :direction :vertical
+       :on-change (fn [value]
+                    (mod/dispatch [:set-user-value! :user/pair-with value]))}]]))
 
 (defn availability-view []
   [ui/row
    {:title "Availability"
     :info [:<>
            [:div "Click in the calendar grid below to indicate your time availability."]
-           [:div "A = available, P = preferred"]]}]
-  (when-let [availability @(mod/subscribe [:user-profile-value :user/availability])]
-    [:table.availability
-     [:thead
-      [:tr
-       [:th]
-       (let [next-monday (next-day-of-week (js/Date.) :monday)]
-         (for [[i day] (map-indexed (fn [i d] [i d]) util/days)]
-           (let [[day-of-week date] (string/split (format-date (add-days next-monday i)) #",")]
-             ^{:key day}
-             [:th.day
-              [:div.day-of-week day-of-week]
-              [:div.date date]])))]]
-     [:tbody
-      (doall
-        (for [hour util/hours]
-          ^{:key hour}
-          [:tr
-           [:td.hour
-            hour]
-           (doall
-             (for [day util/days]
-               ^{:key day}
-               [:td
-                (let [value (availability [day hour])]
-                  [:button
-                   {:class (case value
-                             :preferred "preferred"
-                             :available "available"
-                             nil "empty")
-                    :on-click (fn [_]
-                                (mod/dispatch [:set-availability!
-                                               [day hour]
-                                               (case value
-                                                 :preferred nil
-                                                 :available :preferred
-                                                 nil :available)]))}
-                   [:div.wrapper
-                    (case value
-                      :preferred "P"
-                      :available "A"
-                      nil "")]])]))]))]]))
+           [:div "A = available, P = preferred"]]}
+   (when-let [availability @(mod/subscribe [:user-profile-value :user/availability])]
+     [:table.availability {:tw "mt-4"}
+      [:thead
+       [:tr
+        [:th]
+        (let [next-monday (next-day-of-week (js/Date.) :monday)]
+          (for [[i day] (map-indexed (fn [i d] [i d]) util/days)]
+            (let [[day-of-week date] (string/split (format-date (add-days next-monday i)) #",")]
+              ^{:key day}
+              [:th.day
+               [:div.day-of-week day-of-week]
+               [:div.date date]])))]]
+      [:tbody
+       (doall
+         (for [hour util/hours]
+           ^{:key hour}
+           [:tr
+            [:td.hour
+             hour]
+            (doall
+              (for [day util/days]
+                ^{:key day}
+                [:td
+                 (let [value (availability [day hour])]
+                   [:button
+                    {:class (case value
+                              :preferred "preferred"
+                              :available "available"
+                              nil "empty")
+                     :on-click (fn [_]
+                                 (mod/dispatch [:set-availability!
+                                                [day hour]
+                                                (case value
+                                                  :preferred nil
+                                                  :available :preferred
+                                                  nil :available)]))}
+                    [:div.wrapper
+                     (case value
+                       :preferred "P"
+                       :available "A"
+                       nil "")]])]))]))]])])
 
 (defn opt-in-view []
   [ui/row
