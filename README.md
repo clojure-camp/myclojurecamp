@@ -8,13 +8,17 @@ App for managing pairing scheduler and other services of clojure camp.
 
 (prerequisites: java, [leiningen](https://leiningen.org/), and [clojure cli](https://clojure.org/guides/getting_started#_clojure_installer_and_cli_tools))
 
-`git clone`
+- `git clone`
 
-`lein repl`
+- `lein repl`
 
-connect to the repl from your text editor
+- connect to the repl from your text editor
 
-in `mycc.dev` (`dev-src/mycc/dev.clj`), run `(start!)` and `(seed/seed!)`
+- in `mycc.dev` (`dev-src/mycc/dev.clj`), run `(start!)` and `(seed/seed!)`
+
+- look in the log for the "server started on" URL, open it in a browser
+
+- log in with `alice@example.com` then open the link that is output in the log
 
 
 ### Modules
@@ -31,3 +35,6 @@ And supporting parts:
 - modulo - our homebrew "frameworky" glue code, should only be accessed via `modulo.api`
 - base - set up of non-module stuff, like header, auth - shouldn't be called by any other modules
 - common - utility namespaces for use by modules
+
+Note:
+ - new modules have to be required in `mycc.base.core` and `mycc.base.client.core`
