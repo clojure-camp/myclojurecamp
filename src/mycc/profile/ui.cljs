@@ -67,7 +67,9 @@
 (defn profile-page-view []
   [:div.page.profile
    [ui/row {}
-    [:p {:tw "italic"} "FYI, your profile info will be shared with the Clojure Camp community."]]
+    [:div {:tw "italic leading-relaxed"}
+     [:div "Welcome to Clojure Camp! Please tell us a little about yourself."]
+     [:div "FYI, your profile info will be shared with the Clojure Camp community."]]]
    [name-view]
    [role-view]
    [ui/row {}
