@@ -166,7 +166,8 @@
 
 (defn opt-in-view []
   [ui/row
-   {:title "Opt-in for pairing next week?"}
+   {:title "Opt-in for pairing next week?"
+    :featured? true}
    [ui/radio-list
     {:choices [[true "Yes"]
                [false "No"]]
