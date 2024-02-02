@@ -70,6 +70,8 @@
     [:p {:tw "italic"} "FYI, your profile info will be shared with the Clojure Camp community."]]
    [name-view]
    [role-view]
+   [ui/row {}
+    [:p {:tw "italic"} "The rest of these are optional:"]]
    [github-username-view]
    [discord-username-view]
    [learner-questions-view]])
