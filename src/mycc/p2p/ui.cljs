@@ -194,8 +194,8 @@
 
 (defn subscription-toggle-view []
   [ui/row
-   {:title "Participate in Weekly Pairing?"
-    :info "Set to No to stop receiving opt-in emails."}
+   {:title "Participate in P2P Pairing?"
+    :info "Set to No to stop receiving weekly opt-in emails."}
    [ui/radio-list
     {:choices [[true "Yes"]
                [false "No"]]
