@@ -15,9 +15,9 @@
 (defn row
   [{:keys [title subtitle info featured?]} content]
   [:div.row
-   {:tw ["w-full min-w-30em py-4 space-y-3"
+   {:tw ["w-full max-w-100vw py-4 px-4 space-y-3 overflow-y-auto"
          (if featured?
-           "border border-4 border-blue-200 p-4 -mx-4"
+           "border border-4 border-blue-200 p-4"
            "border-b-1")]}
    (when (or title subtitle)
      [:div

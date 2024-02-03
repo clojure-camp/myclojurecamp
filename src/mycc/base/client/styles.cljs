@@ -145,8 +145,7 @@
           :border-bottom "2px solid white"}]]]]
 
      [:>.content
-      {:padding "2em"
-       :display "flex"
+      {:display "flex"
        :flex-direction "column"
        :align-items "center"
        :max-width "40em"
