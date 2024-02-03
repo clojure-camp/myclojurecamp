@@ -6,5 +6,5 @@
     [mycc.profile.core]
     [mycc.p2p.core]))
 
-(defn init []
+(defn ^:export init []
   (mod/initialize! app/app-view))

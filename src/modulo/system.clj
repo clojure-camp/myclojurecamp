@@ -29,7 +29,10 @@
   ;; due to present limitations in omni, this has to be statically defined
   ;; but, we don't need most values
   {:omni/environment :prod
-   :omni/cljs {:main "mycc.base.client.core"}})
+   :omni/cljs {:main "mycc.base.client.core"}
+   :omni/css {:tailwind? true
+              :tailwind-opts {:base-css-rules '[girouette.tw.preflight/preflight-v2_0_3]
+                              :garden-fn 'girouette.tw.default-api/tw-v3-class-name->garden}}})
 
 (defn start! [opts]
   (set-default-exception-handler)
