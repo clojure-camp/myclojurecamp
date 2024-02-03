@@ -3,7 +3,7 @@
   :plugins [[io.bloomventures/omni "0.32.2"]
             [lein-tools-deps "0.4.5"]]
 
-  :omni-config mycc.base.omni-config/omni-config-prod
+  :omni-config modulo.system/prod-omni-config
 
   :middleware [lein-tools-deps.plugin/resolve-dependencies-with-deps-edn]
 
