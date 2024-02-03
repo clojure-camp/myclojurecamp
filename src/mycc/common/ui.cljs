@@ -38,7 +38,7 @@
                          (when (= direction :vertical)
                            "flex-col")]}
    (for [[choice-value choice-label] choices]
-     ^{:key choice-value}
+     ^{:key (or choice-value "nil")}
      [:label {:tw "cursor-pointer flex gap-1"}
       [:input {:type "radio"
                :checked (= value choice-value)

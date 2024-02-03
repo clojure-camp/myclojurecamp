@@ -42,27 +42,28 @@
 (defn learner-questions-view []
   (when (= :role/student @(mod/subscribe [:user-profile-value :user/role]))
     [:<>
-     (for [[title subtitle k]
-           [["Why are you learning Clojure?"
-             "What is your primary motivation for learning Clojure? Ex. to get a job doing X, to learn to program, to build a website for yourself, etc."
-             :user/profile-why-clojure]
-            ["What is your prior experience with programming and programming in Clojure?"
-             nil
-             :user/profile-programming-experience]
-            ["What is your next learning goal?"
-             "What are you working on right now? What are you trying to learn? Ex. how to use reduce"
-             :user/profile-short-term-milestone]
-            ["What is your next major learning goal?"
-             "What are you working towards? Ex. creating a website"
-             nil
-             :user/profile-long-term-milestone]]]
-       [ui/row {:title title
-                :subtitle subtitle}
-        [ui/textarea
-         {:default-value @(mod/subscribe [:user-profile-value k])
-          :on-change (fn [e]
-                       (mod/dispatch
-                         [:debounced-set-user-value! k (.. e -target -value)]))}]])]))
+     (doall
+       (for [[title subtitle k]
+             [["Why are you learning Clojure?"
+               "What is your primary motivation for learning Clojure? Ex. to get a job doing X, to learn to program, to build a website for yourself, etc."
+               :user/profile-why-clojure]
+              ["What is your prior experience with programming and programming in Clojure?"
+               nil
+               :user/profile-programming-experience]
+              ["What is your next learning goal?"
+               "What are you working on right now? What are you trying to learn? Ex. how to use reduce"
+               :user/profile-short-term-milestone]
+              ["What is your next major learning goal?"
+               "What are you working towards? Ex. creating a website"
+               :user/profile-long-term-milestone]]]
+         ^{:key k}
+         [ui/row {:title title
+                  :subtitle subtitle}
+          [ui/textarea
+           {:default-value @(mod/subscribe [:user-profile-value k])
+            :on-change (fn [e]
+                         (mod/dispatch
+                           [:debounced-set-user-value! k (.. e -target -value)]))}]]))]))
 
 (defn profile-page-view []
   [:div.page.profile
