@@ -17,8 +17,7 @@
 (defn max-limit-preferences-view []
   [:<>
    [ui/row
-    {:title "Max pairings per day"
-     :info "Maximum number of times you will be scheduled in a given day."}
+    {:title "Max pairing sessions per day"}
     [ui/input {:type "number"
                :value @(mod/subscribe [:user-profile-value :user/max-pair-per-day])
                :min 1
@@ -28,8 +27,7 @@
                                            :user/max-pair-per-day
                                            (js/parseInt (.. e -target -value) 10)]))}]]
    [ui/row
-    {:title "Max pairings per week"
-     :info "Maximum number of times you will be scheduled in a given week."}
+    {:title "Max pairing sessions per week"}
     [ui/input {:type "number"
                :value @(mod/subscribe [:user-profile-value :user/max-pair-per-week])
                :min 1
@@ -40,7 +38,7 @@
                                            (js/parseInt (.. e -target -value) 10)]))}]]
 
    [ui/row
-    {:title "Max pairings with same person in a week"
+    {:title "Max pairing sessions with same person in a week"
      :info "The algorithm will try to maximize the variety of partners you pair with, but may still pair you several times with the same person. This setting lets you limit the maximum number of times you will be scheduled with the same person in a given week."}
     [ui/input {:type "number"
                :value @(mod/subscribe [:user-profile-value :user/max-pair-same-user])
