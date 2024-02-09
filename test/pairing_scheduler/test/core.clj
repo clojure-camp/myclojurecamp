@@ -136,6 +136,29 @@
                     [#inst "2021-01-01T10" :available]
                     [#inst "2021-01-01T11" :available]}}}))))
 
+  (testing "above max-person-per-week"
+    (is (has-factor?
+          :factor.id/over-max-same-user-per-week
+          (ps/individual-score-meta
+            "raf"
+            {:schedule
+             [{:guest-ids #{"raf" "dh"}
+               :at #inst "2021-01-01T09"}
+              {:guest-ids #{"raf" "dh"}
+               :at #inst "2021-01-01T10"}
+              {:guest-ids #{"raf" "dh"}
+               :at #inst "2021-01-01T11"}]
+             :max-same-user-per-week
+             {"raf" 2
+              "dh" 10}
+             :availabilities
+             {"raf" #{[#inst "2021-01-01T09" :available]
+                      [#inst "2021-01-01T10" :available]
+                      [#inst "2021-01-01T11" :available]}
+              "dh" #{[#inst "2021-01-01T09" :available]
+                     [#inst "2021-01-01T10" :available]
+                     [#inst "2021-01-01T11" :available]}}}))))
+
   (testing "within available times"
     (is (has-factor?
           :factor.id/at-available-time
@@ -435,6 +458,20 @@
                                   "bob" #{[#inst "2021-01-01T10" :available]}
                                   "cathy" #{[#inst "2021-01-02T10" :available]}}
                  :times-to-pair 1}
+                ps/schedule
+                :schedule
+                set
+                count))))
+
+  (testing "does not schedule more than per-week-user-limit"
+    (is (= 1
+           (->> {:max-same-user-per-week {"alice" 1
+                                          "bob" 2}
+                 :availabilities {"alice" #{[#inst "2021-01-01T10" :available]
+                                            [#inst "2021-01-02T10" :available]}
+                                  "bob" #{[#inst "2021-01-01T10" :available]
+                                          [#inst "2021-01-02T10" :available]}}
+                 :times-to-pair 2}
                 ps/schedule
                 :schedule
                 set

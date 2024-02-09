@@ -75,14 +75,23 @@
 
 
 (defn individual-score-meta
-  [guest-id {:keys [schedule availabilities timezones max-events-per-day max-events-per-week topics roles roles-to-pair-with] :as context}]
+  [guest-id {:keys [schedule availabilities timezones max-events-per-day
+                    max-events-per-week topics roles roles-to-pair-with
+                    max-same-user-per-week] :as context}]
   (let [guest-events (->> schedule
                           (filter (fn [event]
                                     (contains? (event :guest-ids) guest-id))))
         guest-open-times  (and availabilities
                             (->> (availabilities guest-id)
                                  (map first)
-                                 set))]
+                                 set))
+        other-user-counts (->> guest-events
+                               (map (fn [event]
+                                      (-> (event :guest-ids)
+                                          (disj guest-id)
+                                          first)))
+                               frequencies
+                               vals)]
     (concat
       ;; above max for day
       (let [day-count (days-over-max guest-id context)]
@@ -100,6 +109,17 @@
           :factor/score 100
           :factor/meta {:max (max-events-per-week guest-id)
                         :count (count guest-events)}}])
+
+      ;; above max same user per week
+      (when (and
+              max-same-user-per-week
+              (max-same-user-per-week guest-id)
+              (some (partial < (max-same-user-per-week guest-id)) other-user-counts))
+        [{:factor/id :factor.id/over-max-same-user-per-week
+          :factor/score (->> other-user-counts
+                             (map (fn [x] (max (- x (max-same-user-per-week guest-id)) 0)))
+                             (reduce +)
+                             (* 10))}])
 
       ;; per event
       (->> guest-events
