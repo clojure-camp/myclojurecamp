@@ -63,6 +63,7 @@
   {:times-to-pair 1
    :max-events-per-day (mapify :user/id :user/max-pair-per-day users)
    :max-events-per-week (mapify :user/id :user/max-pair-per-week users)
+   :max-same-user-per-week (mapify :user/id :user/max-pair-same-user users)
    :topics (mapify :user/id
                    (fn [_] #{:clojure-camp})
                    ;; disabling topic selection for now

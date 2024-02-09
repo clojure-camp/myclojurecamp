@@ -41,6 +41,8 @@
     [:and :int [:>= 1] [:<= 24]]]
    [:user/max-pair-per-week
     [:and :int [:>= 1] [:<= (* 24 7)]]]
+   [:user/max-pair-same-user
+    [:and :int [:>= 1] [:<= 50]]]
    [:user/time-zone
     [:and
      :string

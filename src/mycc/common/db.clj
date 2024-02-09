@@ -99,6 +99,7 @@
               :user/role :role/student
               :user/max-pair-per-day 1
               :user/max-pair-per-week 1
+              :user/max-pair-same-user 2
               :user/topic-ids #{}
               :user/availability {}
               :user/email-validated? false

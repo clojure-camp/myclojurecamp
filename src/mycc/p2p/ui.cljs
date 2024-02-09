@@ -37,6 +37,18 @@
                :on-change (fn [e]
                             (mod/dispatch [:set-user-value!
                                            :user/max-pair-per-week
+                                           (js/parseInt (.. e -target -value) 10)]))}]]
+
+   [ui/row
+    {:title "Max pairings with same person in a week"
+     :info "The algorithm will try to maximize the variety of partners you pair with, but may still pair you several times with the same person. This setting lets you limit the maximum number of times you will be scheduled with the same person in a given week."}
+    [ui/input {:type "number"
+               :value @(mod/subscribe [:user-profile-value :user/max-pair-same-user])
+               :min 1
+               :max 50
+               :on-change (fn [e]
+                            (mod/dispatch [:set-user-value!
+                                           :user/max-pair-same-user
                                            (js/parseInt (.. e -target -value) 10)]))}]]])
 
 (defn next-day-of-week
