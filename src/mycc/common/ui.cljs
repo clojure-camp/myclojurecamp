@@ -9,13 +9,13 @@
   [:div.info {:tw "relative group"}
    [fa/fa-question-circle-solid
     {:tw "w-4 h-4 text-#ccc"}]
-   [:div.popover {:tw "hidden group-hover:block border absolute bg-white p-2 w-100vw left-1em top-0 m-w-30em font-light"}
+   [:div.popover {:tw "hidden group-hover:block border absolute bg-white p-2 left-1em top-0 min-w-18em font-light"}
     content]])
 
 (defn row
-  [{:keys [title subtitle info featured?]} content]
+  [{:keys [title subtitle info featured?]} & content]
   [:div.row
-   {:tw ["w-full max-w-100vw py-4 px-4 space-y-3 overflow-y-auto"
+   {:tw ["w-full max-w-100vw py-4 px-4 space-y-3 overflow-y-auto overflow-x-auto"
          (if featured?
            "border border-4 border-blue-200 p-4"
            "border-b-1")]}
@@ -29,8 +29,27 @@
       (when subtitle
         [:p {:tw "font-light"}
          subtitle])])
-   [:div.content {:tw "font-light"}
-    content]])
+   (into [:div.content {:tw "font-light space-y-3"}]
+         content)])
+
+(defn checkbox-list
+  [{:keys [value choices on-change direction]}]
+  {:pre [(set? value)]}
+  [:div.checkbox-list {:tw ["flex gap-3 flex-wrap"
+                            (when (= direction :vertical)
+                              "flex-col")]}
+   (for [[choice-value choice-label] choices]
+     ^{:key (or choice-value "nil")}
+     [:label {:tw "cursor-pointer flex gap-1"}
+      [:input {:type "checkbox"
+               :checked (contains? value choice-value)
+               :on-change (fn [_]
+                            (on-change ((if (contains? value choice-value)
+                                          disj
+                                          conj)
+                                        value
+                                        choice-value)))}]
+      [:span.label choice-label]])])
 
 (defn radio-list
   [{:keys [value choices on-change direction]}]
@@ -49,7 +68,9 @@
 (defn input
   [opts]
   [:input (assoc opts
-            :tw "p-1 border border-gray-300 font-light")])
+            :tw ["p-1 border border-gray-300 font-light"
+                 (when (:disabled opts)
+                   "bg-gray-200")])])
 
 (defn textarea
   [opts]
@@ -57,9 +78,16 @@
    (assoc opts
      :tw "p-1 border border-gray-300 font-light w-full h-5em")])
 
-(defn button [opts content]
+(defn button
+  [opts content]
   [:button (assoc opts
-             :tw "text-white font-light px-2 py-1 rounded cursor-pointer bg-clojure-blue hover:bg-clojure-blue-darker")
+             :tw "text-white font-light px-2 py-1 rounded cursor-pointer bg-clojure-blue hover:bg-clojure-blue-darker border border-clojure-blue-darker")
+   content])
+
+(defn secondary-button
+  [opts content]
+  [:button (assoc opts
+             :tw "text-black font-light px-2 py-1 rounded cursor-pointer bg-gray-200 hover:bg-gray-300 text-xs border border-gray-400")
    content])
 
 (defn warning

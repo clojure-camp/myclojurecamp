@@ -26,6 +26,7 @@
         [prefix attr modifier]
         [["bg-" :background-color ""]
          ["text-" :color ""]
+         ["border-" :border-color ""]
          ["hover\\:bg-" :background-color ":hover"]
          ["hover\\:text-" :color ":hover"]]]
     (str "." prefix (name label) modifier " {"

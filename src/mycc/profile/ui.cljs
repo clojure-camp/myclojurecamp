@@ -1,5 +1,6 @@
 (ns mycc.profile.ui
   (:require
+    [clojure.string :as string]
     [mycc.common.ui :as ui]
     [modulo.api :as mod]))
 
@@ -39,6 +40,40 @@
                   (mod/dispatch
                     [:debounced-set-user-value! :user/discord-user (.. e -target -value)]))}]])
 
+(defn language-views []
+  [:<>
+   (doall
+     (for [[k title info]
+           [[:user/primary-languages
+             "Primary Languages"
+             "Languages you can speak, listen and write fluently."]
+            [:user/secondary-languages
+             "Secondary Languages"
+             "Languages you can get by with, but prefer your primary languages."]]]
+       (let [value (or @(mod/subscribe [:user-profile-value k]) #{})]
+         ^{:key k}
+         [ui/row {:title title
+                  :info info}
+          [ui/checkbox-list
+           {:value value
+            :choices (->> (into #{:language/mandarin :language/spanish :language/english
+                                  :language/hindi :language/portuguese :language/russian
+                                  :language/japanese :language/french :language/polish
+                                  :language/bengali :language/arabic}
+                                ;; user might have added custom languages
+                                value)
+                          sort
+                          (map (fn [id]
+                                 [id (string/capitalize (name id))])))
+            :on-change (fn [value]
+                         (mod/dispatch [:set-user-value! k value]))}]
+          [ui/secondary-button
+           {:on-click (fn []
+                        (let [in (js/prompt "Language name:")
+                              language (keyword "language" (string/lower-case (string/replace in #"\W" "")))]
+                          (mod/dispatch [:set-user-value! k (conj value language)])))}
+           "+ Language"]])))])
+
 (defn learner-questions-view []
   (when (= :role/student @(mod/subscribe [:user-profile-value :user/role]))
     [:<>
@@ -75,6 +110,7 @@
    [role-view]
    [ui/row {}
     [:p {:tw "italic"} "The rest of these are optional:"]]
+   [language-views]
    [github-username-view]
    [discord-username-view]
    [learner-questions-view]])

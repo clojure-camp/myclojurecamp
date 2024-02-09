@@ -43,6 +43,8 @@
     [:and :int [:>= 1] [:<= (* 24 7)]]]
    [:user/max-pair-same-user
     [:and :int [:>= 1] [:<= 50]]]
+   [:user/primary-languages [:set :keyword]]
+   [:user/secondary-languages [:set :keyword]]
    [:user/time-zone
     [:and
      :string
