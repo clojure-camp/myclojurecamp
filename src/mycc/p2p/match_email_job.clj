@@ -235,11 +235,14 @@
              [:span.guest
               (:user/name partner)
               " (" (:user/email partner) ")"]
+             (when (seq (->topics event))
+               (list
+                 [:br]
+                 "Potential Topics: "
+                 (->topics event)))
              [:br]
-             "Topics: "
-             (->topics event)
-             [:br]
-             [:a {:href (util/->event-url event)} "Meeting Link"]])
+             "Where: Discord"
+             #_[:a {:href (util/->event-url event)} "Meeting Link"]])
            [:p "If you can't make a session, be sure to let your partner know!"]
            [:p "- Clojure Camp Bot"]]}))
 
