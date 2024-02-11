@@ -31,19 +31,25 @@
 
 (defn header-view []
   [:div.header
-   [:img.logomark
-    {:src "/logomark.svg"
-     :alt "Logo of Clojure Camp. A star constellation in the shape of alambda."}]
+   ;; wrap both logomark and log-out button in same fixed-with value
+   ;; so that logotype is centered
+   [:div {:tw "w-2em"}
+    [:img.logomark
+     {:src "/logomark.svg"
+      :alt "Logo of Clojure Camp. A star constellation in the shape of a lambda."}]]
    [:div.gap]
    [:img.logotype
     {:src "/logotype.svg"
      :alt "Clojure Camp"}]
    [:div.gap]
-   [:button.log-out
-    {:tw "cursor-pointer"
-     :on-click (fn []
-                 (dispatch [:log-out!]))}
-    "Log Out"]])
+   [:div {:tw "w-2em text-right"}
+    [:button.log-out
+     {:tw "cursor-pointer"
+      :title "Log Out"
+      :on-click (fn []
+                  (when (js/confirm "Are you sure you want to log out?")
+                    (dispatch [:log-out!])))}
+     [fa/fa-sign-out-alt-solid {:tw "w-1em h-1em"}]]]])
 
 (defn nav-view []
   [:div.nav

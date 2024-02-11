@@ -96,9 +96,7 @@
        :width "100vw"}
 
       [:>img.logomark
-       {:height "2em"
-        ;; to balance out log-out button
-        :padding-right "3em"}]
+       {:height "2em"}]
 
       [:>img.logotype
        {:height "1.5em"}]]
