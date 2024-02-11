@@ -74,22 +74,54 @@
                           (mod/dispatch [:set-user-value! k (conj value language)])))}
            "+ Language"]])))])
 
+;; time-zone
+;;  (automatic)
+
+;; programming level
+;;   beginner
+;;   intermediate
+
+;; 0  I'm just starting out
+;; 1  I can write a simple program - ex. counting characters, sum a list
+;; 2  I can write a multi-step program - ex. ~Advent of Code 1-5
+;; 3  I have worked on or written a 1000+ line non-trivial program
+;; 4  i have built clojure applications, a non-trivial library, worked a FT clojure job for multiple years
+
+;; clojure programming level
+;;   beginner - just starting
+;;   intermediate
+;;   intermediate 2
+;;   expert - i have built clojure applications, a non-trivial library, worked a FT clojure job for multiple years;  I could write a clojure application that:
+
+;; why learning clojure?
+;;   career/job
+;;   .
+;;   50/50
+;;   .
+;;   personal/hobby
+
 (defn topics-view []
   [ui/row
    {:title "Learning Topics"
     :info [:div
            [:div "Learners - Topics you're interested in learning. Feel free to add your own."]
            [:div "Mentors - Topics you have experience with."]]}
-   [ui/checkbox-list
-    {:value @(mod/subscribe [:user-profile-value :user/topic-ids])
-     :choices (->>  @(mod/subscribe [:topics])
-                   (sort-by :topic/name)
-                   (map (fn [{:topic/keys [id name]}]
-                          [id name])))
-     :on-change (fn [_value action changed-value]
-                  (case action
-                    :add (mod/dispatch [:add-user-topic! changed-value])
-                    :remove (mod/dispatch [:remove-user-topic! changed-value])))}]
+   (for [[category topics] (->> @(mod/subscribe [:topics])
+                                (group-by :topic/category)
+                                sort
+                                reverse)]
+     [:section {:tw "space-y-3"}
+      [:h1 {:tw "italic"} (or category "other")]
+      [ui/checkbox-list
+       {:value @(mod/subscribe [:user-profile-value :user/topic-ids])
+        :choices (->> topics
+                      (sort-by :topic/name)
+                      (map (fn [{:topic/keys [id name]}]
+                             [id name])))
+        :on-change (fn [_value action changed-value]
+                     (case action
+                       :add (mod/dispatch [:add-user-topic! changed-value])
+                       :remove (mod/dispatch [:remove-user-topic! changed-value])))}]])
    [ui/secondary-button
     {:on-click (fn [_]
                  (let [value (js/prompt "Enter a new topic:")]
@@ -131,12 +163,12 @@
      [:div "FYI, your profile info will be shared with the Clojure Camp community."]]]
    [name-view]
    [role-view]
+   [discord-username-view]
    [ui/row {}
     [:p {:tw "italic"} "The rest of these are optional:"]]
    [language-views]
    [topics-view]
    [github-username-view]
-   [discord-username-view]
    [learner-questions-view]])
 
 (mod/register-page!
