@@ -15,24 +15,6 @@
      ["0%" {:transform "rotate(0deg)"}]
      ["100%" {:transform "rotate(359deg)"}])
 
-   [:.ajax-status
-    {:position "fixed"
-     :top "1em"
-     :left "3em"
-     :width "4em"}
-
-    [:>svg
-     {:width "1em"
-      :height "1em"}]
-
-    [:&.loading>svg
-     {:animation "spin 1s infinite linear"
-      :color "white"}]
-
-    [:&.normal>svg
-     {:animation "fade-out 1s forwards ease-in-out"
-      :color "white"}]]
-
    [:body
     {:font-family "Roboto, sans-serif"
      :margin 0}]

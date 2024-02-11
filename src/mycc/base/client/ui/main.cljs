@@ -14,10 +14,20 @@
     content]])
 
 (defn ajax-status-view []
-  [:div.ajax-status {:class (if (empty? @state/ajax-state) "normal" "loading")}
-   (if (empty? @state/ajax-state)
-     [fa/fa-check-circle-solid]
-     [fa/fa-circle-notch-solid])])
+  (let [saved? (empty? @state/ajax-state)]
+    [:div.ajax-status
+     {:tw "pointer-events-none fixed inset-x-0 bottom-0.5em flex justify-center"
+      :style (when saved?
+               {:animation "fade-out 2s forwards ease-in-out"})}
+     [:div {:tw "text-white bg-clojure-camp-blue-lighter rounded-full p-1 pr-3 flex gap-1 items-center"}
+      (if saved?
+        [:<>
+         [fa/fa-check-circle-solid
+          {:tw "w-1em h-1em"}]
+         "Saved"]
+        [fa/fa-circle-notch-solid
+         {:style {:animation "spin 1s infinite linear"}
+          :tw "w-1em h-1em"}])]]))
 
 (defn header-view []
   [:div.header

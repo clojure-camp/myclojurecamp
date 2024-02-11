@@ -19,6 +19,7 @@
    :clojure-blue "#567ED2"
    :clojure-blue-darker "#396CD5"
    :clojure-camp-blue "#181742"
+   :clojure-camp-blue-lighter "#34318e"
    :light-text "#bbb"})
 
 (defn tailwind-color-styles []

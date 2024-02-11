@@ -14,10 +14,14 @@
 
 (reg-fx :ajax
   (fn [opts]
-    (let [request-id (gensym "request")]
-     (swap! ajax-state assoc request-id :request.state/in-progress)
+    (let [request-id (gensym "request")
+          ;; only tracking side-effectful ajax
+          track? (not= :get (:method opts))]
+      (when track?
+        (swap! ajax-state assoc request-id :request.state/in-progress))
      (ajax/request (assoc opts :on-success (fn [data]
-                                            (swap! ajax-state dissoc request-id)
+                                             (when track?
+                                               (swap! ajax-state dissoc request-id))
                                             (when (opts :on-success)
                                              ((opts :on-success) data))))))))
 
