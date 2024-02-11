@@ -234,6 +234,7 @@
              "With: "
              [:span.guest
               (:user/name partner)
+              " (" (name (:user/role partner)) ") "
               " (" (:user/email partner) ")"]
              (when (seq (->topics event))
                (list
