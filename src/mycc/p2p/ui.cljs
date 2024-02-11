@@ -80,37 +80,6 @@
                                                  :day "numeric"})
            date))
 
-(defn topics-view []
-  [ui/row
-   {:title "Topics to Pair On"
-    :info "Topics you'd like to pair on. You will be matched so that you have at least one topic in common. The number beside each topic indicates how many other people have that topic selected."}
-   (let [user-topic-ids @(mod/subscribe [:user-profile-value :user/topic-ids])]
-     [:div.topics-section
-      (when (and (empty? user-topic-ids)
-              @(mod/subscribe [:user-profile-value :user/pair-next-week?]))
-        [ui/warning {}
-         "You need to select at least one topic to be matched with someone."])
-      [:div.topics
-       (for [topic (sort-by :topic/name @(mod/subscribe [:topics]))
-             :let [checked? (contains? user-topic-ids (:topic/id topic))]]
-         ^{:key (:topic/id topic)}
-         [:label.topic
-          [:input {:type "checkbox"
-                   :checked checked?
-                   :on-change
-                   (fn []
-                     (if checked?
-                       (mod/dispatch [:remove-user-topic! (:topic/id topic)])
-                       (mod/dispatch [:add-user-topic! (:topic/id topic)])))}]
-          [:span.name (:topic/name topic)] " "
-          [:span.count (:topic/user-count topic)]])
-       [ui/button
-        {:on-click (fn [_]
-                     (let [value (js/prompt "Enter a new topic:")]
-                       (when (not (string/blank? value))
-                         (mod/dispatch [:new-topic! (string/trim value)]))))}
-        "+ Add Topic"]]])])
-
 (defn pair-with-view []
   (when (= :role/student @(mod/subscribe [:user-profile-value :user/role]))
     [ui/row
@@ -277,9 +246,6 @@
      [:<>
       [opt-in-view]
       [pair-with-view]
-      ;; disabling topics selection for now
-      ;; (it's hardcoded to "clojure-camp" in the backend)
-      #_[topics-view]
       [availability-view]
       [time-zone-view]
       [max-limit-preferences-view]
@@ -293,5 +259,4 @@
    :page/view #'p2p-page-view
    :page/styles styles/styles
    :page/on-enter! (fn []
-                     (mod/dispatch [:p2p/fetch-topics!])
                      (mod/dispatch [:p2p/fetch-events!]))})

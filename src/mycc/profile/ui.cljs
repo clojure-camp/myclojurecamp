@@ -74,6 +74,29 @@
                           (mod/dispatch [:set-user-value! k (conj value language)])))}
            "+ Language"]])))])
 
+(defn topics-view []
+  [ui/row
+   {:title "Learning Topics"
+    :info [:div
+           [:div "Learners - Topics you're interested in learning. Feel free to add your own."]
+           [:div "Mentors - Topics you have experience with."]]}
+   [ui/checkbox-list
+    {:value @(mod/subscribe [:user-profile-value :user/topic-ids])
+     :choices (->>  @(mod/subscribe [:topics])
+                   (sort-by :topic/name)
+                   (map (fn [{:topic/keys [id name]}]
+                          [id name])))
+     :on-change (fn [_value action changed-value]
+                  (case action
+                    :add (mod/dispatch [:add-user-topic! changed-value])
+                    :remove (mod/dispatch [:remove-user-topic! changed-value])))}]
+   [ui/secondary-button
+    {:on-click (fn [_]
+                 (let [value (js/prompt "Enter a new topic:")]
+                   (when (not (string/blank? value))
+                     (mod/dispatch [:new-topic! (string/trim value)]))))}
+    "+ Add Topic"]])
+
 (defn learner-questions-view []
   (when (= :role/student @(mod/subscribe [:user-profile-value :user/role]))
     [:<>
@@ -111,6 +134,7 @@
    [ui/row {}
     [:p {:tw "italic"} "The rest of these are optional:"]]
    [language-views]
+   [topics-view]
    [github-username-view]
    [discord-username-view]
    [learner-questions-view]])
@@ -121,4 +145,5 @@
    :page/view #'profile-page-view
    :page/nav-label "Profile"
    :page/styles [:.page.profile]
-   :page/on-enter! (fn [])})
+   :page/on-enter! (fn []
+                     (mod/dispatch [:p2p/fetch-topics!]))})

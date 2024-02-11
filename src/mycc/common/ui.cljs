@@ -48,7 +48,11 @@
                                           disj
                                           conj)
                                         value
-                                        choice-value)))}]
+                                        choice-value)
+                                       (if (contains? value choice-value)
+                                         :remove
+                                         :add)
+                                       choice-value))}]
       [:span.label choice-label]])])
 
 (defn radio-list
