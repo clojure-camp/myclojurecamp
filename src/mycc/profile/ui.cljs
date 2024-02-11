@@ -110,6 +110,7 @@
                                 (group-by :topic/category)
                                 sort
                                 reverse)]
+     ^{:key (or category "other")}
      [:section {:tw "space-y-3"}
       [:h1 {:tw "italic"} (or category "other")]
       [ui/checkbox-list
