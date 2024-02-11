@@ -21,6 +21,13 @@
     [:maybe NonBlankString]]
    [:user/discord-user
     [:maybe NonBlankString]]
+   [:user/profile-motivation
+    [:maybe [:enum
+             :motivation/job
+             :motivation/job-leaning
+             :motivation/balanced
+             :motivation/hobby-leaning
+             :motivation/hobby]]]
    [:user/profile-why-clojure
     [:maybe NonBlankString]]
    [:user/profile-programming-experience

@@ -35,7 +35,7 @@
 (defn checkbox-list
   [{:keys [value choices on-change direction]}]
   {:pre [(set? value)]}
-  [:div.checkbox-list {:tw ["flex gap-3 flex-wrap"
+  [:div.checkbox-list {:tw ["flex gap-y-3 flex-wrap gap-x-4"
                             (when (= direction :vertical)
                               "flex-col")]}
    (for [[choice-value choice-label] choices]
@@ -57,12 +57,12 @@
 
 (defn radio-list
   [{:keys [value choices on-change direction]}]
-  [:div.radio-list {:tw ["flex gap-3"
+  [:div.radio-list {:tw ["flex gap-y-3 gap-x-4"
                          (when (= direction :vertical)
                            "flex-col")]}
    (for [[choice-value choice-label] choices]
      ^{:key (or choice-value "nil")}
-     [:label {:tw "cursor-pointer flex gap-1"}
+     [:label {:tw "cursor-pointer flex gap-1 items-center"}
       [:input {:type "radio"
                :checked (= value choice-value)
                :on-change (fn [_]

@@ -74,9 +74,6 @@
                           (mod/dispatch [:set-user-value! k (conj value language)])))}
            "+ Language"]])))])
 
-;; time-zone
-;;  (automatic)
-
 ;; programming level
 ;;   beginner
 ;;   intermediate
@@ -130,6 +127,20 @@
                      (mod/dispatch [:new-topic! (string/trim value)]))))}
     "+ Add Topic"]])
 
+(defn learner-motivation-view []
+  (when (= :role/student @(mod/subscribe [:user-profile-value :user/role]))
+    [ui/row {:title "Motivation"
+             :subtitle "Are you learning Clojure for career/job reasons (ex. to get a software development job, get better at your job...), or more for hobby/personal-interest reasons (ex. to build personal projects, contribute to open-source...)"}
+     [ui/radio-list
+      {:value @(mod/subscribe [:user-profile-value :user/profile-motivation])
+       :choices [[:motivation/job "Just Job"]
+                 [:motivation/job-leaning "Mostly Job"]
+                 [:motivation/balanced "50/50"]
+                 [:motivation/hobby-leaning "Mostly hobby"]
+                 [:motivation/hobby "Just Hobby"]]
+       :on-change (fn [value]
+                    (mod/dispatch [:set-user-value! :user/profile-motivation value]))}]]))
+
 (defn learner-questions-view []
   (when (= :role/student @(mod/subscribe [:user-profile-value :user/role]))
     [:<>
@@ -170,6 +181,7 @@
    [language-views]
    [topics-view]
    [github-username-view]
+   [learner-motivation-view]
    [learner-questions-view]])
 
 (mod/register-page!
