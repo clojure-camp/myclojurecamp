@@ -198,6 +198,7 @@
    [name-view]
    [role-view]
    [discord-username-view]
+   #_[github-username-view]
    [ui/row {}
     [:p {:tw "italic"} "The rest of these are optional, but help us plan content and events:"]]
    [language-views]
