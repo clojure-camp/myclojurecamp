@@ -28,10 +28,14 @@
              :motivation/balanced
              :motivation/hobby-leaning
              :motivation/hobby]]]
-   [:user/profile-why-clojure
-    [:maybe NonBlankString]]
-   [:user/profile-programming-experience
-    [:maybe NonBlankString]]
+   [:user/profile-experience-programming
+    [:maybe [:and :int [:>= 0] [:<= 3]]]]
+   [:user/profile-experience-clojure
+    [:maybe [:and :int [:>= 0] [:<= 3]]]]
+   [:user/profile-experience-programming-example
+    [:maybe [:and :int [:>= 0] [:<= 2]]]]
+   [:user/profile-experience-clojure-example
+    [:maybe [:and :int [:>= 0] [:<= 2]]]]
    [:user/profile-short-term-milestone
     [:maybe NonBlankString]]
    [:user/profile-long-term-milestone

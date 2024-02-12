@@ -74,52 +74,30 @@
                           (mod/dispatch [:set-user-value! k (conj value language)])))}
            "+ Language"]])))])
 
-;; programming level
-;;   beginner
-;;   intermediate
-
-;; 0  I'm just starting out
-;; 1  I can write a simple program - ex. counting characters, sum a list
-;; 2  I can write a multi-step program - ex. ~Advent of Code 1-5
-;; 3  I have worked on or written a 1000+ line non-trivial program
-;; 4  i have built clojure applications, a non-trivial library, worked a FT clojure job for multiple years
-
-;; clojure programming level
-;;   beginner - just starting
-;;   intermediate
-;;   intermediate 2
-;;   expert - i have built clojure applications, a non-trivial library, worked a FT clojure job for multiple years;  I could write a clojure application that:
-
-;; why learning clojure?
-;;   career/job
-;;   .
-;;   50/50
-;;   .
-;;   personal/hobby
-
 (defn topics-view []
   [ui/row
    {:title "Learning Topics"
     :info [:div
            [:div "Learners - Topics you're interested in learning. Feel free to add your own."]
            [:div "Mentors - Topics you have experience with."]]}
-   (for [[category topics] (->> @(mod/subscribe [:topics])
-                                (group-by :topic/category)
-                                sort
-                                reverse)]
-     ^{:key (or category "other")}
-     [:section {:tw "space-y-3"}
-      [:h1 {:tw "italic"} (or category "other")]
-      [ui/checkbox-list
-       {:value @(mod/subscribe [:user-profile-value :user/topic-ids])
-        :choices (->> topics
-                      (sort-by :topic/name)
-                      (map (fn [{:topic/keys [id name]}]
-                             [id name])))
-        :on-change (fn [_value action changed-value]
-                     (case action
-                       :add (mod/dispatch [:add-user-topic! changed-value])
-                       :remove (mod/dispatch [:remove-user-topic! changed-value])))}]])
+   (doall
+     (for [[category topics] (->> @(mod/subscribe [:topics])
+                                  (group-by :topic/category)
+                                  sort
+                                  reverse)]
+       ^{:key (or category "other")}
+       [:section {:tw "space-y-3"}
+        [:h1 {:tw "italic"} (or category "other")]
+        [ui/checkbox-list
+         {:value @(mod/subscribe [:user-profile-value :user/topic-ids])
+          :choices (->> topics
+                        (sort-by :topic/name)
+                        (map (fn [{:topic/keys [id name]}]
+                               [id name])))
+          :on-change (fn [_value action changed-value]
+                       (case action
+                         :add (mod/dispatch [:add-user-topic! changed-value])
+                         :remove (mod/dispatch [:remove-user-topic! changed-value])))}]]))
    [ui/secondary-button
     {:on-click (fn [_]
                  (let [value (js/prompt "Enter a new topic:")]
@@ -127,36 +105,80 @@
                      (mod/dispatch [:new-topic! (string/trim value)]))))}
     "+ Add Topic"]])
 
-(defn learner-motivation-view []
-  (when (= :role/student @(mod/subscribe [:user-profile-value :user/role]))
-    [ui/row {:title "Motivation"
-             :subtitle "Are you learning Clojure for career/job reasons (ex. to get a software development job, get better at your job...), or more for hobby/personal-interest reasons (ex. to build personal projects, contribute to open-source...)"}
-     [ui/radio-list
-      {:value @(mod/subscribe [:user-profile-value :user/profile-motivation])
-       :choices [[:motivation/job "Just Job"]
-                 [:motivation/job-leaning "Mostly Job"]
-                 [:motivation/balanced "50/50"]
-                 [:motivation/hobby-leaning "Mostly hobby"]
-                 [:motivation/hobby "Just Hobby"]]
-       :on-change (fn [value]
-                    (mod/dispatch [:set-user-value! :user/profile-motivation value]))}]]))
-
 (defn learner-questions-view []
   (when (= :role/student @(mod/subscribe [:user-profile-value :user/role]))
     [:<>
+     [ui/row {:title "Motivation"
+              :subtitle "Are you learning Clojure for career/job reasons (ex. to get a software development job, get better at your job...), or more for hobby/personal-interest reasons (ex. to build personal projects, contribute to open-source...)"}
+      [ui/radio-list
+       {:value @(mod/subscribe [:user-profile-value :user/profile-motivation])
+        :choices [[:motivation/job "Just Job"]
+                  [:motivation/job-leaning "Mostly Job"]
+                  [:motivation/balanced "50/50"]
+                  [:motivation/hobby-leaning "Mostly hobby"]
+                  [:motivation/hobby "Just Hobby"]]
+        :on-change (fn [value]
+                     (mod/dispatch [:set-user-value! :user/profile-motivation value]))}]]
+
+     [ui/row {:title "General Programming Experience"
+              :subtitle "Which of these statements best describes your experience with programming in general?"}
+      [ui/radio-list
+       {:value @(mod/subscribe [:user-profile-value :user/profile-experience-programming])
+        :choices [[0 "I have none"]
+                  [1 "I have written a few lines now and again"]
+                  [2 "I have written programs for my own use that are a couple of pages long"]
+                  [3 "I have written and maintained larger pieces of software"]]
+        :direction :vertical
+        :on-change (fn [value]
+                     (mod/dispatch [:set-user-value! :user/profile-experience-programming value]))}]]
+
+     (when (< 1 @(mod/subscribe [:user-profile-value :user/profile-experience-programming]))
+       [ui/row {:title "General Programming Experience - Follow Up"
+                :subtitle [:<>
+                           "Which of these statements best describes how easily you could write a program to do the following (in any language):"
+                           [:div {:tw "mt-1 italic"} "A command-line program to identify all airports more than 4 hops away from a given airport. You are provided an API that returns airports and flights between them."]]}
+        [ui/radio-list
+         {:value @(mod/subscribe [:user-profile-value :user/profile-experience-programming-example])
+          :choices [[0 "I wouldn’t know where to start."]
+                    [1 "I could struggle through by trial and error, with a lot of web searches or ChatGPT."]
+                    [2 "I could do it quickly with little or no use of external help."]]
+          :direction :vertical
+          :on-change (fn [value]
+                       (mod/dispatch [:set-user-value! :user/profile-experience-programming-example value]))}]])
+
+     [ui/row {:title "Clojure Programming Experience"
+              :subtitle [:span "Which of these statements best describes your experience with programming " [:em "in Clojure or Clojurescript?"]]}
+      [ui/radio-list
+       {:value @(mod/subscribe [:user-profile-value :user/profile-experience-clojure])
+        :choices [[0 "I have none"]
+                  [1 "I have written a few lines now and again"]
+                  [2 "I have written programs for my own use that are a couple of pages long"]
+                  [3 "I have written and maintained larger pieces of software"]]
+        :direction :vertical
+        :on-change (fn [value]
+                     (mod/dispatch [:set-user-value! :user/profile-experience-clojure value]))}]]
+
+     (when (< 1 @(mod/subscribe [:user-profile-value :user/profile-experience-clojure]))
+       [ui/row {:title "Clojure Programming Experience - Follow Up"
+                :subtitle [:<>
+                           "Which of these statements best describes how easily you could write a program to do the following (in Clojure):"
+                           [:div {:tw "mt-1 italic"} "A command-line program to identify all airports more than 4 hops away from a given airport. You are provided an API that returns airports and flights between them."]]}
+        [ui/radio-list
+         {:value @(mod/subscribe [:user-profile-value :user/profile-experience-clojure-example])
+          :choices [[0 "I wouldn’t know where to start."]
+                    [1 "I could struggle through by trial and error, with a lot of web searches or ChatGPT."]
+                    [2 "I could do it quickly with little or no use of external help."]]
+          :direction :vertical
+          :on-change (fn [value]
+                       (mod/dispatch [:set-user-value! :user/profile-experience-clojure-example value]))}]])
+
      (doall
        (for [[title subtitle k]
-             [["Why are you learning Clojure?"
-               "What is your primary motivation for learning Clojure? Ex. to get a job doing X, to learn to program, to build a website for yourself, etc."
-               :user/profile-why-clojure]
-              ["What is your prior experience with programming and programming in Clojure?"
-               nil
-               :user/profile-programming-experience]
-              ["What is your next learning goal?"
-               "What are you working on right now? What are you trying to learn? Ex. how to use reduce"
+             [["What is your next learning goal?"
+               "What are you working on right now? What are you trying to learn? Ex. how to use reduce, how to allow users to log in. (You can meet with a mentor to clarify this.)"
                :user/profile-short-term-milestone]
               ["What is your next major learning goal?"
-               "What are you working towards? Ex. creating a website"
+               "What are you working towards? Ex. finish an Advent-of-Code Day 1 on my own, create an app for playing a simple game. (You can meet with a mentor to clarify this.)"
                :user/profile-long-term-milestone]]]
          ^{:key k}
          [ui/row {:title title
@@ -177,11 +199,9 @@
    [role-view]
    [discord-username-view]
    [ui/row {}
-    [:p {:tw "italic"} "The rest of these are optional:"]]
+    [:p {:tw "italic"} "The rest of these are optional, but help us plan content and events:"]]
    [language-views]
    [topics-view]
-   [github-username-view]
-   [learner-motivation-view]
    [learner-questions-view]])
 
 (mod/register-page!

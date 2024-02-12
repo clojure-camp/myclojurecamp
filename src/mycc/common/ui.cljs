@@ -27,7 +27,7 @@
          (when info
            [popover-view info])])
       (when subtitle
-        [:p {:tw "font-light"}
+        [:div {:tw "font-light mt-1"}
          subtitle])])
    (into [:div.content {:tw "font-light space-y-3"}]
          content)])
@@ -62,7 +62,10 @@
                            "flex-col")]}
    (for [[choice-value choice-label] choices]
      ^{:key (or choice-value "nil")}
-     [:label {:tw "cursor-pointer flex gap-1 items-center"}
+     [:label {:tw ["cursor-pointer flex gap-1"
+                   (if (= direction :vertical)
+                     "items-baseline"
+                     "items-center")]}
       [:input {:type "radio"
                :checked (= value choice-value)
                :on-change (fn [_]
