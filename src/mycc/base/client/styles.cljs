@@ -70,6 +70,7 @@
         :margin "0.5em 0"
         :padding "0.25em"
         :border "none"
+        :color "black"
         :box-sizing "border-box"
         :border-radius "0.2rem"}]
 
