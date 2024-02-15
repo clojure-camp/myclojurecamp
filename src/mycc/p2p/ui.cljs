@@ -65,7 +65,7 @@
         delta-days (get (zipmap (range 0 7)
                                 (take 7 (drop (- 7 target-day-of-week)
                                               (cycle (range 7 0 -1)))))
-                        now-day-of-week)
+                     now-day-of-week)
         new-date (doto (js/Date. (.valueOf now))
                    (.setDate (+ delta-days (.getDate now))))]
     new-date))
@@ -162,9 +162,13 @@
    {:title "Time Zone"
     :info "Your time-zone. If the Auto-Detection is incorrect, email raf@clojure.camp"}
    [:label {:tw "flex gap-2"}
-    [ui/input {:type "text"
-               :disabled true
-               :value @(mod/subscribe [:user-profile-value :user/time-zone])}]
+    [:select {:tw "p-1 bg-white border border-gray-300 font-light"
+              :value @(mod/subscribe [:user-profile-value :user/time-zone])
+              :on-change (fn [e]
+                           (mod/dispatch [:set-user-value! :user/time-zone (.. e -target -value)]))}
+     (for [timezone (.supportedValuesOf js/Intl "timeZone")]
+       ^{:key timezone}
+       [:option {:value timezone} timezone])]
     [ui/button
      {:on-click (fn []
                   (mod/dispatch
@@ -190,31 +194,31 @@
            date))
 
 (defn event-view [heading event]
- (let [guest-name (:user/name (:event/other-guest event))
-       other-guest-flagged? (contains? (:event/flagged-guest-ids event)
-                                       (:user/id (:event/other-guest event)))]
-   [:tr.event {:class (if (< (js/Date.) (:event/at event))
-                        "future"
-                        "past")}
-    [:th heading]
-    [:td
-     [:span.at (format-date-2 (:event/at event))]
-     " with "
-     [:span.other-guest (:user/name (:event/other-guest event))]]
-    [:td
-     [:div.actions
-      [:a.link {:href (str "mailto:" (:user/email (:event/other-guest event)))}
-       [fa/fa-envelope-solid]]
-      [:a.link {:href (util/->event-url event)}
-       [fa/fa-video-solid]]
-      [:button.flag
-       {:class (when other-guest-flagged? "flagged")
-        :on-click (fn []
-                    (if other-guest-flagged?
-                      (mod/dispatch [:flag-event-guest! (:event/id event) false])
-                      (when (js/confirm (str "Are you sure you want to report " guest-name " for not showing up?"))
-                       (mod/dispatch [:flag-event-guest! (:event/id event) true]))))}
-       [fa/fa-flag-solid]]]]]))
+  (let [guest-name (:user/name (:event/other-guest event))
+        other-guest-flagged? (contains? (:event/flagged-guest-ids event)
+                                        (:user/id (:event/other-guest event)))]
+    [:tr.event {:class (if (< (js/Date.) (:event/at event))
+                         "future"
+                         "past")}
+     [:th heading]
+     [:td
+      [:span.at (format-date-2 (:event/at event))]
+      " with "
+      [:span.other-guest (:user/name (:event/other-guest event))]]
+     [:td
+      [:div.actions
+       [:a.link {:href (str "mailto:" (:user/email (:event/other-guest event)))}
+        [fa/fa-envelope-solid]]
+       [:a.link {:href (util/->event-url event)}
+        [fa/fa-video-solid]]
+       [:button.flag
+        {:class (when other-guest-flagged? "flagged")
+         :on-click (fn []
+                     (if other-guest-flagged?
+                       (mod/dispatch [:flag-event-guest! (:event/id event) false])
+                       (when (js/confirm (str "Are you sure you want to report " guest-name " for not showing up?"))
+                         (mod/dispatch [:flag-event-guest! (:event/id event) true]))))}
+        [fa/fa-flag-solid]]]]]))
 
 (defn events-view []
   [ui/row
