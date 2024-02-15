@@ -1,11 +1,11 @@
 (ns mycc.p2p.ui
   (:require
-    [clojure.string :as string]
-    [bloom.commons.fontawesome :as fa]
-    [modulo.api :as mod]
-    [mycc.common.ui :as ui]
-    [mycc.p2p.util :as util]
-    [mycc.p2p.styles :as styles]))
+   [bloom.commons.fontawesome :as fa]
+   [clojure.string :as string]
+   [modulo.api :as mod]
+   [mycc.common.ui :as ui]
+   [mycc.p2p.styles :as styles]
+   [mycc.p2p.util :as util]))
 
 (defn popover-view
   [content]
@@ -115,33 +115,33 @@
                [:div.date date]])))]]
       [:tbody
        (doall
-         (for [hour util/hours]
-           ^{:key hour}
-           [:tr
-            [:td.hour
-             hour]
-            (doall
-              (for [day util/days]
-                ^{:key day}
-                [:td
-                 (let [value (availability [day hour])]
-                   [:button
-                    {:class (case value
-                              :preferred "preferred"
-                              :available "available"
-                              nil "empty")
-                     :on-click (fn [_]
-                                 (mod/dispatch [:set-availability!
-                                                [day hour]
-                                                (case value
-                                                  :preferred nil
-                                                  :available :preferred
-                                                  nil :available)]))}
-                    [:div.wrapper
-                     (case value
-                       :preferred "P"
-                       :available "A"
-                       nil "")]])]))]))]])])
+        (for [hour util/hours]
+          ^{:key hour}
+          [:tr
+           [:td.hour
+            hour]
+           (doall
+            (for [day util/days]
+              ^{:key day}
+              [:td
+               (let [value (availability [day hour])]
+                 [:button
+                  {:class (case value
+                            :preferred "preferred"
+                            :available "available"
+                            nil "empty")
+                   :on-click (fn [_]
+                               (mod/dispatch [:set-availability!
+                                              [day hour]
+                                              (case value
+                                                :preferred nil
+                                                :available :preferred
+                                                nil :available)]))}
+                  [:div.wrapper
+                   (case value
+                     :preferred "P"
+                     :available "A"
+                     nil "")]])]))]))]])])
 
 (defn opt-in-view []
   [ui/row
@@ -162,13 +162,17 @@
    {:title "Time Zone"
     :info "Your time-zone. If the Auto-Detection is incorrect, email raf@clojure.camp"}
    [:label {:tw "flex gap-2"}
-    [ui/input {:type "text"
-               :disabled true
-               :value @(mod/subscribe [:user-profile-value :user/time-zone])}]
+    [:select {:tw "p-1 bg-white border border-gray-300 font-light"
+              :value @(mod/subscribe [:user-profile-value :user/time-zone])
+              :on-change (fn [e]
+                           (mod/dispatch [:set-user-value! :user/time-zone (.. e -target -value)]))}
+     (for [timezone (.supportedValuesOf js/Intl "timeZone")]
+       ^{:key timezone}
+       [:option {:value timezone} timezone])]
     [ui/button
      {:on-click (fn []
                   (mod/dispatch
-                    [:set-user-value! :user/time-zone (.. js/Intl DateTimeFormat resolvedOptions -timeZone)]))}
+                   [:set-user-value! :user/time-zone (.. js/Intl DateTimeFormat resolvedOptions -timeZone)]))}
      "Re-Auto-Detect"]]])
 
 (defn subscription-toggle-view []
@@ -190,31 +194,31 @@
            date))
 
 (defn event-view [heading event]
- (let [guest-name (:user/name (:event/other-guest event))
-       other-guest-flagged? (contains? (:event/flagged-guest-ids event)
-                                       (:user/id (:event/other-guest event)))]
-   [:tr.event {:class (if (< (js/Date.) (:event/at event))
-                        "future"
-                        "past")}
-    [:th heading]
-    [:td
-     [:span.at (format-date-2 (:event/at event))]
-     " with "
-     [:span.other-guest (:user/name (:event/other-guest event))]]
-    [:td
-     [:div.actions
-      [:a.link {:href (str "mailto:" (:user/email (:event/other-guest event)))}
-       [fa/fa-envelope-solid]]
-      [:a.link {:href (util/->event-url event)}
-       [fa/fa-video-solid]]
-      [:button.flag
-       {:class (when other-guest-flagged? "flagged")
-        :on-click (fn []
-                    (if other-guest-flagged?
-                      (mod/dispatch [:flag-event-guest! (:event/id event) false])
-                      (when (js/confirm (str "Are you sure you want to report " guest-name " for not showing up?"))
-                       (mod/dispatch [:flag-event-guest! (:event/id event) true]))))}
-       [fa/fa-flag-solid]]]]]))
+  (let [guest-name (:user/name (:event/other-guest event))
+        other-guest-flagged? (contains? (:event/flagged-guest-ids event)
+                                        (:user/id (:event/other-guest event)))]
+    [:tr.event {:class (if (< (js/Date.) (:event/at event))
+                         "future"
+                         "past")}
+     [:th heading]
+     [:td
+      [:span.at (format-date-2 (:event/at event))]
+      " with "
+      [:span.other-guest (:user/name (:event/other-guest event))]]
+     [:td
+      [:div.actions
+       [:a.link {:href (str "mailto:" (:user/email (:event/other-guest event)))}
+        [fa/fa-envelope-solid]]
+       [:a.link {:href (util/->event-url event)}
+        [fa/fa-video-solid]]
+       [:button.flag
+        {:class (when other-guest-flagged? "flagged")
+         :on-click (fn []
+                     (if other-guest-flagged?
+                       (mod/dispatch [:flag-event-guest! (:event/id event) false])
+                       (when (js/confirm (str "Are you sure you want to report " guest-name " for not showing up?"))
+                         (mod/dispatch [:flag-event-guest! (:event/id event) true]))))}
+        [fa/fa-flag-solid]]]]]))
 
 (defn events-view []
   [ui/row
@@ -253,10 +257,10 @@
    [subscription-toggle-view]])
 
 (mod/register-page!
-  {:page/id :page.id/p2p
-   :page/path "/p2p"
-   :page/nav-label "Pairing"
-   :page/view #'p2p-page-view
-   :page/styles styles/styles
-   :page/on-enter! (fn []
-                     (mod/dispatch [:p2p/fetch-events!]))})
+ {:page/id :page.id/p2p
+  :page/path "/p2p"
+  :page/nav-label "Pairing"
+  :page/view #'p2p-page-view
+  :page/styles styles/styles
+  :page/on-enter! (fn []
+                    (mod/dispatch [:p2p/fetch-events!]))})
