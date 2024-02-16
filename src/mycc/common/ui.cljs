@@ -15,7 +15,7 @@
 (defn row
   [{:keys [title subtitle info featured?]} & content]
   [:div.row
-   {:tw ["w-full max-w-100vw py-4 px-4 space-y-3 overflow-y-auto overflow-x-auto"
+   {:tw ["w-full max-w-100vw py-4 px-4 space-y-3 overflow-y-auto overflow-x-auto relative"
          (if featured?
            "border border-4 border-blue-200 p-4"
            "border-b-1")]}

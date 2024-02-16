@@ -101,47 +101,51 @@
     :info [:<>
            [:div "Click in the calendar grid below to indicate your time availability."]
            [:div "A = available, P = preferred"]]}
-   (when-let [availability @(mod/subscribe [:user-profile-value :user/availability])]
-     [:table.availability {:tw "mt-4"}
-      [:thead
-       [:tr
-        [:th]
-        (let [next-monday (next-day-of-week (js/Date.) :monday)]
-          (for [[i day] (map-indexed (fn [i d] [i d]) util/days)]
-            (let [[day-of-week date] (string/split (format-date (add-days next-monday i)) #",")]
-              ^{:key day}
-              [:th.day
-               [:div.day-of-week day-of-week]
-               [:div.date date]])))]]
-      [:tbody
-       (doall
-         (for [hour util/hours]
-           ^{:key hour}
-           [:tr
-            [:td.hour
-             hour]
-            (doall
-              (for [day util/days]
-                ^{:key day}
-                [:td
-                 (let [value (availability [day hour])]
-                   [:button
-                    {:class (case value
-                              :preferred "preferred"
-                              :available "available"
-                              nil "empty")
-                     :on-click (fn [_]
-                                 (mod/dispatch [:set-availability!
-                                                [day hour]
-                                                (case value
-                                                  :preferred nil
-                                                  :available :preferred
-                                                  nil :available)]))}
-                    [:div.wrapper
-                     (case value
-                       :preferred "P"
-                       :available "A"
-                       nil "")]])]))]))]])])
+   [:<>
+    [:div {:tw "absolute right-4 top-4 flex gap-1 items-center"}
+     [fa/fa-globe-solid {:tw "w-4 h-4"}]
+     @(mod/subscribe [:user-profile-value :user/time-zone])]
+    (when-let [availability @(mod/subscribe [:user-profile-value :user/availability])]
+      [:table.availability {:tw "mt-4"}
+       [:thead
+        [:tr
+         [:th]
+         (let [next-monday (next-day-of-week (js/Date.) :monday)]
+           (for [[i day] (map-indexed (fn [i d] [i d]) util/days)]
+             (let [[day-of-week date] (string/split (format-date (add-days next-monday i)) #",")]
+               ^{:key day}
+               [:th.day
+                [:div.day-of-week day-of-week]
+                [:div.date date]])))]]
+       [:tbody
+        (doall
+          (for [hour util/hours]
+            ^{:key hour}
+            [:tr
+             [:td.hour
+              hour]
+             (doall
+               (for [day util/days]
+                 ^{:key day}
+                 [:td
+                  (let [value (availability [day hour])]
+                    [:button
+                     {:class (case value
+                               :preferred "preferred"
+                               :available "available"
+                               nil "empty")
+                      :on-click (fn [_]
+                                  (mod/dispatch [:set-availability!
+                                                 [day hour]
+                                                 (case value
+                                                   :preferred nil
+                                                   :available :preferred
+                                                   nil :available)]))}
+                     [:div.wrapper
+                      (case value
+                        :preferred "P"
+                        :available "A"
+                        nil "")]])]))]))]])]])
 
 (defn opt-in-view []
   [ui/row
@@ -156,24 +160,6 @@
      :value @(mod/subscribe [:user-profile-value :user/pair-next-week?])
      :on-change (fn [value]
                   (mod/dispatch [:opt-in-for-pairing! value]))}]])
-
-(defn time-zone-view []
-  [ui/row
-   {:title "Time Zone"
-    :info "Your time-zone. If the Auto-Detection is incorrect, email raf@clojure.camp"}
-   [:label {:tw "flex gap-2"}
-    [:select {:tw "p-1 bg-white border border-gray-300 font-light"
-              :value @(mod/subscribe [:user-profile-value :user/time-zone])
-              :on-change (fn [e]
-                           (mod/dispatch [:set-user-value! :user/time-zone (.. e -target -value)]))}
-     (for [timezone (.supportedValuesOf js/Intl "timeZone")]
-       ^{:key timezone}
-       [:option {:value timezone} timezone])]
-    [ui/button
-     {:on-click (fn []
-                  (mod/dispatch
-                    [:set-user-value! :user/time-zone (.. js/Intl DateTimeFormat resolvedOptions -timeZone)]))}
-     "Re-Auto-Detect"]]])
 
 (defn subscription-toggle-view []
   [ui/row
@@ -251,7 +237,6 @@
       [opt-in-view]
       [pair-with-view]
       [availability-view]
-      [time-zone-view]
       [max-limit-preferences-view]
       [events-view]])
    [subscription-toggle-view]])

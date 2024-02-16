@@ -40,6 +40,23 @@
                   (mod/dispatch
                     [:debounced-set-user-value! :user/discord-user (.. e -target -value)]))}]])
 
+(defn time-zone-view []
+  [ui/row
+   {:title "Time Zone"}
+   [:label {:tw "flex gap-2"}
+    [:select {:tw "p-1 bg-white border border-gray-300 font-light"
+              :value @(mod/subscribe [:user-profile-value :user/time-zone])
+              :on-change (fn [e]
+                           (mod/dispatch [:set-user-value! :user/time-zone (.. e -target -value)]))}
+     (for [timezone (.supportedValuesOf js/Intl "timeZone")]
+       ^{:key timezone}
+       [:option {:value timezone} timezone])]
+    [ui/button
+     {:on-click (fn []
+                  (mod/dispatch
+                    [:set-user-value! :user/time-zone (.. js/Intl DateTimeFormat resolvedOptions -timeZone)]))}
+     "Auto-Detect"]]])
+
 (defn language-views []
   [:<>
    (doall
@@ -201,6 +218,7 @@
    #_[github-username-view]
    [ui/row {}
     [:p {:tw "italic"} "The rest of these are optional, but help us plan content and events:"]]
+   [time-zone-view]
    [language-views]
    [topics-view]
    [learner-questions-view]])
