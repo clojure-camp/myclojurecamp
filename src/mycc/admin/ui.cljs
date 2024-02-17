@@ -4,6 +4,8 @@
     [reagent.core :as r]
     [bloom.commons.ajax :as ajax]))
 
+;; we're computing the HTML server side
+;; to not leak user info unnecessarily
 (defn admin-page-view []
   (r/with-let
     [data (r/atom nil)
@@ -17,6 +19,7 @@
 (mod/register-page!
   {:page/id :page.id/admin
    :page/path "/admin"
-   :page/nav-label "Admin"
+   ;; hide from menu, not for security reasons, just for UX
+   ;; :page/nav-label "Admin"
    :page/view #'admin-page-view
    :page/on-enter! (fn [])})
