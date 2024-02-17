@@ -13,6 +13,7 @@
   [:map
    ;; profile
    [:user/name NonBlankString]
+   [:user/created-at inst?]
    [:user/role
     [:enum
      :role/student
@@ -79,3 +80,4 @@
 #_(valid-key-value? User :user/name "")
 #_(valid-key-value? User :user/max-pair-per-week 0)
 #_(valid-key-value? User :user/time-zone "America/Toronto")
+#_(valid-key-value? User :user/created-at (java.util.Date.))
