@@ -21,6 +21,7 @@
      [:pre {:style {:background "black"
                     :color "white"
                     :position "fixed"
+                    :overflow-y "auto"
                     :margin 0
                     :top 0
                     :left 0
