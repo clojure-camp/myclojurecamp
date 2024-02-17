@@ -46,12 +46,19 @@
           #_#_min-event-t (apply min (map :event/at events))
           min-event-t #inst "2023-12-01"
           start (t/previous-or-same (t/date min-event-t) t/MONDAY)
-          end (t/next-or-same (t/date (t/now)) t/MONDAY)
+          end (t/next (t/next-or-same (t/date (t/now)) t/MONDAY) t/MONDAY)
           dates (->> (iterate (fn [d]
                                 (t/>> d (t/new-period 1 :weeks)))
                               start)
                      (take-while  (fn [d]
                                     (t/< d end))))
+          grouped-opt-in-counts (->> users
+                                     #_(mycc.common.db/get-users)
+                                     (group-by :user/role)
+                                     (x/transform [x/MAP-VALS] (fn [users]
+                                                                 (->> users
+                                                                      (mapcat :user/pair-opt-in-history)
+                                                                      frequencies))))
           grouped-events (->> events
                               (group-by
                                 (fn [e]
@@ -65,8 +72,12 @@
          [:tr
           [:td "Week of"]
           [:td {:colspan 2} "Sessions"]
+          [:td {:colspan 2} "Opt-Ins (M/S)"]
           [:td {:colspan 2} "Participants (M/S)"]]]
-        [:tbody {:tw "text-right font-light tabular-nums"}
+        [:tbody
+         {:style {:font-weight "lighter"
+                  :font-variant-numeric "tabular-nums"
+                  :text-align "right"}}
          (for [date dates
                :let [session-count (count (grouped-events date))
                      participant-count (count (distinct (mapcat :event/guest-ids (grouped-events date))))
@@ -75,6 +86,14 @@
             [:td (str date)]
             [:td session-count]
             [:td [bar "blue" (/ session-count 20)]]
+            [:td (+ (get-in grouped-opt-in-counts [:role/student date] 0)
+                    (get-in grouped-opt-in-counts [:role/mentor date] 0))]
+            [:td
+             [:div {:class "flex"}
+              [bar "blue" (/ (or (get-in grouped-opt-in-counts [:role/mentor date]) 0)
+                             10)]
+              [bar "orange" (/ (or (get-in grouped-opt-in-counts [:role/student date]) 0)
+                             10)]]]
             [:td participant-count]
             [:td
              [:div {:class "flex"
@@ -110,7 +129,10 @@
        [:td label]
        [:td "Student #"]
        [:td "Mentor #"]]]
-     [:tbody {:tw "font-light tabular-nums text-right"}
+     [:tbody
+      {:style {:font-weight "lighter"
+               :font-variant-numeric "tabular-nums"
+               :text-align "right"}}
       (for [item (->> items
                       (sort-by (juxt (comp student-item-counts item->id)
                                      (comp mentor-item-counts item->id)))
@@ -151,7 +173,10 @@
         [:td {:colspan 2} "Availability"]
         [:td {:colspan 2} "S"]
         [:td {:colspan 2} "M"]]]
-      [:tbody {:class "font-light tabular-nums text-right"}
+      [:tbody
+       {:style {:font-weight "lighter"
+                :font-variant-numeric "tabular-nums"
+                :text-align "right"}}
        (for [hour hours]
          [:tr
           [:td (str (when (= 0 (t/hour hour))
@@ -185,7 +210,9 @@
 
 (defn reports-view
   [{:keys [users topics events]}]
-  [:div {:class "space-y-6"}
+  [:div {:style {:display "flex"
+                 :flex-direction "column"
+                 :gap "4em"}}
    #_[users-table-view users]
    [p2p-sessions-per-week users events]
 

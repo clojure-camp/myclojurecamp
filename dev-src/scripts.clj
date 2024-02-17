@@ -31,10 +31,18 @@
        (map mycc.common.db/save-user!)
        doall)
 
-;; add emtpy :user/pair-opt-in-history
+;; add empty :user/pair-opt-in-history
 #_(->> (mycc.common.db/get-users)
        (map (fn [u]
               (assoc u :user/pair-opt-in-history #{})))
+       (map mycc.common.db/save-user!)
+       doall)
+
+#_(->> (mycc.common.db/get-users)
+       (filter :user/pair-next-week?)
+       (map (fn [u]
+              (update u :user/pair-opt-in-history conj
+                      (mycc.common.date/upcoming-monday))))
        (map mycc.common.db/save-user!)
        doall)
 
