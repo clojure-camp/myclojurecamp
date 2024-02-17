@@ -57,6 +57,8 @@
     [:and :int [:>= 1] [:<= 50]]]
    [:user/primary-languages [:set :keyword]]
    [:user/secondary-languages [:set :keyword]]
+   [:user/subscribed? :boolean]
+   [:user/pair-next-week? :boolean]
    [:user/time-zone
     [:and
      :string
