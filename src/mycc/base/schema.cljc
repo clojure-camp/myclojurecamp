@@ -2,7 +2,16 @@
   (:require
     [clojure.string :as string]
     [malli.util :as mu]
-    [malli.core :as m]))
+    [malli.core :as m]
+    #?@(:clj
+         [[malli.registry :as mr]
+          [malli.experimental.time :as mt]])))
+
+#?(:clj
+   (mr/set-default-registry!
+     (mr/composite-registry
+       (m/default-schemas)
+       (mt/schemas))))
 
 (def NonBlankString
   [:and
@@ -59,6 +68,9 @@
    [:user/secondary-languages [:set :keyword]]
    [:user/subscribed? :boolean]
    [:user/pair-next-week? :boolean]
+   [:user/pair-opt-in-history [:set
+                               #?(:clj :time/local-date
+                                  :cljs :any)]]
    [:user/time-zone
     [:and
      :string
@@ -83,3 +95,4 @@
 #_(valid-key-value? User :user/max-pair-per-week 0)
 #_(valid-key-value? User :user/time-zone "America/Toronto")
 #_(valid-key-value? User :user/created-at (java.util.Date.))
+#_(valid-key-value? User :user/pair-opt-in-history #{(java.time.LocalDate/now)})

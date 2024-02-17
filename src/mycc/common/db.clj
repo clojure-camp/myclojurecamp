@@ -3,6 +3,7 @@
     [clojure.edn :as edn]
     [clojure.java.io :as java.io]
     [clojure.string :as string]
+    [time-literals.read-write :as tl]
     [bloom.commons.uuid :as uuid]
     [bloom.commons.thread-safe-io :as io]
     ;; TODO using directly b/c of circular dependency
@@ -16,7 +17,9 @@
 
 (defn parse-file
   [f]
-  (edn/read-string (io/slurp f)))
+  (edn/read-string
+    {:readers tl/tags}
+    (io/slurp f)))
 
 (defn ->path
   "File path for given entity-type and (optional) entity-id "

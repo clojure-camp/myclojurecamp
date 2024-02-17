@@ -1,6 +1,6 @@
 (ns mycc.common.date
   (:import
-    (java.time DayOfWeek ZonedDateTime ZoneId LocalTime )
+    (java.time DayOfWeek ZonedDateTime ZoneId LocalTime LocalDate)
     (java.time.temporal TemporalAdjusters)))
 
 (def ->java-day-of-week
@@ -21,6 +21,10 @@
     (TemporalAdjusters/nextOrSame (->java-day-of-week day-of-week))))
 
 #_(adjust-day-of-week (LocalDate/now) :friday)
+
+(defn upcoming-monday []
+  (adjust-day-of-week
+    (LocalDate/now) :monday))
 
 (defn convert-time
   "Converts from [:thursday 19] + 'America/Vancouver' (user's preferences)

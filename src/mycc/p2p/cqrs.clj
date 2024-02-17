@@ -4,6 +4,7 @@
     [mycc.common.db :as db]
     [mycc.p2p.db :as p2p.db]
     [mycc.p2p.util :as util]
+    [mycc.common.date :as date]
     [modulo.api :as mod]))
 
 (def commands
@@ -81,6 +82,8 @@
     (fn [{:keys [user-id value]}]
       (some-> (db/get-user user-id)
               (assoc :user/pair-next-week? value)
+              (update :user/pair-opt-in-history conj
+                      (date/upcoming-monday))
               db/save-user!))}
 
    {:id :flag-user!
