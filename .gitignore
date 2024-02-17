@@ -13,6 +13,7 @@ pom.xml.asc
 config.edn
 /external
 /.clj-kondo
+/.cpcache
 /.calva
 /.lsp
 .DS_Store
