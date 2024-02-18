@@ -4,6 +4,10 @@
     [tick.core :as t]
     [mycc.common.date :as date]))
 
+(def color
+  {:role/student "orange"
+   :role/mentor "blue"})
+
 (defn offset [zone]
   (t/hours (t/between
              (-> (t/date)
@@ -33,10 +37,12 @@
           (for [[_ f] columns]
             [:td {} (str (f row))])])]])])
 
-(defn bar [c w]
-  [:div {:style {:width (str (* w 100) "px")
+(defn bar
+  [color item-count max-expected-count]
+  [:div {:style {:width (str (* (/ (or item-count 0)
+                                   max-expected-count) 100) "px")
                  :height "10px"
-                 :background-color c}}])
+                 :background-color color}}])
 
 (defn p2p-sessions-per-week
   [users events]
@@ -72,8 +78,8 @@
          [:tr
           [:td "Week of"]
           [:td {:colspan 2} "Sessions"]
-          [:td {:colspan 2} "Opt-Ins (M/S)"]
-          [:td {:colspan 2} "Participants (M/S)"]]]
+          [:td {:colspan 2} "Opt-Ins (S/M)"]
+          [:td {:colspan 2} "Participants (S/M)"]]]
         [:tbody
          {:style {:font-weight "lighter"
                   :font-variant-numeric "tabular-nums"
@@ -85,21 +91,22 @@
            [:tr
             [:td (str date)]
             [:td session-count]
-            [:td [bar "blue" (/ session-count 20)]]
+            [:td [bar "purple" session-count 20]]
             [:td (+ (get-in grouped-opt-in-counts [:role/student date] 0)
                     (get-in grouped-opt-in-counts [:role/mentor date] 0))]
             [:td
-             [:div {:class "flex"}
-              [bar "blue" (/ (or (get-in grouped-opt-in-counts [:role/mentor date]) 0)
-                             10)]
-              [bar "orange" (/ (or (get-in grouped-opt-in-counts [:role/student date]) 0)
-                             10)]]]
+             [:div {:class "flex"
+                    :title (str " (" (get-in grouped-opt-in-counts [:role/student date]) "S"
+                                " " (get-in grouped-opt-in-counts [:role/mentor date]) "M"  ")")}
+              [bar (:role/student color) (get-in grouped-opt-in-counts [:role/student date]) 10]
+              [bar (:role/mentor color) (get-in grouped-opt-in-counts [:role/mentor date]) 10]]]
             [:td participant-count]
             [:td
              [:div {:class "flex"
-                    :title (str " (" (per-role-count :role/mentor) "M " (per-role-count :role/student) "S)")}
-              [bar "blue" (/ (or (per-role-count :role/mentor) 0) 10)]
-              [bar "orange" (/ (or (per-role-count :role/student) 0) 10)]]]])]]])))
+                    :title (str " (" (per-role-count :role/student) "S"
+                                " " (per-role-count :role/mentor) "M"  ")")}
+              [bar (:role/student color) (per-role-count :role/student) 10]
+              [bar (:role/mentor color) (per-role-count :role/mentor) 10]]]])]]])))
 
 #_(p2p-sessions-per-week (mycc.common.db/get-users)
                          (mycc.common.db/get-entities :event))
@@ -112,7 +119,7 @@
                      (t/< d end)))))
 
 (defn supply-and-demand-view
-  [{:keys [label users items user->item-ids item->id item->label]}]
+  [{:keys [label users items user->item-ids item->id item->label sort]}]
   (let [users-by-role (->> users
                            (group-by :user/role))
         student-item-counts (->> users-by-role
@@ -127,67 +134,82 @@
      [:thead
       [:tr
        [:td label]
-       [:td "Student #"]
-       [:td "Mentor #"]]]
+       [:td {:colspan 2} "Student #"]
+       [:td {:colspan 2} "Mentor #"]]]
      [:tbody
       {:style {:font-weight "lighter"
                :font-variant-numeric "tabular-nums"
                :text-align "right"}}
-      (for [item (->> items
-                      (sort-by (juxt (comp student-item-counts item->id)
-                                     (comp mentor-item-counts item->id)))
-                      reverse)]
-        ^{:key (item->id item)}
-        [:tr
-         [:td (item->label item)]
-         [:td (student-item-counts (item->id item))]
-         [:td (mentor-item-counts (item->id item))]])]]))
+      (let [sort-fn (case sort
+                      :rank
+                      #(sort-by (juxt (comp student-item-counts item->id)
+                                      (comp mentor-item-counts item->id))
+                                %)
+                      :label
+                      #(sort-by item->label %))]
+        (for [item (->> items
+                        sort-fn
+                        reverse)]
+          ^{:key (item->id item)}
+          [:tr
+           [:td (item->label item)]
+           [:td (student-item-counts (item->id item))]
+           [:td [bar (:role/student color) (student-item-counts (item->id item)) 10]]
+           [:td (mentor-item-counts (item->id item))]
+           [:td [bar (:role/mentor color) (mentor-item-counts (item->id item)) 10]]]))]]))
 
 (defn availability-view [users]
-  [:div {}
-   (let [now (t/date)
-         ->t->count (fn [users]
-                      (->> users
-                           (filter :user/time-zone)
-                           (filter :user/availability)
-                           (mapcat (fn [u]
-                                     (->> u
-                                          (x/transform [:user/availability x/MAP-KEYS]
-                                            (fn [x]
-                                              (date/convert-time x (:user/time-zone u) now)))
-                                          (x/transform [:user/availability]
-                                            (fn [x]
-                                              (filter second x)))
-                                          :user/availability
-                                          keys)))
-                           frequencies))
-         grouped-users (group-by :user/role users)
-         t->count-students (->t->count (:role/student grouped-users))
-         t->count-mentors (->t->count (:role/mentor grouped-users))
-         t-start (date/convert-time [:monday 9] "UTC+14:00" now)
-         t-end (date/convert-time [:friday 21] "UTC-12:00" now)
-         hours (t-range t-start t-end (t/of-hours 1))]
-     [:table
-      [:thead
-       [:tr
-        [:td {:colspan 2} "Availability"]
-        [:td {:colspan 2} "S"]
-        [:td {:colspan 2} "M"]]]
-      [:tbody
-       {:style {:font-weight "lighter"
-                :font-variant-numeric "tabular-nums"
-                :text-align "right"}}
-       (for [hour hours]
-         [:tr
-          [:td (str (when (= 0 (t/hour hour))
-                      (t/date hour)))]
-          [:td [:div {:title (str (t/in hour (t/zone "America/Toronto")))}
-                (str (t/hour hour))]]
+  (let [now (t/date)
+        ->t->count (fn [users]
+                     (->> users
+                          (filter :user/time-zone)
+                          (filter :user/availability)
+                          (mapcat (fn [u]
+                                    (->> u
+                                         (x/transform [:user/availability x/MAP-KEYS]
+                                           (fn [x]
+                                             (date/convert-time x (:user/time-zone u) now)))
+                                         (x/transform [:user/availability]
+                                           (fn [x]
+                                             (filter second x)))
+                                         :user/availability
+                                         keys)))
+                          frequencies))
+        grouped-users (group-by :user/role users)
+        t->count-students (->t->count (:role/student grouped-users))
+        t->count-mentors (->t->count (:role/mentor grouped-users))
+        t-start (date/convert-time [:monday 9] "UTC+14:00" now)
+        t-end (date/convert-time [:friday 21] "UTC-12:00" (t/date))
+        hours (t-range t-start t-end (t/of-hours 1))
+        days (partition-all 24 hours) #_[hours]]
+    [:section
+     [:h1 "Availability - Supply and Demand"]
+     [:p "Times are in UTC"]
+     [:div {:style {:display "flex"
+                    :gap "2em"
+                    :align-items "flex-start"}}
+      (for [day days]
+        [:table
+         [:thead
+          [:tr
+           [:td {:colspan 2} [:span {:style {:white-space "nowrap"}} "Day & Hour"]]
+           [:td {:colspan 2} "S"]
+           [:td {:colspan 2} "M"]]]
+         [:tbody
+          {:style {:font-weight "lighter"
+                   :font-variant-numeric "tabular-nums"
+                   :text-align "right"}}
+          (for [hour day]
+            [:tr
+             [:td (str (when (= 0 (t/hour hour))
+                         (t/day-of-week (t/date hour))))]
+             [:td [:div {:title (str (t/in hour (t/zone "America/Toronto")))}
+                   (str (t/hour hour))]]
 
-          [:td {:class "px-2"} (t->count-students hour)]
-          [:td [bar "#000" (/ (or (t->count-students hour) 0) 10)]]
-          [:td {:class "px-2"} (t->count-mentors hour)]
-          [:td [bar "#000" (/ (or (t->count-mentors hour) 0) 10)]]])]])])
+             [:td {:class "px-2"} (t->count-students hour)]
+             [:td [bar (:role/student color) (t->count-students hour) 20]]
+             [:td {:class "px-2"} (t->count-mentors hour)]
+             [:td [bar (:role/mentor color) (t->count-mentors hour) 20]]])]])]]))
 
 #_(availability-view (mycc.common.db/get-users))
 
@@ -212,6 +234,7 @@
   [{:keys [users topics events]}]
   [:div {:style {:display "flex"
                  :flex-direction "column"
+                 :align-items "flex-start"
                  :gap "4em"}}
    #_[users-table-view users]
    [p2p-sessions-per-week users events]
@@ -219,26 +242,43 @@
    [availability-view users]
 
    [supply-and-demand-view
-      {:label "Topic"
-       :items topics
-       :item->id :topic/id
-       :item->label :topic/name
-       :users users
-       :user->item-ids :user/topic-ids}]
+    {:label "Topic"
+     :items topics
+     :sort :rank
+     :item->id :topic/id
+     :item->label :topic/name
+     :users users
+     :user->item-ids :user/topic-ids}]
 
    [supply-and-demand-view
-      {:label "Language"
-       :items (->> users
-                   (mapcat (fn [x]
-                             (concat (:user/primary-languages x)
-                                     (:user/secondary-languages x))))
-                   distinct)
-       :item->id identity
-       :item->label identity
-       :users users
-       :user->item-ids (fn [u]
-                         (concat (:user/primary-languages u)
-                                 (:user/secondary-languages u)))}]
+    {:label "Primary Language"
+     :items (->> users
+                 (mapcat (fn [x]
+                           (concat (:user/primary-languages x)
+                                   #_(:user/secondary-languages x))))
+                 distinct)
+     :sort :rank
+     :item->id identity
+     :item->label identity
+     :users users
+     :user->item-ids (fn [u]
+                       (concat (:user/primary-languages u)
+                               #_(:user/secondary-languages u)))}]
+
+   [supply-and-demand-view
+    {:label "Secondary Language"
+     :items (->> users
+                 (mapcat (fn [x]
+                           (concat #_(:user/primary-languages x)
+                                   (:user/secondary-languages x))))
+                 distinct)
+     :sort :rank
+     :item->id identity
+     :item->label identity
+     :users users
+     :user->item-ids (fn [u]
+                       (concat #_(:user/primary-languages u)
+                               (:user/secondary-languages u)))}]
 
    (let [offsets (time-zone-offsets users)]
      [supply-and-demand-view
@@ -247,6 +287,7 @@
                    (map :user/time-zone)
                    (map offsets)
                    distinct)
+       :sort :label
        :item->id identity
        :item->label identity
        :users users
