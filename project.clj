@@ -1,6 +1,6 @@
 (defproject mycc "0.1.0-SNAPSHOT"
 
-  :plugins [[io.bloomventures/omni "0.32.2"]
+  :plugins [[io.bloomventures/omni "0.34.0"]
             [lein-tools-deps "0.4.5"]]
 
   :omni-config modulo.system/prod-omni-config
