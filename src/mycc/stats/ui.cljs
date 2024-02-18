@@ -13,6 +13,6 @@
   {:page/id :page.id/stats
    :page/path "/stats"
    ;; hide from menu, not for security reasons, just for UX
-   :page/nav-label "stats"
+   ;; :page/nav-label "stats"
    :page/view #'stats-page-view
    :page/on-enter! (fn [])})
