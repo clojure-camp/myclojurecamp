@@ -1,4 +1,4 @@
-(ns mycc.admin.ui
+(ns mycc.stats.ui
   (:require
     [com.rpl.specter :as x]
     [tick.core :as t]
