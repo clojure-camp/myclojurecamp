@@ -5,9 +5,6 @@
     [mycc.stats.ui :as ui]
     [lambdaisland.hiccup :as h]))
 
-(def commands
-  [])
-
 (def queries
   [{:id :stats/all
     :route [:get "/api/stats/all"]
@@ -23,6 +20,5 @@
                              :events (db/get-entities :event)}]
                           {:doctype? false})})}])
 
-(mod/register-cqrs! :stats/commands commands)
 (mod/register-cqrs! :stats/queries queries)
 

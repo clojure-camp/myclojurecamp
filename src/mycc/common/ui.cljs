@@ -2,7 +2,20 @@
   (:require
     [bloom.commons.fontawesome :as fa]
     [bloom.commons.ui.textarea :as textarea]
+    [bloom.commons.ajax :as ajax]
+    [reagent.core :as r]
     [mycc.common.colors :as colors]))
+
+(defn server-html-view
+  [{:keys [route]}]
+  (r/with-let
+    [content (r/atom nil)
+     _ (when (nil? @content)
+         (ajax/request {:method :get
+                        :uri route
+                        :on-success (fn [c]
+                                      (reset! content c))}))]
+    [:div {:dangerouslySetInnerHTML {:__html (:content @content)}}]))
 
 (defn popover-view
   [content]

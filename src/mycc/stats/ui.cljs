@@ -1,20 +1,13 @@
 (ns mycc.stats.ui
   (:require
     [modulo.api :as mod]
-    [reagent.core :as r]
-    [bloom.commons.ajax :as ajax]))
+    [mycc.common.ui :as ui]))
 
 ;; we're computing the HTML server side
 ;; to not leak user info unnecessarily
 (defn stats-page-view []
-  (r/with-let
-    [data (r/atom nil)
-     _ (when (nil? @data)
-         (ajax/request {:method :get
-                        :uri "/api/stats/all"
-                        :on-success (fn [d]
-                                      (reset! data d))}))]
-    [:div {:dangerouslySetInnerHTML {:__html (:content @data)}}]))
+  [ui/server-html-view
+   {:route "/api/stats/all"}])
 
 (mod/register-page!
   {:page/id :page.id/stats
