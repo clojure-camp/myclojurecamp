@@ -77,9 +77,9 @@
         [:thead
          [:tr
           [:td "Week of"]
-          [:td {:colspan 2} "Sessions"]
           [:td {:colspan 2} "Opt-Ins (S/M)"]
-          [:td {:colspan 2} "Participants (S/M)"]]]
+          [:td {:colspan 2} "Participants (S/M)"]
+          [:td {:colspan 2} "Sessions"]]]
         [:tbody
          {:style {:font-weight "lighter"
                   :font-variant-numeric "tabular-nums"
@@ -90,8 +90,7 @@
                      per-role-count (frequencies (map user-id->role (distinct (mapcat :event/guest-ids (grouped-events date)))))]]
            [:tr
             [:td (str date)]
-            [:td session-count]
-            [:td [bar "purple" session-count 20]]
+            ;; opt-ins
             [:td (+ (get-in grouped-opt-in-counts [:role/student date] 0)
                     (get-in grouped-opt-in-counts [:role/mentor date] 0))]
             [:td
@@ -100,13 +99,17 @@
                                 " " (get-in grouped-opt-in-counts [:role/mentor date]) "M"  ")")}
               [bar (:role/student color) (get-in grouped-opt-in-counts [:role/student date]) 10]
               [bar (:role/mentor color) (get-in grouped-opt-in-counts [:role/mentor date]) 10]]]
+            ;; participants
             [:td participant-count]
             [:td
              [:div {:class "flex"
                     :title (str " (" (per-role-count :role/student) "S"
                                 " " (per-role-count :role/mentor) "M"  ")")}
               [bar (:role/student color) (per-role-count :role/student) 10]
-              [bar (:role/mentor color) (per-role-count :role/mentor) 10]]]])]]])))
+              [bar (:role/mentor color) (per-role-count :role/mentor) 10]]]
+            ;; sessions
+            [:td session-count]
+            [:td [bar "purple" session-count 20]]])]]])))
 
 #_(p2p-sessions-per-week (mycc.common.db/get-users)
                          (mycc.common.db/get-entities :event))
