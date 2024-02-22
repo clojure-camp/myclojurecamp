@@ -182,13 +182,15 @@
         t->count-students (->t->count (:role/student grouped-users))
         t->count-mentors (->t->count (:role/mentor grouped-users))
         t-start (date/convert-time [:monday 9] "UTC+14:00" now)
-        t-end (date/convert-time [:friday 21] "UTC-12:00" (t/date))
+        t-end (date/convert-time [:sunday 21] "UTC-12:00" (t/date))
         hours (t-range t-start t-end (t/of-hours 1))
         days (partition-all 24 hours) #_[hours]]
     [:section
      [:h1 "Availability - Supply and Demand"]
      [:p "Times are in UTC"]
      [:div {:style {:display "flex"
+                    :max-width "90vw"
+                    :overflow-x "auto"
                     :gap "2em"
                     :align-items "flex-start"}}
       (for [day days]
