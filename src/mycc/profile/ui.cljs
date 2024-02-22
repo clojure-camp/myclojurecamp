@@ -220,8 +220,8 @@
     [:p {:tw "italic"} "The rest of these are optional, but help us plan content and events:"]]
    [time-zone-view]
    [language-views]
-   [topics-view]
-   [learner-questions-view]])
+   [learner-questions-view]
+   [topics-view]])
 
 (mod/register-page!
   {:page/id :page.id/profile
