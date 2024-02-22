@@ -56,6 +56,7 @@
                     ["Clojure Experience" (partial experience-view :clojure)]
                     ["Short Term Learning Milestone" :user/profile-short-term-milestone]
                     ["Long Term Learning Milestone" :user/profile-long-term-milestone]
+                    ["Pairing Preference" :user/pair-with]
                     ["Topics" (fn [user]
                                 (interpose ", "
                                            (for [t (map id->topic (:user/topic-ids user))]
