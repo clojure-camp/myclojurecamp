@@ -81,6 +81,9 @@
                      "items-center")]}
       [:input {:type "radio"
                :checked (= value choice-value)
+               :on-click (fn [_]
+                           (when (= value choice-value)
+                              (on-change nil)))
                :on-change (fn [_]
                             (on-change choice-value))}]
       [:span.label choice-label]])])
