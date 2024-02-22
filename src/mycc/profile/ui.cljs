@@ -94,27 +94,38 @@
 (defn topics-view []
   [ui/row
    {:title "Learning Topics"
-    :info [:div
-           [:div "Learners - Topics you're interested in learning. Feel free to add your own."]
-           [:div "Mentors - Topics you have experience with."]]}
-   (doall
-     (for [[category topics] (->> @(mod/subscribe [:topics])
-                                  (group-by :topic/category)
-                                  sort
-                                  reverse)]
-       ^{:key (or category "other")}
-       [:section {:tw "space-y-3"}
-        [:h1 {:tw "italic"} (or category "other")]
-        [ui/checkbox-list
-         {:value @(mod/subscribe [:user-profile-value :user/topic-ids])
-          :choices (->> topics
-                        (sort-by :topic/name)
-                        (map (fn [{:topic/keys [id name]}]
-                               [id name])))
-          :on-change (fn [_value action changed-value]
-                       (case action
-                         :add (mod/dispatch [:add-user-topic! changed-value])
-                         :remove (mod/dispatch [:remove-user-topic! changed-value])))}]]))
+    :subtitle (case @(mod/subscribe [:user-profile-value :user/role])
+                :role/student
+                "Topics you're interested in learning. Feel free to add your own."
+                :role/mentor
+                "Topics you have experience with."
+                nil)}
+   [:div {:tw "space-y-5"}
+    (let [category-order ["clojure concepts"
+                          "general programming concepts"
+                          "clojure libraries and related"
+                          "programming practices"
+                          "programming domains"
+                          "web dev related"
+                          nil]]
+      (doall
+        (for [[category topics] (->> @(mod/subscribe [:topics])
+                                     (group-by :topic/category)
+                                     (sort-by (fn [[k _]]
+                                                (.indexOf category-order k))))]
+          ^{:key (or category "other")}
+          [:section {:tw "space-y-3"}
+           [:h1 {:tw "italic"} (or category "other")]
+           [ui/checkbox-list
+            {:value @(mod/subscribe [:user-profile-value :user/topic-ids])
+             :choices (->> topics
+                           (sort-by :topic/name)
+                           (map (fn [{:topic/keys [id name]}]
+                                  [id name])))
+             :on-change (fn [_value action changed-value]
+                          (case action
+                            :add (mod/dispatch [:add-user-topic! changed-value])
+                            :remove (mod/dispatch [:remove-user-topic! changed-value])))}]])))]
    [ui/secondary-button
     {:on-click (fn [_]
                  (let [value (js/prompt "Enter a new topic:")]
