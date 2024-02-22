@@ -234,6 +234,27 @@
         reference-time-zone "America/Toronto"
         reference-hour 19])
 
+(defn p2p-events-view [users events]
+  (let [cutoff (t/previous-or-same (t/date) t/MONDAY)
+        id->user (zipmap (map :user/id users)
+                         users)]
+    [:section
+     [:h1 "P2P Sessions This Week"]
+     [:p "Times in UTC"]
+     [:table
+      [:tbody
+       (for [event (->> events
+                        (filter (fn [e]
+                                  (t/< cutoff (t/date (:event/at e)))))
+                        (sort-by :event/at))]
+         [:tr
+          [:td (date/format (:event/at event) "yyyy-MM-dd HH:mm")]
+          (for [user (->> (:event/guest-ids event)
+                          (map id->user)
+                          (sort-by :user/role))]
+            [:td
+             [:span {:style {:color (color (:user/role user))}}
+              (:user/name user)]])])]]]))
 
 (defn reports-view
   [{:keys [users topics events]}]
@@ -242,6 +263,9 @@
                  :align-items "flex-start"
                  :gap "4em"}}
    #_[users-table-view users]
+
+   [p2p-events-view users events]
+
    [p2p-sessions-per-week users events]
 
    [availability-view users]

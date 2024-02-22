@@ -1,7 +1,9 @@
 (ns mycc.common.date
+  (:refer-clojure :exclude [format])
   (:import
     (java.time DayOfWeek ZonedDateTime ZoneId LocalTime LocalDate)
-    (java.time.temporal TemporalAdjusters)))
+    (java.time.temporal TemporalAdjusters)
+    (java.time.format DateTimeFormatter)))
 
 (def ->java-day-of-week
   {:monday DayOfWeek/MONDAY
@@ -42,4 +44,7 @@
 #_(LocalTime/of 19 0)
 #_(LocalDate/now)
 
-
+(defn format [at pattern]
+  (.format (ZonedDateTime/ofInstant (.toInstant at)
+                                    (ZoneId/of "UTC"))
+           (DateTimeFormatter/ofPattern pattern)))
