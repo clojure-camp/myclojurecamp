@@ -153,7 +153,7 @@
        [ui/row {:title "General Programming Experience - Follow Up"
                 :subtitle [:<>
                            "Which of these statements best describes how easily you could write a program to do the following (in any language):"
-                           [:div {:tw "mt-1 italic"} "A command-line program to identify all airports more than 4 hops away from a given airport. You are provided an API that returns airports and flights between them."]]}
+                           [:div {:tw "mt-1 italic"} "Identify all airports more than 4 connections away from a given airport. You are provided an API that returns airports and flights between them."]]}
         [ui/radio-list
          {:value @(mod/subscribe [:user-profile-value :user/profile-experience-programming-example])
           :choices [[0 "I wouldn’t know where to start."]
@@ -179,7 +179,7 @@
        [ui/row {:title "Clojure Programming Experience - Follow Up"
                 :subtitle [:<>
                            "Which of these statements best describes how easily you could write a program to do the following (in Clojure):"
-                           [:div {:tw "mt-1 italic"} "A command-line program to identify all airports more than 4 hops away from a given airport. You are provided an API that returns airports and flights between them."]]}
+                           [:div {:tw "mt-1 italic"} "Identify all airports more than 4 connections away from a given airport. You are provided an API that returns airports and flights between them."]]}
         [ui/radio-list
          {:value @(mod/subscribe [:user-profile-value :user/profile-experience-clojure-example])
           :choices [[0 "I wouldn’t know where to start."]
