@@ -96,7 +96,7 @@
   [opts]
   [textarea/textarea
    (assoc opts
-     :tw "p-1 border border-gray-300 font-light w-full h-5em")])
+     :tw "p-1 border border-gray-300 font-light w-full")])
 
 (defn button
   [opts content]
