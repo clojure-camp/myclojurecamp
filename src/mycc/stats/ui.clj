@@ -245,7 +245,7 @@
       [:tbody
        (for [event (->> events
                         (filter (fn [e]
-                                  (t/< cutoff (t/date (:event/at e)))))
+                                  (t/<= cutoff (t/date (:event/at e)))))
                         (sort-by :event/at))]
          [:tr
           [:td (date/format (:event/at event) "yyyy-MM-dd HH:mm")]
