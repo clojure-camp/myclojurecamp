@@ -130,7 +130,7 @@
   [user-id]
   (let [user (db/get-user user-id)]
     {:to (:user/email user)
-     :subject "Clojure Camp - Your Matches for this Week"
+     :subject "Your Pairing Sessions this Week (Clojure Camp)"
      :body [:div
             [:p "Hi " (:user/name user) ","]
             [:p "Unfortunately, we couldn't match you with anyone this week. :("]
@@ -176,42 +176,42 @@
   [user-id events]
   (let [get-user (memoize db/get-user)
         user (db/get-user user-id)]
-   {:to (:user/email user)
-    :subject "Clojure Camp - Your Matches for this Week"
-    :attachments (->> events
-                      (map (fn [event]
-                            {:type :attachment
-                             :content-type "text/calendar"
-                             :file-name (str "event-" (:event/id event) ".ics")
-                             :content (.getBytes (event->ical event))})))
-    :body [:div
-           [:p "Hi " (:user/name user) ","]
-           [:p "Here are your pairing sessions for next week:"]
-           (for [event (sort-by :event/at events)
-                 :let [partner (get-user (first (disj (:event/guest-ids event) user-id)))]]
-            [:p.event
-             [:span.datetime
-              [:strong
-               (.format (ZonedDateTime/ofInstant (.toInstant (:event/at event))
-                                                 (ZoneId/of (:user/time-zone user)))
-                        (DateTimeFormatter/ofPattern "eee MMM dd 'at' HH:mm"))
-               " (" (:user/time-zone user) ")"]]
-             [:br]
-             "With: "
-             [:span.guest
-              (:user/name partner)
-              " (" (name (:user/role partner)) ") "
-              " (" (:user/email partner) ")"]
-             (when (seq (->topics event))
-               (list
-                 [:br]
-                 "Potential Topics: "
-                 (->topics event)))
-             [:br]
-             "Where: Discord"
-             #_[:a {:href (util/->event-url event)} "Meeting Link"]])
-           [:p "If you can't make a session, be sure to let your partner know!"]
-           [:p "- Clojure Camp Bot"]]}))
+    {:to (:user/email user)
+     :subject "Your Pairing Sessions this Week (Clojure Camp)"
+     :attachments (->> events
+                       (map (fn [event]
+                              {:type :attachment
+                               :content-type "text/calendar"
+                               :file-name (str "event-" (:event/id event) ".ics")
+                               :content (.getBytes (event->ical event))})))
+     :body [:div
+            [:p "Hi " (:user/name user) ","]
+            [:p "Here are your pairing sessions for next week:"]
+            (for [event (sort-by :event/at events)
+                  :let [partner (get-user (first (disj (:event/guest-ids event) user-id)))]]
+              [:p.event
+               [:span.datetime
+                [:strong
+                 (.format (ZonedDateTime/ofInstant (.toInstant (:event/at event))
+                                                   (ZoneId/of (:user/time-zone user)))
+                          (DateTimeFormatter/ofPattern "eee MMM dd 'at' HH:mm"))
+                 " (" (:user/time-zone user) ")"]]
+               [:br]
+               "With: "
+               [:span.guest
+                (:user/name partner)
+                " (" (name (:user/role partner)) ") "
+                " (" (:user/email partner) ")"]
+               (when (seq (->topics event))
+                 (list
+                   [:br]
+                   "Potential Topics: "
+                   (->topics event)))
+               [:br]
+               "Where: Discord"
+               #_[:a {:href (util/->event-url event)} "Meeting Link"]])
+            [:p "If you can't make a session, be sure to let your partner know!"]
+            [:p "- Clojure Camp Bot"]]}))
 
 #_(email/send! (matched-email-template
                  (:user/id (first (db/get-users)))
