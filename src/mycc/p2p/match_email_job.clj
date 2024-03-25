@@ -133,7 +133,11 @@
      :subject "Your Pairing Sessions this Week (Clojure Camp)"
      :body [:div
             [:p "Hi " (:user/name user) ","]
-            [:p "Unfortunately, we couldn't match you with anyone this week. :("]
+            [:p "Unfortunately, we couldn't match you with anyone this week."]
+            [:p "We're working to add more peers and mentors in your time zone."]
+            (when (= :pair-with/only-mentors
+                     (:user/pair-with user))
+              [:p "You may want to relax your 'Pair With' preference to allow matching with peers, not just mentors."])
             [:p "- Clojure Camp scheduler bot"]]}))
 
 (defn event->ical
