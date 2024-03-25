@@ -78,14 +78,6 @@
             :params {:value bool}}}))
 
 (mod/reg-event-fx
-  :update-subscription!
-  (fn [{db :db} [_ status]]
-    {:db (assoc-in db [:db/user :user/subscribed?] status)
-     :ajax {:method :put
-            :uri "/api/user/subscription"
-            :params {:status status}}}))
-
-(mod/reg-event-fx
   :flag-event-guest!
   (fn [{db :db} [_ event-id value]]
     {:db (update-in db [:db/events event-id] (partial util/flag-other-user value) (get-in db [:db/user :user/id]))

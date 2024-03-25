@@ -170,7 +170,7 @@
                [false "No"]]
      :value @(mod/subscribe [:user-profile-value :user/subscribed?])
      :on-change (fn [value]
-                  (mod/dispatch [:update-subscription! value]))}]])
+                  (mod/dispatch [:set-user-value! :user/subscribed? value]))}]])
 
 (defn format-date-2 [date]
   (.format (js/Intl.DateTimeFormat. "default" #js {:day "numeric"

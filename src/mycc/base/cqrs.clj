@@ -35,19 +35,6 @@
     (fn [{:keys [user-id k v]}]
       (some-> (db/get-user user-id)
               (assoc k v)
-              db/save-user!))}
-
-   {:id :update-subscription!
-    :route [:put "/api/user/subscription"]
-    :params {:user-id uuid?
-             :status boolean?}
-    :conditions
-    (fn [{:keys [user-id]}]
-      [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]])
-    :effect
-    (fn [{:keys [user-id status]}]
-      (some-> (db/get-user user-id)
-              (assoc :user/subscribed? status)
               db/save-user!))}])
 
 (def queries
