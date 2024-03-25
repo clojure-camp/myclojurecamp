@@ -99,7 +99,22 @@
     (fn [{:keys [user-id event-id value]}]
       (some-> (p2p.db/get-event event-id)
               ((partial util/flag-other-user value) user-id)
-              p2p.db/save-event!))}])
+              p2p.db/save-event!))}
+
+   ;; if we leak user ids, this can be abused to force unsubscribe
+   ;; would be better to use an encryped value or hmac
+   {:id :email-unsubscribe!
+    :route [:post "/api/p2p/unsubscribe"]
+    ;; uid coming via url param
+    :params {:uid uuid?}
+    :conditions
+    (fn [{:keys [user-id]}]
+      [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]])
+    :effect
+    (fn [{:keys [user-id]}]
+      (-> (db/get-user user-id)
+          (assoc :user/subscribed? false)
+          db/save-user!))}])
 
 (def queries
   [{:id :topics

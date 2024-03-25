@@ -17,6 +17,7 @@
 
 (defn friday-email-template [user]
   {:to (:user/email user)
+   :unsubscribe-user-id (:user/id user)
    :subject "Clojure Camp - Pair Next Week?"
    :body [:div
           [:p "Hey " (:user/name user) ","]
