@@ -104,9 +104,11 @@
               :user/max-pair-per-day 1
               :user/max-pair-per-week 1
               :user/max-pair-same-user 2
+              :user/pair-opt-in-history #{}
               :user/topic-ids #{}
               :user/availability {}
               :user/email-validated? false
               :user/subscribed? false}]
     (save-user! user)
     user))
+
