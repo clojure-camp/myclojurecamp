@@ -77,7 +77,7 @@
 (defn individual-score-meta
   [guest-id {:keys [schedule availabilities timezones max-events-per-day
                     max-events-per-week topics roles roles-to-pair-with
-                    max-same-user-per-week] :as context}]
+                    max-same-user-per-week user-deny-list] :as context}]
   (let [guest-events (->> schedule
                           (filter (fn [event]
                                     (contains? (event :guest-ids) guest-id))))
@@ -140,6 +140,14 @@
                       (not (contains? guest-open-times (event :at))))
                     {:factor/id :factor.id/outside-of-available-times
                      :factor/score 100}
+                    ;; matched with someone in deny list
+                    (and
+                      user-deny-list
+                      (user-deny-list guest-id)
+                      (seq (set/intersection (set (event :guest-ids))
+                                             (set (user-deny-list guest-id)))))
+                    {:factor/id :factor.id/with-user-from-deny-list
+                     :factor/score 99}
                     ;; if it's not with someone with matching topics
                     (and
                       topics ;; ignore this criterion if no topics passed in
@@ -148,7 +156,7 @@
                            (apply set/intersection)
                            empty?))
                     {:factor/id :factor.id/without-matching-topics
-                     :factor/score 99}
+                     :factor/score 95}
                     ;; matched with no acceptable role
                     (and
                       roles

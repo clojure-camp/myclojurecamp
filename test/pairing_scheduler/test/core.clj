@@ -87,6 +87,18 @@
              :availabilities
              {"raf" #{}}}))))
 
+  (testing "with someone from deny list"
+    (is (has-factor?
+          :factor.id/with-user-from-deny-list
+          (ps/individual-score-meta
+            "raf"
+            {:schedule
+             [{:guest-ids #{"raf" "dh"}
+               :at #inst "2021-01-01T09"}]
+             :user-deny-list
+             {"raf" #{"dh"}
+              "dh" #{}}}))))
+
   (testing "above max-events-per-day"
     (is (has-factor?
           :factor.id/over-max-per-day
@@ -448,6 +460,16 @@
                 ps/schedule
                 :schedule
                 set
+                count))))
+
+(testing "does not schedule users from deny-list"
+    (is (= 0
+           (->> {:availabilities {"alice" #{[#inst "2021-01-01T10" :available]}
+                                  "bob" #{[#inst "2021-01-01T10" :available]}}
+                 :user-deny-list {"alice" #{"bob"}}
+                 :times-to-pair 1}
+                ps/schedule
+                :schedule
                 count))))
 
   (testing "does not schedule more than per-week-limit"
