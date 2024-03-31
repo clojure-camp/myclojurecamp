@@ -216,6 +216,7 @@
                "Where: Discord"
                #_[:a {:href (util/->event-url event)} "Meeting Link"]])
             [:p "If you can't make a session, be sure to let your partner know!"]
+            [:p "The default 'location' is Discord, but you can coordinate with your partner and use an alternative with better pairing support like Zoom or Pop.com"]
             [:p "- Clojure Camp Bot"]]}))
 
 #_(email/send! (matched-email-template
