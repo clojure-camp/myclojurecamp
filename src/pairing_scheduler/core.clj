@@ -293,6 +293,42 @@
    (-> (generate-initial-schedule times-to-pair context)
        optimize-schedule)))
 
+(def UserId :any)
+(def TopicId :any)
+(def RoleId :any)
+(def Availability
+  [:vector-of :inst [:enum :preferred :available]])
+
+(def Context
+  [:map
+   [:times-to-pair :integer]
+   [:timezones [:map-of UserId :string]]
+   ;; optional per user
+   [:availabilities
+    {:optional true}
+    [:map-of UserId [:set Availability]]]
+   [:topics
+    {:optional true}
+    [:map-of UserId [:set TopicId]]]
+   [:max-same-user-per-week
+    {:optional true}
+    [:map-of UserId :integer]]
+   [:roles
+    {:optional true}
+    [:map-of UserId [:set RoleId]]]
+   [:roles-to-pair-with
+    {:optional true}
+    [:map-of UserId [:set RoleId]]]
+   [:max-events-per-day
+    {:optional true}
+    [:map-of UserId :integer]]
+   [:max-events-per-week
+    {:optional true}
+    [:map-of UserId :integer]]
+   [:user-deny-list
+    {:optional true}
+    [:map-of UserId [:set UserId]]]])
+
 (defn report
   [{:keys [schedule availabilities] :as context}]
   {:schedule schedule
