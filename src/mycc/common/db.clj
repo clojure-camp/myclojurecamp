@@ -107,6 +107,7 @@
               :user/pair-opt-in-history #{}
               :user/topic-ids #{}
               :user/availability {}
+              :user/user-pair-deny-list #{}
               :user/email-validated? false
               :user/subscribed? false}]
     (save-user! user)

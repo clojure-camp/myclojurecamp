@@ -14,4 +14,4 @@
         ;hiccup/hiccup {:mvn/version "1.0.5"}
 
         pairing-scheduler/pairing-scheduler {:git/url "https://github.com/clojodojo/pairing-scheduler"
-                                             :sha "656431cca22243a09eeb8ecd419fee6200cc3ea5"}}}
+                                             :sha "12b1ed5395402239812157778a55075f00ef6b5d"}}}

@@ -38,6 +38,7 @@
    :roles (-> (mapify :user/id :user/role users)
               (update-vals (fn [role]
                              #{role})))
+   :user-deny-list (mapify :user/id :user/user-pair-deny-list users)
    :roles-to-pair-with (mapify :user/id
                                (fn [user]
                                  (case (:user/role user)
