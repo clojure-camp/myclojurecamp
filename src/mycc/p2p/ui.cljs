@@ -3,6 +3,7 @@
     [clojure.string :as string]
     [bloom.commons.fontawesome :as fa]
     [modulo.api :as mod]
+    [reagent.core :as r]
     [mycc.common.ui :as ui]
     [mycc.p2p.util :as util]
     [mycc.p2p.styles :as styles]))
@@ -75,7 +76,7 @@
     (.setDate (+ delta-days (.getDate day)))))
 
 (defn format-date [date]
-  (.format (js/Intl.DateTimeFormat. "en-US" #js {:weekday "long"
+  (.format (js/Intl.DateTimeFormat. "en-US" #js {:weekday "short"
                                                  :month "short"
                                                  :day "numeric"})
            date))
@@ -95,57 +96,92 @@
        :on-change (fn [value]
                     (mod/dispatch [:set-user-value! :user/pair-with value]))}]]))
 
+(defn hour-rows-view
+  [availability hours]
+  [:tbody
+   (for [hour hours]
+     ^{:key hour}
+     [:tr
+      [:td.hour hour ":00"]
+      (doall
+        (for [day util/days]
+          ^{:key day}
+          [:td
+           (let [value (availability [day hour])]
+             [:button
+              {:class (case value
+                        :preferred "preferred"
+                        :available "available"
+                        nil "empty")
+               :on-click (fn [_]
+                           (mod/dispatch [:set-availability!
+                                          [day hour]
+                                          (case value
+                                            :preferred nil
+                                            :available :preferred
+                                            nil :available)]))}
+              [:div.wrapper
+               (case value
+                 :preferred "P"
+                 :available "A"
+                 nil "")]])]))])])
+
 (defn availability-view []
-  [ui/row
-   {:title "Availability"
-    :info [:<>
-           [:div "Click in the calendar grid below to indicate your time availability."]
-           [:div "A = available, P = preferred"]]}
-   [:<>
-    [:div {:tw "absolute right-4 top-4 flex gap-1 items-center"}
-     [fa/fa-globe-solid {:tw "w-4 h-4"}]
-     @(mod/subscribe [:user-profile-value :user/time-zone])]
-    (when-let [availability @(mod/subscribe [:user-profile-value :user/availability])]
-      [:table.availability {:tw "mt-4"}
-       [:thead
-        [:tr
-         [:th]
-         (let [next-monday (next-day-of-week (js/Date.) :monday)]
-           (for [[i day] (map-indexed (fn [i d] [i d]) util/days)]
-             (let [[day-of-week date] (string/split (format-date (add-days next-monday i)) #",")]
-               ^{:key day}
-               [:th.day
-                [:div.day-of-week day-of-week]
-                [:div.date date]])))]]
-       [:tbody
-        (doall
-          (for [hour util/hours]
-            ^{:key hour}
-            [:tr
-             [:td.hour
-              hour]
-             (doall
-               (for [day util/days]
-                 ^{:key day}
-                 [:td
-                  (let [value (availability [day hour])]
-                    [:button
-                     {:class (case value
-                               :preferred "preferred"
-                               :available "available"
-                               nil "empty")
-                      :on-click (fn [_]
-                                  (mod/dispatch [:set-availability!
-                                                 [day hour]
-                                                 (case value
-                                                   :preferred nil
-                                                   :available :preferred
-                                                   nil :available)]))}
-                     [:div.wrapper
-                      (case value
-                        :preferred "P"
-                        :available "A"
-                        nil "")]])]))]))]])]])
+  (r/with-let [force-show-early? (r/atom false)
+               force-show-late? (r/atom false)]
+    [ui/row
+     {:title "Availability"
+      :info [:<>
+             [:div "Click in the calendar grid below to indicate your time availability."]
+             [:div "A = available, P = preferred"]]}
+     [:<>
+      [:div {:tw "absolute right-4 top-4 flex gap-1 items-center"}
+       [fa/fa-globe-solid {:tw "w-4 h-4"}]
+       @(mod/subscribe [:user-profile-value :user/time-zone])]
+      (when-let [availability @(mod/subscribe [:user-profile-value :user/availability])]
+        [:div {:tw "h-40em max-h-80vh overflow-x-auto mt-4"}
+         [:table.availability
+          [:thead
+           [:tr
+            [:th {:tw "sticky top-0 bg-white z-100"}]
+            (let [next-monday (next-day-of-week (js/Date.) :monday)]
+              (for [[i day] (map-indexed (fn [i d] [i d]) util/days)]
+                (let [[day-of-week date] (string/split (format-date (add-days next-monday i)) #",")]
+                  ^{:key day}
+                  [:th.day {:tw "sticky top-0 bg-white"}
+                   [:div.day-of-week day-of-week]
+                   [:div.date date]])))]]
+          (if (or @force-show-early?
+                  (some availability (for [hour util/early-hours
+                                           day util/days]
+                                       [day hour])))
+            [:<>
+             [:tbody
+              [:tr ;; filler row, so that header doesn't cover the offset hour label
+               [:td {:col-span 8 :tw "h-1em"} ""]]]
+             [hour-rows-view availability util/early-hours]]
+            [:tbody
+             [:tr
+              [:td]
+              [:td {:col-span 7}
+               [:div {:tw "flex justify-center"}
+                [ui/secondary-button {:on-click (fn []
+                                                  (reset! force-show-early? true))}
+                 "Show earlier hours"]]]]])
+          [hour-rows-view availability util/hours]
+          (if (or @force-show-late?
+                  (some availability (for [hour util/late-hours
+                                           day util/days]
+                                       [day hour])))
+            [hour-rows-view availability util/late-hours]
+            [:tbody
+             [:tr
+              [:td]
+              [:td {:col-span 7}
+               [:div {:tw "flex justify-center"}
+                [ui/secondary-button {:on-click (fn []
+                                                  (reset! force-show-late? true))}
+                 "Show later hours"]]]]])]])]]))
 
 (defn opt-in-view []
   [ui/row

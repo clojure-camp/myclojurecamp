@@ -22,7 +22,7 @@
   [:div.info {:tw "relative group"}
    [fa/fa-question-circle-solid
     {:tw "w-4 h-4 text-#ccc"}]
-   [:div.popover {:tw "hidden group-hover:block border absolute bg-white p-2 left-1em top-0 min-w-18em font-light"}
+   [:div.popover {:tw "hidden group-hover:block border absolute bg-white p-2 left-1em top-0 min-w-18em font-light z-1000"}
     content]])
 
 (defn row

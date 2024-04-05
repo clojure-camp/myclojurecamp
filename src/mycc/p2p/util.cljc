@@ -5,7 +5,9 @@
             (java.time ZonedDateTime ZoneId)
             (java.time.format DateTimeFormatter))))
 
+(def early-hours (range 0 9))
 (def hours (range 9 21))
+(def late-hours (range 21 24))
 
 (def days [:monday :tuesday :wednesday :thursday :friday :saturday :sunday])
 

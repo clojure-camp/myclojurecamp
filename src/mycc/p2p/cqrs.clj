@@ -59,7 +59,7 @@
    {:id :update-availability!
     :route [:put "/api/user/update-availability"]
     :params {:user-id uuid?
-             :hour (fn [h] (contains? (set util/hours) h))
+             :hour (fn [h] (contains? (set (concat util/early-hours util/hours util/late-hours)) h))
              :day (fn [d] (contains? (set util/days) d))
              :value (fn [v] (contains? util/availability-values v))}
     :conditions

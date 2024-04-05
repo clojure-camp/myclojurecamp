@@ -33,7 +33,7 @@
        :border "none"
        :cursor "pointer"
        :padding "1em"
-       :height "6em"
+       :height "3em"
        :display "flex"
        :justify-content "center"
        :align-items "center"}
@@ -44,9 +44,9 @@
 
        [:>.wrapper
         {:border "1px dashed #ccc"
-         :height "4em"
+         :height "2em"
          :width "100%"
-         :line-height "4em"}]
+         :line-height "2em"}]
 
        [:&:hover
         {:background (darken "#fff" 10)}]]
