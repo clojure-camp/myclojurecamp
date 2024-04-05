@@ -139,7 +139,7 @@
        [fa/fa-globe-solid {:tw "w-4 h-4"}]
        @(mod/subscribe [:user-profile-value :user/time-zone])]
       (when-let [availability @(mod/subscribe [:user-profile-value :user/availability])]
-        [:div {:tw "h-40em max-h-80vh overflow-x-auto mt-4"}
+        [:div {:tw "max-h-100vh overflow-x-auto mt-4"}
          [:table.availability
           [:thead
            [:tr
