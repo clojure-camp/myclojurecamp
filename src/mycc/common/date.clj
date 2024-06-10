@@ -24,9 +24,20 @@
 
 #_(adjust-day-of-week (LocalDate/now) :friday)
 
-(defn upcoming-monday []
-  (adjust-day-of-week
-    (LocalDate/now) :monday))
+(defn next-monday
+  []
+  (.with
+    (LocalDate/now)
+    (TemporalAdjusters/next (->java-day-of-week :monday))))
+
+(defn previous-monday
+  []
+  (.with
+    (LocalDate/now)
+    (TemporalAdjusters/previousOrSame (->java-day-of-week :monday))))
+
+#_(next-monday)
+#_(previous-monday)
 
 (defn convert-time
   "Converts from [:thursday 19] + 'America/Vancouver' (user's preferences)

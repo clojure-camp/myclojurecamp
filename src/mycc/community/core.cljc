@@ -4,6 +4,7 @@
     [modulo.api :as mod]
     #?@(:clj
          [[mycc.common.db :as db]
+          [mycc.common.date :as date]
           [lambdaisland.hiccup :as h]]
          :cljs
          [[mycc.common.ui :as ui]])))
@@ -80,27 +81,45 @@
              id->topic (zipmap (map :topic/id topics)
                                topics)
              grouped-users (->> (db/get-users)
-                                (group-by (fn [u]
-                                            {:role (:user/role u)
-                                             :active? (boolean (or (seq (:user/pair-opt-in-history u))
-                                                                   (:user/pair-next-week? u)))})))
-             groups [{:role :role/student :active? true}
-                     {:role :role/mentor :active? true}
-                     {:role :role/student :active? false}
-                     {:role :role/mentor :active? false}]]
+                                (reduce (fn [memo user]
+                                          (cond-> memo
+                                            (contains? (:user/pair-opt-in-history user)
+                                                       (date/next-monday))
+                                            (update :group/upcoming-week? conj user)
+
+                                            (contains? (:user/pair-opt-in-history user)
+                                                       (date/previous-monday))
+                                            (update :group/previous-week? conj user)
+
+                                            true
+                                            (update :group/all conj user)))
+                                        {:group/upcoming-week? []
+                                         :group/previous-week? []
+                                         :group/other []}))
+             groups [[:group/upcoming-week? (str "Week of " (date/next-monday))]
+                     [:group/previous-week? (str "Week of " (date/previous-monday))]
+                     [:group/all "All"]]]
            [:table
-            (for [{:keys [role active?] :as group} groups]
-              [:<>
-               [:tbody
-                [:tr
-                 [:td {:colspan 2}
-                  [:div {:style {:font-size "1.5em"
-                                 :padding "0.25rem"
-                                 :margin "1rem 0"}}
-                   (string/capitalize (name role)) "s" " - " (if active? "Pairing This Week" "Not Pairing")]]]]
-               (for [user (->> (grouped-users group)
-                               (sort-by :user/name))]
-                 [user-tbody-view user id->topic])])]))
+            (for [[k title] groups]
+              (for [role [:role/mentor :role/student]]
+                [:<>
+                 [:tbody
+                  [:tr
+                   [:td {:colspan 2}
+                    [:div {:style {:font-size "1.5em"
+                                   :padding "0.25rem"
+                                   :margin "1rem 0"}}
+                     (string/capitalize (name role)) "s" " - " title]]]]
+                 (let [users (->> (grouped-users k)
+                                  (filter (fn [u]
+                                            (= (:user/role u) role)))
+                                  (sort-by :user/name))]
+                   (if (seq users)
+                     (for [user users]
+                       [user-tbody-view user id->topic])
+                     [:tbody
+                      [:tr
+                       [:td {:colspan 2} "None (yet)"]]]))]))]))
 
      (mod/register-cqrs!
        :community/queries

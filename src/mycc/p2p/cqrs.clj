@@ -82,8 +82,8 @@
     (fn [{:keys [user-id value]}]
       (some-> (db/get-user user-id)
               (assoc :user/pair-next-week? value)
-              (update :user/pair-opt-in-history conj
-                      (date/upcoming-monday))
+              (update :user/pair-opt-in-history (if value conj disj)
+                      (date/next-monday))
               db/save-user!))}
 
    {:id :flag-user!
