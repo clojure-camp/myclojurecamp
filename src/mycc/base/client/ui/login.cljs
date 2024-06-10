@@ -54,6 +54,7 @@
         [:label
          "Enter your email:"
          [:input {:name "email"
+                  :required true
                   :type "email"}]]
         [:button "Login"]
         (when @sent-email
