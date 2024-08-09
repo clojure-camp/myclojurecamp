@@ -78,13 +78,13 @@
             :params {:value bool}}}))
 
 (mod/reg-event-fx
-  :flag-event-guest!
-  (fn [{db :db} [_ event-id value]]
-    {:db (update-in db [:db/events event-id] (partial util/flag-other-user value) (get-in db [:db/user :user/id]))
+  :avoid-user!
+  (fn [{db :db} [_ user-id bool]]
+    {:db (update-in db [:db/user :user/user-pair-deny-list] (if bool conj disj) user-id)
      :ajax {:method :put
-            :uri "/api/event/flag-guest"
-            :params {:event-id event-id
-                     :value value}}}))
+            :uri "/api/p2p/avoid-user"
+            :params {:avoid-user-id user-id
+                     :value bool}}}))
 
 (mod/reg-event-fx
   :new-topic!

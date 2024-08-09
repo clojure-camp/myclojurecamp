@@ -217,8 +217,7 @@
 
 (defn event-view [heading event]
   (let [guest-name (:user/name (:event/other-guest event))
-        other-guest-flagged? (contains? (:event/flagged-guest-ids event)
-                                        (:user/id (:event/other-guest event)))]
+        guest-user-id (:user/id (:event/other-guest event))]
     [:tr.event {:class (if (< (js/Date.) (:event/at event))
                          "future"
                          "past")}
@@ -233,14 +232,16 @@
         [fa/fa-envelope-solid]]
        [:a.link {:href (util/->event-url event)}
         [fa/fa-video-solid]]
-       [:button.flag
-        {:class (when other-guest-flagged? "flagged")
-         :on-click (fn []
-                     (if other-guest-flagged?
-                       (mod/dispatch [:flag-event-guest! (:event/id event) false])
-                       (when (js/confirm (str "Are you sure you want to report " guest-name " for not showing up?"))
-                         (mod/dispatch [:flag-event-guest! (:event/id event) true]))))}
-        [fa/fa-flag-solid]]]]]))
+
+
+       (let [avoiding? (contains? (:user/user-pair-deny-list @(mod/subscribe [:user]))
+                                  guest-user-id)]
+         [:button.avoid
+          {:tw ["p-1" (when avoiding? "text-white bg-red-800 rounded-full")]
+           :on-click (fn []
+                       (mod/dispatch
+                         [:avoid-user! guest-user-id (not avoiding?)]))}
+          [fa/fa-ban-solid {:tw "w-4 h-4"}]])]]]))
 
 (defn events-view []
   [ui/row

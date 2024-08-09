@@ -19,11 +19,6 @@
               hour hours]
           [[day hour] (rand-nth [:preferred :available nil])])))
 
-(defn flag-other-user [add? event user-id]
-  (let [f (if add? conj disj)
-        other-user-id (first (disj (:event/guest-ids event) user-id))]
-    (update event :event/flagged-guest-ids (fnil f #{}) other-user-id)))
-
 (defn ->date-string [at]
   #?(:cljs (-> (.toISOString at) (string/split "T") first)
      :clj (.format (ZonedDateTime/ofInstant (.toInstant at)

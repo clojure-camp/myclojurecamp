@@ -86,20 +86,21 @@
                       (date/next-monday))
               db/save-user!))}
 
-   {:id :flag-user!
-    :route [:put "/api/event/flag-guest"]
+   {:id :avoid-user!
+    :route [:put "/api/p2p/avoid-user"]
     :params {:user-id uuid?
-             :event-id uuid?
+             :avoid-user-id uuid?
              :value boolean?}
     :conditions
-    (fn [{:keys [user-id event-id]}]
+    (fn [{:keys [user-id avoid-user-id]}]
       [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]
-       [#(db/entity-file-exists? :event event-id) :not-allowed "Event with this ID does not exist."]])
+       [#(db/entity-file-exists? :user avoid-user-id) :not-allowed "Other user with this ID does not exist."]])
     :effect
-    (fn [{:keys [user-id event-id value]}]
-      (some-> (p2p.db/get-event event-id)
-              ((partial util/flag-other-user value) user-id)
-              p2p.db/save-event!))}
+    (fn [{:keys [user-id avoid-user-id value]}]
+      (some-> (db/get-user user-id)
+              (update :user/user-pair-deny-list
+                      (if value conj disj) avoid-user-id)
+              db/save-user!))}
 
    ;; if we leak user ids, this can be abused to force unsubscribe
    ;; would be better to use an encryped value or hmac

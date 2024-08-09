@@ -104,20 +104,4 @@
 
         [:>.link
          [:>svg
-          {:width "1em"}]]
-
-        [:>button.flag
-         {:cursor "pointer"
-          :border "none"
-          :background "none"
-          :padding 0
-          :color "#AAA"}
-
-         [:&:hover
-          {:transform "scale(1.25)"}]
-
-         [:&.flagged
-          {:color "red"}]
-
-         [:>svg
           {:width "1em"}]]]]]]]])
