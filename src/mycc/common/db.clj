@@ -101,6 +101,8 @@
               :user/name (extract-name-from-email email)
               :user/created-at (java.util.Date.)
               :user/role :role/student
+              :user/primary-languages #{}
+              :user/secondary-languages #{}
               :user/max-pair-per-day 1
               :user/max-pair-per-week 1
               :user/max-pair-same-user 2
