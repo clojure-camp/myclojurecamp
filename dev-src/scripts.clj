@@ -51,3 +51,14 @@
        (map (fn [u]
               (malli.error/humanize (malli.core/explain mycc.base.schema/User u))))
        first)
+
+;; add empty :user/primary-languages & :user/secondary-languages
+#_(->> (mycc.common.db/get-users)
+       (map (fn [u]
+              (-> u
+                  (update :user/primary-languages (fn [l]
+                                                    (or l #{})))
+                  (update :user/secondary-languages (fn [l]
+                                                    (or l #{}))))))
+       (map mycc.common.db/save-user!)
+       doall)
