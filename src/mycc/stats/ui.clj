@@ -256,6 +256,38 @@
              [:span {:style {:color (color (:user/role user))}}
               (:user/name user)]])])]]]))
 
+(defn p2p-user-participation-view
+  [users events]
+  (let [one-year-ago (t/<< (t/date) (t/new-period 1 :years))
+        user-id->event-count (->> events
+                                  (filter (fn [event]
+                                            (t/< one-year-ago (t/date (:event/at event)))))
+                                  (mapcat :event/guest-ids)
+                                  (reduce (fn [memo user-id]
+                                            (update memo user-id (fnil inc 0)))
+                                          {}))
+        user-id->user (zipmap (map :user/id users)
+                              users)]
+    [:section
+     [:h1 "Top P2P Participants in Last Year"]
+     [:table
+      [:thead
+       [:tr {:style {:text-align "left"}}
+        [:th "Name"]
+        [:th "Event Count"]]]
+      [:tbody
+       (for [[user-id event-count] (->> user-id->event-count
+                                        (sort-by second >))
+             :let [user (user-id->user user-id)]]
+         ^{:key user-id}
+         [:tr
+          [:td {:style {:font-weight "lighter"}}
+           [:span {:style {:color (color (:user/role user))}} (:user/name user)]]
+          [:td {:style {:font-weight "lighter"
+                        :font-variant-numeric "tabular-nums"
+                        :text-align "right"}}
+           event-count]])]]]))
+
 (defn reports-view
   [{:keys [users topics events]}]
   [:div {:style {:display "flex"
@@ -263,6 +295,7 @@
                  :align-items "flex-start"
                  :gap "4em"}}
    #_[users-table-view users]
+
 
    [p2p-events-view users events]
 
@@ -322,6 +355,8 @@
        :users users
        :user->item-ids (fn [u]
                          [(offsets (:user/time-zone u))])}])
+
+   [p2p-user-participation-view users events]
    ])
 
 
