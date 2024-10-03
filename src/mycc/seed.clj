@@ -52,11 +52,17 @@
         users [{:user/id (uuid/random)
                 :user/name "Alice"
                 :user/email "alice@example.com"
+                :user/primary-languages #{:language/english}
+                :user/secondary-languages #{:language/german}
+                :user/time-zone "America/Toronto"
                 :user/topic-ids (set (take 2 (shuffle (map :topic/id topics))))
                 :user/availability (util/random-availability)}
                {:user/id (uuid/random)
                 :user/name "Bob"
                 :user/email "bob@example.com"
+                :user/primary-languages #{:language/english}
+                :user/secondary-languages #{:language/french}
+                :user/time-zone "Europe/Dublin"
                 :user/topic-ids (set (take 2 (shuffle (map :topic/id topics))))
                 :user/availability (util/random-availability)}]]
     (doseq [topic topics]

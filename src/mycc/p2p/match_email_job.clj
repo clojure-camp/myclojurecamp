@@ -38,6 +38,8 @@
    :roles (-> (mapify :user/id :user/role users)
               (update-vals (fn [role]
                              #{role})))
+   :primary-languages (mapify :user/id :user/primary-languages users)
+   :secondary-languages (mapify :user/id :user/secondary-languages users)
    :user-deny-list (mapify :user/id :user/user-pair-deny-list users)
    :roles-to-pair-with (mapify :user/id
                                (fn [user]
