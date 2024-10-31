@@ -92,7 +92,8 @@
   [users local-date-start-of-week]
   (if (empty? users)
    []
-   (->> (prep-input-for-schedule users local-date-start-of-week)
+   (->> (assoc (prep-input-for-schedule users local-date-start-of-week)
+          :report-fn println)
         (ps/schedule)
         :schedule
         (map (fn [event]
