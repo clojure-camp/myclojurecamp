@@ -135,9 +135,12 @@
              [:div "Click in the calendar grid below to indicate your time availability."]
              [:div "A = available, P = preferred"]]}
      [:<>
-      [:div {:tw "absolute right-4 top-4 flex gap-1 items-center"}
-       [fa/fa-globe-solid {:tw "w-4 h-4"}]
-       @(mod/subscribe [:user-profile-value :user/time-zone])]
+      [:div {:tw "absolute right-4 top-4 flex gap-4 items-center"}
+       [ui/secondary-button {:on-click (fn [_]
+                                         (mod/dispatch [:clear-availability!]))} "Clear all"]
+       [:div {:tw "flex gap-1 items-center"}
+        [fa/fa-globe-solid {:tw "w-4 h-4"}]
+        @(mod/subscribe [:user-profile-value :user/time-zone])]]
       (when-let [availability @(mod/subscribe [:user-profile-value :user/availability])]
         [:div {:tw "max-h-100vh overflow-x-auto mt-4"}
          [:table.availability

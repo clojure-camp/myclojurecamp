@@ -34,6 +34,13 @@
     {:db (update db :db/events merge (key-by :event/id events))}))
 
 (mod/reg-event-fx
+ :clear-availability!
+ (fn [{db :db} _]
+   {:db (assoc-in db [:db/user :user/availability] {})
+    :ajax {:method :put
+           :uri "/api/user/clear-availability"}}))
+
+(mod/reg-event-fx
   :set-availability!
   (fn [{db :db} [_ [day hour] value]]
     {:db (assoc-in db [:db/user :user/availability [day hour]] value)

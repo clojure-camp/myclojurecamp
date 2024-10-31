@@ -50,11 +50,23 @@
               db/save-user!)
       ;; delete topic if has 0 users
       #_(->> (p2p.db/get-topics)
-           (filter (fn [topic] (and (= 0 (:topic/user-count topic))
-                                 (= (:topic/id topic) topic-id))))
-           (map (fn [topic]
-                  (p2p.db/delete-topic! (:topic/id topic))))
-           (dorun)))}
+             (filter (fn [topic] (and (= 0 (:topic/user-count topic))
+                                      (= (:topic/id topic) topic-id))))
+             (map (fn [topic]
+                    (p2p.db/delete-topic! (:topic/id topic))))
+             (dorun)))}
+
+   {:id :clear-availability!
+    :route [:put "/api/user/clear-availability"]
+    :params {:user-id uuid?}
+    :conditions
+    (fn [{:keys [user-id]}]
+      [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]])
+    :effect
+    (fn [{:keys [user-id]}]
+      (some-> (db/get-user user-id)
+              (assoc-in [:user/availability] {})
+              db/save-user!))}
 
    {:id :update-availability!
     :route [:put "/api/user/update-availability"]
