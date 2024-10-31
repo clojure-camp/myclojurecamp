@@ -288,17 +288,23 @@
 
 (defn optimize-schedule
   [{:keys [report-fn] :as context}]
-  (let [max-iterations 5000
+  (let [min-iterations (* 50 (count (:availabilities context)))
+        max-iterations (* 250 (count (:availabilities context)))
         max-tweaks-per-iteration 4
-        moving-average-ratio 0.1
-        stop-threshold 0.01]
+        moving-average-ratio 0.01
+        stop-threshold 0.0001]
     (loop [context context
            iteration-count 0
            score-delta-moving-average 1000]
       (when report-fn
-        (report-fn iteration-count (schedule-score context) score-delta-moving-average))
-      (if (or (< score-delta-moving-average stop-threshold)
-              (< max-iterations iteration-count))
+        (when (= 0 (mod iteration-count 50))
+          (report-fn "iterations:" iteration-count
+                     "score:" (schedule-score context)
+                     "delta-moving-average:" score-delta-moving-average)))
+      (if (and
+            (< min-iterations iteration-count)
+            (or (< score-delta-moving-average stop-threshold)
+                (< max-iterations iteration-count)))
         context
         (let [tweak-count (+ 1 (rand-int max-tweaks-per-iteration))
               tweak-n-times (apply comp (repeat tweak-count tweak-schedule))
