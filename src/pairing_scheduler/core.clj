@@ -283,23 +283,41 @@
                         (fn [event]
                           (random-event (event :guest-ids) context))))))))
 
+(defn next-exponential-moving-average [new-value ratio average]
+  (+ (* new-value ratio) (* average (- 1 ratio))))
+
 (defn optimize-schedule
-  [{:keys [schedule availabilities report-fn] :as context}]
-  (let [max-iterations 5000
-        max-tweaks-per-iteration 4]
+  [{:keys [report-fn] :as context}]
+  (let [min-iterations (* 50 (count (:availabilities context)))
+        max-iterations (* 250 (count (:availabilities context)))
+        max-tweaks-per-iteration 4
+        moving-average-ratio 0.01
+        stop-threshold 0.0001]
     (loop [context context
-           iteration-count 0]
+           iteration-count 0
+           score-delta-moving-average 1000]
       (when report-fn
-        (report-fn iteration-count (schedule-score context)))
-      (if (> iteration-count max-iterations)
+        (when (= 0 (mod iteration-count 50))
+          (report-fn "iterations:" iteration-count
+                     "score:" (schedule-score context)
+                     "delta-moving-average:" score-delta-moving-average)))
+      (if (and
+            (< min-iterations iteration-count)
+            (or (< score-delta-moving-average stop-threshold)
+                (< max-iterations iteration-count)))
         context
         (let [tweak-count (+ 1 (rand-int max-tweaks-per-iteration))
               tweak-n-times (apply comp (repeat tweak-count tweak-schedule))
-              alt-context (tweak-n-times context)]
-          (if (< (schedule-score alt-context)
-                 (schedule-score context))
-            (recur alt-context (inc iteration-count))
-            (recur context (inc iteration-count))))))))
+              alt-context (tweak-n-times context)
+              score (schedule-score context)
+              alt-score (schedule-score alt-context)]
+          (if (< alt-score score)
+            (recur alt-context
+                   (inc iteration-count)
+                   (next-exponential-moving-average (- score alt-score) moving-average-ratio score-delta-moving-average))
+            (recur context
+                   (inc iteration-count)
+                   (next-exponential-moving-average 0 moving-average-ratio score-delta-moving-average))))))))
 
 (defn generate-initial-schedule
   [times-to-pair {:keys [availabilities] :as context}]
