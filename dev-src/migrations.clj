@@ -57,7 +57,15 @@
        (map mycc.common.db/save-user!)
        doall)
 
-
+#_(->> (mycc.common.db/get-users)
+       (map (fn [u]
+              (update u :user/user-pair-deny-list
+                      (fn [x]
+                        (if x
+                          x
+                          #{})))))
+       (map mycc.common.db/save-user!)
+       doall)
 
 ;; add empty :user/primary-languages & :user/secondary-languages
 #_(->> (mycc.common.db/get-users)
@@ -66,14 +74,20 @@
                   (update :user/primary-languages (fn [l]
                                                     (or l #{})))
                   (update :user/secondary-languages (fn [l]
-                                                    (or l #{})))))))
+                                                      (or l #{}))))))
+       (map mycc.common.db/save-user!)
+       doall)
 
+;; migrate from topic-ids to topics
+;; #{1 2} => {1 :level/beginner 2 :level/expert}
 #_(->> (mycc.common.db/get-users)
-       (map (fn [u]
-              (update u :user/user-pair-deny-list
-                      (fn [x]
-                        (if x
-                          x
-                          #{})))))
+       (map (fn [{:user/keys [topic-ids role] :as u}]
+              (let [role (or role :role/student)
+                    level (if (= :role/student role)
+                            :level/beginner
+                            :level/expert)]
+                (-> u
+                    (assoc :user/topics (zipmap topic-ids (repeat level)))
+                    (dissoc :user/topic-ids)))))
        (map mycc.common.db/save-user!)
        doall)
