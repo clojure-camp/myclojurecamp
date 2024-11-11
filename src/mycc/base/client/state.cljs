@@ -19,11 +19,19 @@
           track? (not= :get (:method opts))]
       (when track?
         (swap! ajax-state assoc request-id :request.state/in-progress))
-     (ajax/request (assoc opts :on-success (fn [data]
-                                             (when track?
-                                               (swap! ajax-state dissoc request-id))
-                                            (when (opts :on-success)
-                                             ((opts :on-success) data))))))))
+      (ajax/request (assoc opts
+                      :on-success (fn [data]
+                                    (when track?
+                                      (swap! ajax-state dissoc request-id))
+                                    (when (opts :on-success)
+                                      ((opts :on-success) data)))
+                      :on-error (fn [data]
+                                  (when track?
+                                    (swap! ajax-state dissoc request-id))
+                                  (when (not= :get (:method opts))
+                                    (js/alert "Error sending data to server. Your latest changed may not have been saved."))
+                                  (when (opts :on-error)
+                                    ((opts :on-error) data))))))))
 
 
 (reg-fx :dispatch-debounce dispatch-debounce/fx)
