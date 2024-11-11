@@ -48,7 +48,9 @@
               :value @(mod/subscribe [:user-profile-value :user/time-zone])
               :on-change (fn [e]
                            (mod/dispatch [:set-user-value! :user/time-zone (.. e -target -value)]))}
-     (for [timezone (.supportedValuesOf js/Intl "timeZone")]
+     (for [timezone (->> (.supportedValuesOf js/Intl "timeZone")
+                         ;; Firefox includes these, but Java does not recognize them
+                         (remove #{"HST" "MST" "EST" "Factory"}))]
        ^{:key timezone}
        [:option {:value timezone} timezone])]
     [ui/button
