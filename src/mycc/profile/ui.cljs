@@ -116,7 +116,13 @@
         (for [[category topics] (->> @(mod/subscribe [:topics])
                                      (group-by :topic/category)
                                      (sort-by (fn [[k _]]
-                                                (.indexOf category-order k))))]
+                                                ;; sort by category-order, then alphabetically
+                                                [(let [i (.indexOf category-order k)]
+                                                   ;; if not in above list, put at the end
+                                                   (if (= -1 i)
+                                                     100
+                                                     i))
+                                                 k])))]
           ^{:key (or category "other")}
           [:section {:tw "space-y-3"}
            [:h1 {:tw "italic"} (or category "other")]
