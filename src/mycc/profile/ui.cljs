@@ -89,8 +89,10 @@
           [ui/secondary-button
            {:on-click (fn []
                         (let [in (js/prompt "Language name:")
-                              language (keyword "language" (string/lower-case (string/replace in #"\W" "")))]
-                          (mod/dispatch [:set-user-value! k (conj value language)])))}
+                              language (string/lower-case (string/replace in #"\W" ""))]
+                          (when (not (string/blank? language))
+                            (let [language (keyword "language" language)]
+                              (mod/dispatch [:set-user-value! k (conj value language)])))))}
            "+ Language"]])))])
 
 (defn topics-view []
