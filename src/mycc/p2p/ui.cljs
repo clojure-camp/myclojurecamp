@@ -4,6 +4,7 @@
     [bloom.commons.fontawesome :as fa]
     [modulo.api :as mod]
     [reagent.core :as r]
+    [mycc.common.profile :as common.profile]
     [mycc.common.ui :as ui]
     [mycc.p2p.util :as util]
     [mycc.p2p.styles :as styles]))
@@ -138,7 +139,7 @@
       [:div {:tw "absolute right-4 top-4 flex gap-4 items-center"}
        [ui/secondary-button {:on-click (fn [_]
                                          (mod/dispatch [:clear-availability!]))} "Clear all"]
-       [:div {:tw "flex gap-1 items-center"}
+       #_[:div {:tw "flex gap-1 items-center"}
         [fa/fa-globe-solid {:tw "w-4 h-4"}]
         @(mod/subscribe [:user-profile-value :user/time-zone])]]
       (when-let [availability @(mod/subscribe [:user-profile-value :user/availability])]
@@ -233,7 +234,7 @@
       [:div.actions
        [:a.link {:href (str "mailto:" (:user/email (:event/other-guest event)))}
         [fa/fa-envelope-solid]]
-       [:a.link {:href (util/->event-url event)}
+       #_[:a.link {:href (util/->event-url event)}
         [fa/fa-video-solid]]
 
 
@@ -241,6 +242,7 @@
                                   guest-user-id)]
          [:button.avoid
           {:tw ["p-1" (when avoiding? "text-white bg-red-800 rounded-full")]
+           :title "Don't pair me with this user in the future."
            :on-click (fn []
                        (mod/dispatch
                          [:avoid-user! guest-user-id (not avoiding?)]))}
@@ -264,6 +266,22 @@
          ^{:key (:event/id event)}
          [event-view (when (= 0 index) "Past Sessions") event])]])])
 
+(defn avoided-users-view []
+  [ui/row {:title "Avoided Partners"}
+   [:p {:tw "italic"} "Click on a " [fa/fa-ban-solid {:tw "w-4 h-4 inline-block"}] " in the session list below to prevent future matches with certain people."]
+   (let [;; currently, getting list of users from past events
+         ;; assuming that only avoid someone that have had an event with
+         id->name (->> @(mod/subscribe [:events])
+                       (map (fn [event]
+                              [(:user/id (:event/other-guest event))
+                               (:user/name (:event/other-guest event))]))
+                       (into {}))
+         names-avoided (map id->name (:user/user-pair-deny-list @(mod/subscribe [:user])))]
+     [:div {:tw "p-2"}
+      (if (seq names-avoided)
+        names-avoided
+        "(None)")])])
+
 (defn p2p-page-view []
   [:div.page.p2p
    [ui/row
@@ -275,9 +293,16 @@
    (when @(mod/subscribe [:user-profile-value :user/subscribed?])
      [:<>
       [opt-in-view]
-      [pair-with-view]
+      [common.profile/time-zone-view]
       [availability-view]
       [max-limit-preferences-view]
+      [ui/row {}
+       [:p {:tw "italic"} "The following fields from your profile affect who you are matched with:"]]
+      [common.profile/role-view]
+      [common.profile/language-views]
+      [common.profile/topics-view]
+      [pair-with-view]
+      [avoided-users-view]
       [events-view]])
    [subscription-toggle-view]])
 
