@@ -329,9 +329,9 @@
       [ui/row {}
        [:p {:tw "italic"} "The following fields from your profile affect who you are matched with:"]]
       [common.profile/role-view]
+      [pair-with-view]
       [common.profile/language-views]
       [common.profile/topics-view]
-      [pair-with-view]
       [avoided-users-view]
       [events-view]])
    [subscription-toggle-view]])
