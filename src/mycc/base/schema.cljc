@@ -18,8 +18,15 @@
    :string
    [:fn #(not (string/blank? %))]])
 
+(def Language
+  [:and
+   :keyword
+   [:fn (fn [k]
+          (= "language" (namespace k)))]])
+
 (def User
   [:map
+   [:user/id uuid?]
    ;; profile
    [:user/name NonBlankString]
    [:user/created-at inst?]
@@ -64,8 +71,8 @@
     [:and :int [:>= 1] [:<= (* 24 7)]]]
    [:user/max-pair-same-user
     [:and :int [:>= 1] [:<= 50]]]
-   [:user/primary-languages [:set :keyword]]
-   [:user/secondary-languages [:set :keyword]]
+   [:user/primary-languages [:set Language]]
+   [:user/secondary-languages [:set Language]]
    [:user/subscribed? :boolean]
    [:user/pair-next-week? :boolean]
    [:user/pair-opt-in-history [:set
