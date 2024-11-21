@@ -51,30 +51,14 @@
                      :value value}}}))
 
 (mod/reg-event-fx
-  :add-user-topic!
-  (fn [{db :db} [_ topic-id]]
-    {:db (-> db
-             (update-in [:db/user :user/topic-ids] conj topic-id)
-             (update-in [:db/topics topic-id :topic/user-count] (fnil inc 0)))
-     :ajax {:method :put
-            :uri "/api/user/add-topic"
-            :params {:topic-id topic-id}}}))
-
-(defn maybe-delete-topic [db topic-id]
-  (if (= 0 (get-in db [:db/topics topic-id :topic/user-count]))
-   (update db :db/topics dissoc topic-id)
-   db))
-
-(mod/reg-event-fx
-  :remove-user-topic!
-  (fn [{db :db} [_ topic-id]]
-    {:db (-> db
-             (update-in [:db/user :user/topic-ids] disj topic-id)
-             (update-in [:db/topics topic-id :topic/user-count] dec)
-             #_(maybe-delete-topic topic-id))
-     :ajax {:method :put
-            :uri "/api/user/remove-topic"
-            :params {:topic-id topic-id}}}))
+ :set-user-topic-level!
+ (fn [{db :db} [_ topic-id level]]
+   {:db (-> db
+            (assoc-in [:db/user :user/topics topic-id] level))
+    :ajax {:method :put
+           :uri "/api/user/set-topic-level"
+           :params {:topic-id topic-id
+                    :level level}}}))
 
 (mod/reg-event-fx
   :opt-in-for-pairing!
@@ -101,7 +85,7 @@
             :params {:name topic-name}
             :on-success (fn [topic]
                           (mod/dispatch [::store-topics! [topic]])
-                          (mod/dispatch [:add-user-topic! (:topic/id topic)]))}}))
+                          (mod/dispatch [:set-user-topic-level! (:topic/id topic) :level/beginner]))}}))
 
 (mod/reg-sub
   :topics
