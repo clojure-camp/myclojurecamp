@@ -21,40 +21,21 @@
       (p2p.db/create-topic! name))
     :return :tada/effect-return}
 
-   {:id :subscribe-to-topic!
-    :route [:put "/api/user/add-topic"]
+   {:id :set-topic-level!
+    :route [:put "/api/user/set-topic-level"]
     :params {:user-id uuid?
-             :topic-id uuid?}
+             :topic-id uuid?
+             :level (fn [value]
+                      (contains? #{:level/beginner :level/intermediate :level/expert nil} value))}
     :conditions
-    (fn [{:keys [user-id topic-id]}]
+    (fn [{:keys [user-id topic-id level]}]
       [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]
        [#(db/entity-file-exists? :topic topic-id) :not-allowed "Topic with this ID does not exist."]])
     :effect
-    (fn [{:keys [user-id topic-id]}]
+    (fn [{:keys [user-id topic-id level]}]
       (some-> (db/get-user user-id)
-              (update :user/topic-ids conj topic-id)
+              (assoc-in [:user/topics topic-id] level)
               db/save-user!))}
-
-   {:id :unsubscribe-from-topic!
-    :route [:put "/api/user/remove-topic"]
-    :params {:user-id uuid?
-             :topic-id uuid?}
-    :conditions
-    (fn [{:keys [user-id topic-id]}]
-      [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]
-       [#(db/entity-file-exists? :topic topic-id) :not-allowed "Topic with this ID does not exist."]])
-    :effect
-    (fn [{:keys [user-id topic-id]}]
-      (some-> (db/get-user user-id)
-              (update :user/topic-ids disj topic-id)
-              db/save-user!)
-      ;; delete topic if has 0 users
-      #_(->> (p2p.db/get-topics)
-             (filter (fn [topic] (and (= 0 (:topic/user-count topic))
-                                      (= (:topic/id topic) topic-id))))
-             (map (fn [topic]
-                    (p2p.db/delete-topic! (:topic/id topic))))
-             (dorun)))}
 
    {:id :clear-availability!
     :route [:put "/api/user/clear-availability"]

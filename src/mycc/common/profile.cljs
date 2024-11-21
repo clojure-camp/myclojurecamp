@@ -52,6 +52,37 @@
                               (mod/dispatch [:set-user-value! k (conj value language)])))))}
            "+ Language"]])))])
 
+(defn multi-state-checkbox [{:keys [value states label on-change]}]
+  [:div {:tw "inline-block cursor-pointer"
+         :on-click on-change}
+   (if value
+     [:div.box {:tw "inline-block mr-1 border border-blue-500 rounded text-white bg-blue-500 px-0.5"}
+      (let [value-index (.indexOf states value)]
+        (into [:<>]
+              (for [[index v] (map-indexed vector states)]
+                (if (<= index value-index)
+                  "●"
+                  "○"))))]
+     [:div.box {:tw "inline-block mr-1 border border-gray-500 rounded text-white px-0.5"}
+      "○○○"])
+   label])
+
+(defn multi-state-checkbox-list
+  [{:keys [choices on-change direction]}]
+  [:div.multi-state-checkbox-list {:tw ["flex gap-y-3 flex-wrap gap-x-4"
+                                        (when (= direction :vertical)
+                                          "flex-col")]}
+   (let [states [:level/beginner :level/intermediate :level/expert]]
+     (for [[topic choice-value] choices]
+       ^{:key (:topic/id topic)}
+       [multi-state-checkbox {:value choice-value
+                              :states states
+                              :label (:topic/name topic)
+                              :on-change (fn [] (on-change (:topic/id topic)
+                                                           (->> (cycle (conj states nil))
+                                                                (drop-while (partial not= choice-value))
+                                                                second)))}]))])
+
 (defn topics-view []
   [ui/row
    {:title "Learning Topics"
@@ -68,31 +99,30 @@
                           "programming practices"
                           "programming domains"
                           "web dev related"
-                          nil]]
+                          nil]
+          user-topics @(mod/subscribe [:user-profile-value :user/topics])]
       (doall
-        (for [[category topics] (->> @(mod/subscribe [:topics])
-                                     (group-by :topic/category)
-                                     (sort-by (fn [[k _]]
-                                                ;; sort by category-order, then alphabetically
-                                                [(let [i (.indexOf category-order k)]
-                                                   ;; if not in above list, put at the end
-                                                   (if (= -1 i)
-                                                     100
-                                                     i))
-                                                 k])))]
-          ^{:key (or category "other")}
-          [:section {:tw "space-y-3"}
-           [:h1 {:tw "italic"} (or category "other")]
-           [ui/checkbox-list
-            {:value @(mod/subscribe [:user-profile-value :user/topic-ids])
-             :choices (->> topics
-                           (sort-by :topic/name)
-                           (map (fn [{:topic/keys [id name]}]
-                                  [id name])))
-             :on-change (fn [_value action changed-value]
-                          (case action
-                            :add (mod/dispatch [:add-user-topic! changed-value])
-                            :remove (mod/dispatch [:remove-user-topic! changed-value])))}]])))]
+       (for [[category topics] (->> @(mod/subscribe [:topics])
+                                    (group-by :topic/category)
+                                    (sort-by (fn [[k _]]
+                                               ;; sort by category-order, then alphabetically
+                                               [(let [i (.indexOf category-order k)]
+                                                  ;; if not in above list, put at the end
+                                                  (if (= -1 i)
+                                                    100
+                                                    i))
+                                                k])))]
+         ^{:key (or category "other")}
+         [:section {:tw "space-y-3"}
+          [:h1 {:tw "italic"} (or category "other")]
+          [multi-state-checkbox-list
+           {:choices
+            (->> topics
+                 (sort-by :topic/name)
+                 (map (fn [{:topic/keys [id] :as topic}]
+                        [topic (user-topics id) ])))
+            :on-change (fn [topic-id level]
+                         (mod/dispatch [:set-user-topic-level! topic-id level]))}]])))]
    [ui/secondary-button
     {:on-click (fn [_]
                  (let [value (js/prompt "Enter a new topic:")]
@@ -116,5 +146,5 @@
     [ui/button
      {:on-click (fn []
                   (mod/dispatch
-                    [:set-user-value! :user/time-zone (.. js/Intl DateTimeFormat resolvedOptions -timeZone)]))}
+                   [:set-user-value! :user/time-zone (.. js/Intl DateTimeFormat resolvedOptions -timeZone)]))}
      "Auto-Detect"]]])
