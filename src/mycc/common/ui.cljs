@@ -40,7 +40,7 @@
          (when info
            [popover-view info])])
       (when subtitle
-        [:div {:tw "font-light mt-1"}
+        [:div {:tw "font-light mt-1 italic text-gray-600"}
          subtitle])])
    (into [:div.content {:tw "font-light space-y-3"}]
          content)])

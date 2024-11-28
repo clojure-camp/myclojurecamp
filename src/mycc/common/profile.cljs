@@ -56,7 +56,7 @@
   [:div {:tw "inline-block cursor-pointer"
          :on-click on-change}
    (if value
-     [:div.box {:tw "inline-block mr-1 border border-blue-500 rounded text-white bg-blue-500 px-0.5"}
+     [:div.box {:tw "inline-block mr-1 border border-blue-500 rounded text-white bg-blue-500 px-0.5 not-italic"}
       (let [value-index (.indexOf states value)]
         (into [:<>]
               (for [[index v] (map-indexed vector states)]
@@ -86,12 +86,23 @@
 (defn topics-view []
   [ui/row
    {:title "Learning Topics"
-    :subtitle (case @(mod/subscribe [:user-profile-value :user/role])
-                :role/student
-                "Topics you're interested in learning. Feel free to add your own."
-                :role/mentor
-                "Topics you have experience with."
-                nil)}
+    :subtitle [:div {:tw "space-y-1"}
+               [:p "Topics you are interested in learning or teaching. "]
+               [:p "For every topic, you can indicate your level: "]
+               [:ul {:tw "space-y-1 pointer-events-none ml-2"}
+                (for [[level text] [[nil "not interested"]
+                                    [1 "beginner - I want to learn this, but I'm just starting out"]
+                                    [2 "intermediate - I understand the basics, and can help beginners, but still want to learn more"]
+                                    [3 "expert - I know this very well, and I'm here to teach it"]]]
+                  [:li {:tw ""}
+                   [multi-state-checkbox {:value level
+                                          :states [1 2 3]
+                                          :label text
+                                          :on-change (fn [])}]])]
+               [:p "Click on "
+                [:span {:tw "pointer-events-none -mr-1.5"}
+                 [multi-state-checkbox {:value nil :states [1] :label nil :on-change (fn [])}]]
+                " multiple times to set your level."]]}
    [:div {:tw "space-y-5"}
     (let [category-order ["clojure concepts"
                           "general programming concepts"
@@ -114,7 +125,7 @@
                                                 k])))]
          ^{:key (or category "other")}
          [:section {:tw "space-y-3"}
-          [:h1 {:tw "italic"} (or category "other")]
+          [:h1 (or category "other")]
           [multi-state-checkbox-list
            {:choices
             (->> topics
