@@ -28,7 +28,6 @@
        first)
 
 ;; see what events will be created
-
 #_(let [date (tick.core/date "2024-04-01")]
     (mycc.p2p.match-email-job/generate-schedule
       (filter (fn [u]

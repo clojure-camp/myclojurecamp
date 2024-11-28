@@ -33,7 +33,7 @@
    :topics (mapify :user/id
                    (fn [_] #{:clojure-camp})
                    ;; disabling topic selection for now
-                   #_:user/topic-ids users)
+                   #_:user/topics users)
    :timezones (mapify :user/id :user/time-zone users)
    :roles (-> (mapify :user/id :user/role users)
               (update-vals (fn [role]
@@ -120,7 +120,11 @@
 (defn ->topics [event]
   (->> (:event/guest-ids event)
        (map db/get-user)
-       (map :user/topic-ids)
+       (map (fn [u]
+              (->> u
+                   :user/topics
+                   (map first)
+                   set)))
        (apply set/intersection)
        (map p2p.db/get-topic)
        (map :topic/name)
