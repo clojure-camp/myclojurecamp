@@ -16,7 +16,10 @@
   "Returns a map of topic-id->user-count"
   []
   (->> (db/get-users)
-       (mapcat :user/topic-ids)
+       (mapcat (fn [u]
+                 (->> u
+                      :user/topics
+                      (map first))))
        frequencies))
 
 (defn- get-topics-raw

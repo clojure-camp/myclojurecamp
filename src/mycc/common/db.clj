@@ -107,7 +107,7 @@
               :user/max-pair-per-week 1
               :user/max-pair-same-user 2
               :user/pair-opt-in-history #{}
-              :user/topic-ids #{}
+              :user/topics {}
               :user/availability {}
               :user/user-pair-deny-list #{}
               :user/email-validated? false

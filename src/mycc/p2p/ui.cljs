@@ -191,23 +191,23 @@
   []
   (let [validations {"Add at least one hour of Availability"
                      (->> @(mod/subscribe [:user-profile-value :user/availability])
-                          (filter (fn [[_ v]]
-                                    (not= v nil)))
-                          seq
+                          (some val)
                           boolean)
                      "Add a Role"
                      (boolean @(mod/subscribe [:user-profile-value :user/role]))
                      "Add a Primary Language"
                      (boolean (seq @(mod/subscribe [:user-profile-value :user/primary-languages])))
                      "Select at least one Topic"
-                     (boolean (seq @(mod/subscribe [:user-profile-value :user/topic-ids])))}
+                     (->> @(mod/subscribe [:user-profile-value :user/topics])
+                          (some val)
+                          boolean)}
         error-messages (->> validations
-                              (remove (fn [[_ v]]
-                                        v))
-                              (map key))]
+                            (remove (fn [[_ v]]
+                                      v))
+                            (map key))]
     (when (and
-            @(mod/subscribe [:user-profile-value :user/pair-next-week?])
-            (seq error-messages))
+           @(mod/subscribe [:user-profile-value :user/pair-next-week?])
+           (seq error-messages))
       [ui/row {}
        [:div {:tw "bg-red-100 text-red-900 p-4 rounded border border-red-200"}
         "Your current configuration means you won't get matched with anyone this week:"

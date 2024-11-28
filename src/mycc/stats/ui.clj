@@ -310,7 +310,9 @@
      :item->id :topic/id
      :item->label :topic/name
      :users users
-     :user->item-ids :user/topic-ids}]
+     :user->item-ids (fn [u]
+                       (-> (:user/topics u)
+                           keys))}]
 
    [supply-and-demand-view
     {:label "Primary Language"
