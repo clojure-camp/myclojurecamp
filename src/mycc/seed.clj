@@ -44,18 +44,20 @@
 
 (defn seed! []
   (let [topics (flatten
-                 (for [[category topics] topics]
-                   (for [topic topics]
-                     {:topic/id (uuid/random)
-                      :topic/name topic
-                      :topic/category category})))
+                (for [[category topics] topics]
+                  (for [topic topics]
+                    {:topic/id (uuid/random)
+                     :topic/name topic
+                     :topic/category category})))
         users [{:user/id (uuid/random)
                 :user/name "Alice"
                 :user/email "alice@example.com"
                 :user/primary-languages #{:language/english}
                 :user/secondary-languages #{:language/german}
                 :user/time-zone "America/Toronto"
-                :user/topic-ids (set (take 2 (shuffle (map :topic/id topics))))
+                :user/topics (zipmap (take 10 (shuffle (map :topic/id topics)))
+                                     (repeat :level/beginner))
+                :user/role :role/student
                 :user/availability (util/random-availability)}
                {:user/id (uuid/random)
                 :user/name "Bob"
@@ -63,7 +65,9 @@
                 :user/primary-languages #{:language/english}
                 :user/secondary-languages #{:language/french}
                 :user/time-zone "Europe/Dublin"
-                :user/topic-ids (set (take 2 (shuffle (map :topic/id topics))))
+                :user/topics (zipmap (take 10 (shuffle (map :topic/id topics)))
+                                     (repeat :level/expert))
+                :user/role :role/mentor
                 :user/availability (util/random-availability)}]]
     (doseq [topic topics]
       (p2p.db/save-topic! topic))

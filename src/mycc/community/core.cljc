@@ -47,10 +47,10 @@
                                      [:div
                                       (interpose ", "
                                                  (concat
-                                                   (for [l (:user/primary-languages u)]
-                                                     [:span (name l)])
-                                                   (for [l (:user/secondary-languages u)]
-                                                     [:span {:style {:font-style "italic"}} (name l)])))]))]
+                                                  (for [l (:user/primary-languages u)]
+                                                    [:span (name l)])
+                                                  (for [l (:user/secondary-languages u)]
+                                                    [:span {:style {:font-style "italic"}} (name l)])))]))]
                     ["Motivation" (fn [u]
                                     (some-> u :user/profile-motivation name))]
                     ["Programming Experience" (partial experience-view :programming)]
@@ -59,9 +59,17 @@
                     ["Long Term Learning Milestone" :user/profile-long-term-milestone]
                     ["Pairing Preference" :user/pair-with]
                     ["Topics" (fn [user]
-                                (interpose ", "
-                                           (for [t (map id->topic (:user/topic-ids user))]
-                                             (:topic/name t))))]
+                                (let [groups (->> (:user/topics user)
+                                                  (group-by val))]
+                                  (for [[level items] (->> [:level/beginner :level/intermediate :level/expert]
+                                                           (map (fn [level]
+                                                                  [level (groups level)])))
+                                        :when (seq items)]
+                                    [:div
+                                     [:h2 {:style {:font-weight "normal"}} (name level)]
+                                     (interpose ", "
+                                                (for [t (map id->topic (map first items))]
+                                                  (:topic/name t)))])))]
                     ["Github" :user/github-user]
                     ["Discord" :user/discord-user]]]
      (let [out (f user)]
