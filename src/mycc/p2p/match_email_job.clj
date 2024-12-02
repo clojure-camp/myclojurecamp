@@ -30,10 +30,7 @@
    :max-events-per-day (mapify :user/id :user/max-pair-per-day users)
    :max-events-per-week (mapify :user/id :user/max-pair-per-week users)
    :max-same-user-per-week (mapify :user/id :user/max-pair-same-user users)
-   :topics (mapify :user/id
-                   (fn [_] #{:clojure-camp})
-                   ;; disabling topic selection for now
-                   #_:user/topics users)
+   :topics (mapify :user/id :user/topics users)
    :timezones (mapify :user/id :user/time-zone users)
    :roles (-> (mapify :user/id :user/role users)
               (update-vals (fn [role]
