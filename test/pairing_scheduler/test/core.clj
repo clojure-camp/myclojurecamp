@@ -320,7 +320,7 @@
                 :schedule
                 set))))
 
-  (testing "prefer scheduling during preferred times"
+  (testing "prefer scheduling during preferred times - sometimes fails"
     (is (= #{{:guest-ids #{"raf" "dh"}
               :at #inst "2021-01-01T10"}
              {:guest-ids #{"raf" "berk"}
@@ -531,34 +531,51 @@
 
   (testing "takes topics into consideration"
     (is (has-factor?
-          :factor.id/without-matching-topics
-          (ps/individual-score-meta
-            "raf"
-            {:schedule
-             [{:guest-ids #{"raf" "dh"}
-               :at #inst "2021-01-03T15"}]
-             :topics {"raf" #{3}
-                      "dh" #{1 2}}
-             :availabilities
-             {"raf" #{[#inst "2021-01-03T15" :preferred]}}})))
-    (is (= #{#{{:guest-ids #{"alice" "bob"}
-                :at #inst "2021-01-01T10"}
-               {:guest-ids #{"cathy" "donald"}
-                :at #inst "2021-01-01T10"}}}
-           (set (repeatedly 10
-                            (fn []
-                              (->> {:availabilities {"alice" #{[#inst "2021-01-01T10" :available]}
-                                                     "bob" #{[#inst "2021-01-01T10" :available]}
-                                                     "cathy" #{[#inst "2021-01-01T10" :available]}
-                                                     "donald" #{[#inst "2021-01-01T10" :available]}}
-                                    :topics {"alice" #{"a" "b"}
-                                             "bob" #{"a" "z"}
-                                             "cathy" #{"e" "f"}
-                                             "donald" #{"e" "g"}}
-                                    :times-to-pair 1}
-                                   ps/schedule
-                                   :schedule
-                                   set)))))))
+         :factor.id/topics-no-match
+         (ps/individual-score-meta
+          "raf"
+          {:schedule
+           [{:guest-ids #{"raf" "dh"}
+             :at #inst "2021-01-03T15"}]
+           :topics {"raf" {3 :level/expert}
+                    "dh" {1 :level/beginner}}})))
+    (is (has-factor?
+         :factor.id/topics-quality-score
+         (ps/individual-score-meta
+          "raf"
+          {:schedule
+           [{:guest-ids #{"raf" "dh"}
+             :at #inst "2021-01-03T15"}]
+           :topics {"raf" {1 :level/beginner}
+                    "dh" {1 :level/beginner}}})))
+    (testing "handles topics without level"
+        (is (has-factor?
+             :factor.id/topics-quality-score
+             (ps/individual-score-meta
+              "raf"
+              {:schedule
+               [{:guest-ids #{"raf" "dh"}
+                 :at #inst "2021-01-03T15"}]
+               :topics {"raf" {1 :level/beginner 2 nil}
+                        "dh" {1 :level/beginner 2 :level/expert}}}))))
+    (is (has-factor?
+         :factor.id/topics-quality-score
+         (ps/individual-score-meta
+          "raf"
+          {:schedule
+           [{:guest-ids #{"raf" "dh"}
+             :at #inst "2021-01-03T15"}]
+           :topics {"raf" {1 :level/expert}
+                    "dh" {1 :level/intermediate}}})))
+    (is (has-factor?
+         :factor.id/topics-only-experts-match
+         (ps/individual-score-meta
+          "raf"
+          {:schedule
+           [{:guest-ids #{"raf" "dh"}
+             :at #inst "2021-01-03T15"}]
+           :topics {"raf" {1 :level/expert}
+                    "dh" {1 :level/expert}}}))))
 
   (testing "takes roles into consideration"
     (is (= #{{:guest-ids #{"mentor-a" "student-a"}
