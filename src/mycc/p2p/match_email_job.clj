@@ -207,13 +207,12 @@
                  " (" (:user/time-zone user) ")"]]
                [:br]
                "With: "
-               [:span.guest
-                (:user/name partner)
-                " (" (name (:user/role partner)) ") "
-                " (" (:user/email partner) ")"]
+               [:a.guest {:href (str (mod/config :app-domain) "/community#" (:user/id partner))}
+                (:user/name partner)]
+                " (" (:user/email partner) ")"
                (when (seq (->topics event))
                  (list
-                   [:br]
+                  [:br]
                    "Potential Topics: "
                    (->topics event)))
                [:br]
