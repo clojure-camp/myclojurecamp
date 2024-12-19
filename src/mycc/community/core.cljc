@@ -36,51 +36,55 @@
 
 (defn user-tbody-view
   [user id->topic]
-  [:tbody
-   (for [[label f] [["Name" (fn [u]
-                              [:div {:style {:font-weight "bold"}}
-                               (:user/name u)])]
-                    ["Role" (comp name :user/role)]
-                    ["Time Zone" :user/time-zone]
-                    ["Languages" (fn [u]
-                                   (when (seq (concat (:user/primary-languages u) (:user/secondary-languages u)))
+  [:<>
+   [:tbody
+    {:id (:user/id user)}
+    (for [[label f] [["Name" (fn [u]
+                               [:div {:style {:font-weight "bold"}}
+                                (:user/name u)])]
+                     ["Role" (comp name :user/role)]
+                     ["Time Zone" :user/time-zone]
+                     ["Languages" (fn [u]
+                                    (when (seq (concat (:user/primary-languages u) (:user/secondary-languages u)))
+                                      [:div
+                                       (interpose ", "
+                                                  (concat
+                                                   (for [l (:user/primary-languages u)]
+                                                     [:span (name l)])
+                                                   (for [l (:user/secondary-languages u)]
+                                                     [:span {:style {:font-style "italic"}} (name l)])))]))]
+                     ["Motivation" (fn [u]
+                                     (some-> u :user/profile-motivation name))]
+                     ["Programming Experience" (partial experience-view :programming)]
+                     ["Clojure Experience" (partial experience-view :clojure)]
+                     ["Short Term Learning Milestone" :user/profile-short-term-milestone]
+                     ["Long Term Learning Milestone" :user/profile-long-term-milestone]
+                     ["Pairing Preference" :user/pair-with]
+                     ["Topics" (fn [user]
+                                 (let [groups (->> (:user/topics user)
+                                                   (group-by val))]
+                                   (for [[level items] (->> [:level/beginner :level/intermediate :level/expert]
+                                                            (map (fn [level]
+                                                                   [level (groups level)])))
+                                         :when (seq items)]
                                      [:div
+                                      [:h2 {:style {:font-weight "normal"}} (name level)]
                                       (interpose ", "
-                                                 (concat
-                                                  (for [l (:user/primary-languages u)]
-                                                    [:span (name l)])
-                                                  (for [l (:user/secondary-languages u)]
-                                                    [:span {:style {:font-style "italic"}} (name l)])))]))]
-                    ["Motivation" (fn [u]
-                                    (some-> u :user/profile-motivation name))]
-                    ["Programming Experience" (partial experience-view :programming)]
-                    ["Clojure Experience" (partial experience-view :clojure)]
-                    ["Short Term Learning Milestone" :user/profile-short-term-milestone]
-                    ["Long Term Learning Milestone" :user/profile-long-term-milestone]
-                    ["Pairing Preference" :user/pair-with]
-                    ["Topics" (fn [user]
-                                (let [groups (->> (:user/topics user)
-                                                  (group-by val))]
-                                  (for [[level items] (->> [:level/beginner :level/intermediate :level/expert]
-                                                           (map (fn [level]
-                                                                  [level (groups level)])))
-                                        :when (seq items)]
-                                    [:div
-                                     [:h2 {:style {:font-weight "normal"}} (name level)]
-                                     (interpose ", "
-                                                (for [t (map id->topic (map first items))]
-                                                  (:topic/name t)))])))]
-                    ["Github" :user/github-user]
-                    ["Discord" :user/discord-user]]]
-     (let [out (f user)]
-       (when (and out (if (sequential? out) (seq out) true))
-         [:tr
-          [:td {:style {:padding "0.25em"
-                        :vertical-align "top"}} label]
-          [:td {:style {:padding "0.25em"
-                        :vertical-align "top"
-                        :font-weight "lighter"}} (f user)]])))
-   [:tr [:td [:div {:style {:height "2em"}}]]]])
+                                                 (for [t (map id->topic (map first items))]
+                                                   (:topic/name t)))])))]
+                     ["Github" :user/github-user]
+                     ["Discord" :user/discord-user]]]
+      (let [out (f user)]
+        (when (and out (if (sequential? out) (seq out) true))
+          [:tr
+           [:td {:style {:padding "0.25em"
+                         :vertical-align "top"}} label]
+           [:td {:style {:padding "0.25em"
+                         :vertical-align "top"
+                         :font-weight "lighter"}} (f user)]])))
+    ]
+   [:tbody
+    [:tr [:td [:div {:style {:height "2em"}}]]]]])
 
 #?(:clj
    (do
@@ -107,40 +111,51 @@
              groups [[:group/upcoming-week? (str "Week of " (date/next-monday))]
                      [:group/previous-week? (str "Week of " (date/previous-monday))]
                      [:group/all "All"]]]
-           [:table
-            (for [[k title] groups]
-              (for [role [:role/mentor :role/student]]
-                [:<>
-                 [:tbody
-                  [:tr
-                   [:td {:colspan 2}
-                    [:div {:style {:font-size "1.5em"
-                                   :padding "0.25rem"
-                                   :margin "1rem 0"}}
-                     (string/capitalize (name role)) "s" " - " title]]]]
-                 (let [users (->> (grouped-users k)
-                                  (filter (fn [u]
-                                            (= (:user/role u) role)))
-                                  (sort-by :user/name))]
-                   (if (seq users)
-                     (for [user users]
-                       [user-tbody-view user id->topic])
-                     [:tbody
-                      [:tr
-                       [:td {:colspan 2} "None (yet)"]]]))]))]))
+         [:<>
+          [:table
+           (for [[k title] groups]
+             (for [role [:role/mentor :role/student]]
+               [:<>
+                [:tbody
+                 [:tr
+                  [:td {:colspan 2}
+                   [:div {:style {:font-size "1.5em"
+                                  :padding "0.25rem"
+                                  :margin "1rem 0"}}
+                    (string/capitalize (name role)) "s" " - " title]]]]
+                (let [users (->> (grouped-users k)
+                                 (filter (fn [u]
+                                           (= (:user/role u) role)))
+                                 (sort-by :user/name))]
+                  (if (seq users)
+                    (for [user users]
+                      [user-tbody-view user id->topic])
+                    [:tbody
+                     [:tr
+                      [:td {:colspan 2} "None (yet)"]]]))]))]
+          ;; highlight and scroll a user profile based on url fragment
+          ;; can't rely on vanilla css (:target) because it only applies immediately after page load
+          ;; but this content is being loaded after with ajax
+          ;; also, using img + on-error for running the js to hack around react
+          ;; because it elides script tags in dangerouslySetInnerHTML components
+          [:img  {:src "data:null;,"
+                  :style {:display "none"}
+                  :on-error (str "el = document.getElementById(window.location.hash.substr(1));\n"
+                                 "el.scrollIntoViewIfNeeded(true);\n"
+                                 "el.style.background = '#bcdeff';")}]]))
 
      (mod/register-cqrs!
-       :community/queries
-       [{:id :community/html
-         :route [:get "/api/community"]
-         :params {:user-id uuid?}
-         :conditions
-         (fn [{:keys [user-id]}]
-           [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]])
-         :return (fn [_]
-                   {:content (h/render
-                               [community-page-view]
-                               {:doctype? false})})}]))
+      :community/queries
+      [{:id :community/html
+        :route [:get "/api/community"]
+        :params {:user-id uuid?}
+        :conditions
+        (fn [{:keys [user-id]}]
+          [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]])
+        :return (fn [_]
+                  {:content (h/render
+                             [community-page-view]
+                             {:doctype? false})})}]))
    :cljs
    (do
      (defn community-page-view
@@ -149,7 +164,7 @@
         {:route "/api/community"}])
 
      (mod/register-page!
-       {:page/id :page.id/community
-        :page/path "/community"
-        :page/nav-label "community"
-        :page/view #'community-page-view})))
+      {:page/id :page.id/community
+       :page/path "/community"
+       :page/nav-label "community"
+       :page/view #'community-page-view})))
