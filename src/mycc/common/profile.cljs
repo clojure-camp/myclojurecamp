@@ -17,7 +17,7 @@
   #{:language/mandarin :language/spanish :language/english
     :language/hindi :language/portuguese :language/russian
     :language/japanese :language/french :language/polish
-    :language/bengali :language/arabic})
+    :language/bengali :language/arabic :language/ukrainian})
 
 (defn language-views []
   [:<>
