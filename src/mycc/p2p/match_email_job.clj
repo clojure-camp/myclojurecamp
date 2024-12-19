@@ -115,17 +115,57 @@
            (DateTimeFormatter/ofPattern "yyyy-MM-dd")))
 
 (defn ->topics [event]
-  (->> (:event/guest-ids event)
-       (map db/get-user)
-       (map (fn [u]
-              (->> u
-                   :user/topics
-                   (map first)
-                   set)))
-       (apply set/intersection)
-       (map p2p.db/get-topic)
-       (map :topic/name)
-       (string/join ", ")))
+  (let [users (->> (:event/guest-ids event)
+                   (map db/get-user))]
+    (->> (map :user/topics users)
+         (apply merge-with (fn [a b]
+                             [{:user (first users) :level a}
+                              {:user (second users) :level b}]))
+         ;; the above merge function is not called for non-matching topics,
+         ;; so filter for only the matches
+         (filter #(vector? (val %)))
+         (map (fn [[topic-id levels]]
+                {:topic-id topic-id
+                 :users-levels levels}))
+         ;; [{:topic-id 1234
+         ;;   :users-levels [{:user-id 123 :level :expert}
+         ;;                  {:user-id 567 :level :beginner}]}]
+         ;; shuffle so that ties aren't always in the same order
+         shuffle
+         (sort-by (fn [{:keys [users-levels]}]
+                    ({#{:level/expert :level/intermediate} -4
+                      #{:level/intermediate :level/beginner} -3
+                      #{:level/intermediate} -2
+                      #{:level/expert :level/beginner} -1
+                      #{:level/beginner} 0
+                      #{:level/expert} 100}
+                     (set (map :level users-levels)))))
+         (take 3)
+         (map (fn [{:keys [topic-id users-levels]}]
+                (let [sorted-users-levels (->> users-levels
+                                               (sort-by (fn [{:keys [level]}]
+                                                          ({:level/beginner 2
+                                                            :level/intermediate 1
+                                                            :level/expert 0}
+                                                           level))))]
+                  ;; A (expert) mentors B (beginner) on topic
+                  ;; A (intermediate) pairs with B (intermediate) on topic
+                  (str (:user/name (:user (first sorted-users-levels)))
+                       " ("
+                       (name (:level (first sorted-users-levels)))
+                       ") "
+                       (if (= (:level (first users-levels))
+                              (:level (second users-levels)))
+                         "pairs with"
+                         "mentors")
+                       " "
+                       (:user/name (:user (second sorted-users-levels)))
+                       " ("
+                       (name (:level (second sorted-users-levels)))
+                       ") "
+                       "on '"
+                       (:topic/name (p2p.db/get-topic topic-id))
+                       "'.")))))))
 
 #_(->topics {:event/guest-ids #{(:user/id (first (db/get-users)))
                                 (:user/id (last (db/get-users)))}
@@ -209,12 +249,12 @@
                "With: "
                [:a.guest {:href (str (mod/config :app-domain) "/community#" (:user/id partner))}
                 (:user/name partner)]
-                " (" (:user/email partner) ")"
+               " (" (:user/email partner) ")"
                (when (seq (->topics event))
-                 (list
-                  [:br]
-                   "Potential Topics: "
-                   (->topics event)))
+                 (list [:br]
+                       "Potential Topics: "
+                       (for [topic (->topics event)]
+                         (list [:br] " - " topic))))
                [:br]
                "Where: Discord"
                #_[:a {:href (util/->event-url event)} "Meeting Link"]])
