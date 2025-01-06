@@ -117,7 +117,12 @@
 (defn ->topics [event]
   (let [users (->> (:event/guest-ids event)
                    (map db/get-user))]
-    (->> (map :user/topics users)
+    (->> users
+         (map (fn [user]
+                ;; remove any topics that have nil value
+                (update user :user/topics (fn [topics]
+                                            (into {} (filter val topics))))))
+         (map :user/topics)
          (apply merge-with (fn [a b]
                              [{:user (first users) :level a}
                               {:user (second users) :level b}]))
