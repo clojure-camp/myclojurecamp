@@ -195,7 +195,7 @@
   (let [guests (map db/get-user guest-ids)
         ;; iCAL expects datetimes in the form: "20211108T140000Z"
         format  (fn [t]
-                  (string/replace t #"-|:" ""))
+                  (string/replace t #"-|:|(\.\d+)" ""))
         start (.toInstant at)
         end (.plus start 1 ChronoUnit/HOURS)]
    (->> [["BEGIN" "VCALENDAR"]
