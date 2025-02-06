@@ -210,7 +210,8 @@
          ["ATTENDEE" (str "mailto:" (:user/email (first guests)))]
          ["ATTENDEE" (str "mailto:" (:user/email (last guests)))]
          ["UID" id]
-         ["DESCRIPTION" (str "Potential topics: " (->topics event))]
+         ["DESCRIPTION" (str "Potential topics:\\n"
+                             (string/join "\\n" (->topics event)))]
          ["LOCATION" (util/->event-url event)]
          ["DTSTART" (format start)]
          ["DTEND" (format end)]
