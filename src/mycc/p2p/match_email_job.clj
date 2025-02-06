@@ -195,7 +195,7 @@
   (let [guests (map db/get-user guest-ids)
         ;; iCAL expects datetimes in the form: "20211108T140000Z"
         format  (fn [t]
-                  (string/replace t #"-|:" ""))
+                  (string/replace t #"-|:|(\.\d+)" ""))
         start (.toInstant at)
         end (.plus start 1 ChronoUnit/HOURS)]
    (->> [["BEGIN" "VCALENDAR"]
@@ -210,7 +210,8 @@
          ["ATTENDEE" (str "mailto:" (:user/email (first guests)))]
          ["ATTENDEE" (str "mailto:" (:user/email (last guests)))]
          ["UID" id]
-         ["DESCRIPTION" (str "Potential topics: " (->topics event))]
+         ["DESCRIPTION" (str "Potential topics:\\n"
+                             (string/join "\\n" (->topics event)))]
          ["LOCATION" (util/->event-url event)]
          ["DTSTART" (format start)]
          ["DTEND" (format end)]
@@ -218,6 +219,11 @@
          ["END" "VEVENT"]
          ["END" "VCALENDAR"]]
         (map (fn [[a b]] (str a ":" b)))
+        ;; maximum line length is 75
+        (map (fn [s]
+               (->> (partition-all 74 s)
+                    (map (partial apply str))
+                    (string/join "\r\n "))))
         (string/join "\n"))))
 
 #_(last (db/get-users))
