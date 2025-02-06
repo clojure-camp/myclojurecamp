@@ -219,6 +219,11 @@
          ["END" "VEVENT"]
          ["END" "VCALENDAR"]]
         (map (fn [[a b]] (str a ":" b)))
+        ;; maximum line length is 75
+        (map (fn [s]
+               (->> (partition-all 74 s)
+                    (map (partial apply str))
+                    (string/join "\r\n "))))
         (string/join "\n"))))
 
 #_(last (db/get-users))
