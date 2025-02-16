@@ -343,4 +343,5 @@
    :page/view #'p2p-page-view
    :page/styles styles/styles
    :page/on-enter! (fn []
+                     (mod/dispatch [:p2p/fetch-topics!])
                      (mod/dispatch [:p2p/fetch-events!]))})
