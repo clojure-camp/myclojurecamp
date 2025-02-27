@@ -328,8 +328,8 @@
       [max-limit-preferences-view]
       [ui/row {}
        [:p {:tw "italic"} "The following fields from your profile affect who you are matched with:"]]
-      [common.profile/role-view]
-      [pair-with-view]
+      #_[common.profile/role-view]
+      #_[pair-with-view]
       [common.profile/language-views]
       [common.profile/topics-view]
       [avoided-users-view]

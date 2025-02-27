@@ -32,13 +32,13 @@
    :max-same-user-per-week (mapify :user/id :user/max-pair-same-user users)
    :topics (mapify :user/id :user/topics users)
    :timezones (mapify :user/id :user/time-zone users)
-   :roles (-> (mapify :user/id :user/role users)
+   #_#_:roles (-> (mapify :user/id :user/role users)
               (update-vals (fn [role]
                              #{role})))
    :primary-languages (mapify :user/id :user/primary-languages users)
    :secondary-languages (mapify :user/id :user/secondary-languages users)
    :user-deny-list (mapify :user/id :user/user-pair-deny-list users)
-   :roles-to-pair-with (mapify :user/id
+   #_#_:roles-to-pair-with (mapify :user/id
                                (fn [user]
                                  (case (:user/role user)
                                    ;; mentors are only paired with students

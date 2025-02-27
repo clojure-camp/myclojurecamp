@@ -123,13 +123,13 @@
      [:div "FYI, your profile info will be shared with the Clojure Camp community."]]]
    [name-view]
    [discord-username-view]
-   [common.profile/role-view]
+   #_[common.profile/role-view]
    #_[github-username-view]
    [ui/row {}
     [:p {:tw "italic"} "The rest of these are optional, but help us plan content and events:"]]
    [common.profile/time-zone-view]
    [common.profile/language-views]
-   [learner-questions-view]
+   #_[learner-questions-view]
    [common.profile/topics-view]])
 
 (mod/register-page!
