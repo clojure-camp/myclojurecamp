@@ -26,7 +26,9 @@
                               "/p2p?"
                               (token/login-query-string (:user/id user) (mod/config :auth-token-secret)))} "opt-in and update your availability schedule"] "."]
           [:p "The schedule will be sent Sunday night."]
-          [:p "- Clojure Camp scheduler bot"]]})
+          [:p "- Clojure Camp scheduler bot"]
+          (when (empty? (keep val (:user/topics user)))
+            [:p "PS. You need to set some 'learning topics' to be matched."])]})
 
 #_(email/send! (friday-email-template (first (db/get-users))))
 
