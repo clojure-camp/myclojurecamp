@@ -232,6 +232,14 @@
                 :event/at #inst "2021-11-08T14:00:00.000-00:00"
                 :event/id #uuid "c2492476-8302-4ab0-aee8-abf0039fc09b"})
 
+(defn events-for-user-before-inst [user-id inst]
+  (->> (p2p.db/get-events-for-user user-id)
+       (filter (fn [event]
+                 (.before (:event/at event) inst)))))
+
+#_(events-for-user-before-inst (:user/id (first (shuffle (db/get-users))))
+                               (java.util.Date.))
+
 (defn matched-email-template
   [user-id events]
   (let [get-user (memoize db/get-user)
@@ -261,6 +269,12 @@
                [:a.guest {:href (str (mod/config :app-domain) "/community#" (:user/id partner))}
                 (:user/name partner)]
                " (" (:user/email partner) ")"
+               ;; This logic may miss events that are scheduled between the job time and the new event time,
+               ;; but it is rare and not a big deal
+               (let [sessions-count (count (events-for-user-before-inst user-id (java.util.Date.)))]
+                 (cond
+                   (= sessions-count 0) " (First time pairing!) "
+                   (<= sessions-count 3) " (New to pairing) "))
                (when (seq (->topics event))
                  (list [:br]
                        "Potential Topics: "
