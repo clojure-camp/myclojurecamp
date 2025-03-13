@@ -2,6 +2,7 @@
   (:require
     [clojure.string :as string]
     [mycc.common.db :as db]
+    [mycc.p2p.availability :as p2p.availability]
     [mycc.p2p.db :as p2p.db]
     [mycc.p2p.util :as util]
     [mycc.common.date :as date]
@@ -120,6 +121,16 @@
     :return
     (fn [_]
       (p2p.db/get-topics))}
+
+   {:id :all-user-availability
+    :route [:get "/api/global-availability"]
+    :params {:user-id uuid?}
+    :conditions
+    (fn [{:keys [user-id]}]
+      [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]])
+    :return
+    (fn [{:keys [user-id]}]
+      (p2p.availability/global-availability user-id))}
 
    {:id :events
     :route [:get "/api/events"]

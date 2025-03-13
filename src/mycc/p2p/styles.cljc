@@ -38,29 +38,33 @@
        :justify-content "center"
        :align-items "center"}
 
+      [:>.wrapper
+        {:height "2em"
+         :width "100%"
+         :line-height "2em"}]
+
       [:&.empty
        {:background "#fff"
         :color "#aaa"}
 
        [:>.wrapper
-        {:border "1px dashed #ccc"
-         :height "2em"
-         :width "100%"
-         :line-height "2em"}]
+        {:border "1px dashed #ccc"}]
 
        [:&:hover
         {:background (darken "#fff" 10)}]]
 
       [:&.preferred
-       {:background colors/accent-dark
-        :color "white"}
+       [:>.wrapper
+        {:background colors/accent-dark
+         :color "white"}]
 
        [:&:hover
         {:background (darken colors/accent-dark 10)}]]
 
       [:&.available
-       {:background colors/accent-light
-        :color "white"}
+       [:>.wrapper
+        {:background colors/accent-light
+         :color "white"}]
 
        [:&:hover
         {:background (darken colors/accent-light 10)}]]]]]

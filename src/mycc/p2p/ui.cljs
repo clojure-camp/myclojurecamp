@@ -100,20 +100,23 @@
 (defn hour-rows-view
   [availability hours]
   [:tbody
-   (for [hour hours]
-     ^{:key hour}
-     [:tr
-      [:td.hour hour ":00"]
-      (doall
+   (doall
+    (for [hour hours]
+      ^{:key hour}
+      [:tr
+       [:td.hour hour ":00"]
+       (doall
         (for [day util/days]
           ^{:key day}
           [:td
-           (let [value (availability [day hour])]
+           (let [value (availability [day hour])
+                 global-availability-percent @(mod/subscribe [:global-availability day hour])]
              [:button
               {:class (case value
                         :preferred "preferred"
                         :available "available"
                         nil "empty")
+               :style {:background-color (str "hsl(0 0 " (* 100 (- 1 (/ global-availability-percent 4))) "%)") }
                :on-click (fn [_]
                            (mod/dispatch [:set-availability!
                                           [day hour]
@@ -125,7 +128,7 @@
                (case value
                  :preferred "P"
                  :available "A"
-                 nil "")]])]))])])
+                 nil "")]])]))]))])
 
 (defn availability-view []
   (r/with-let [force-show-early? (r/atom false)
@@ -344,4 +347,5 @@
    :page/styles styles/styles
    :page/on-enter! (fn []
                      (mod/dispatch [:p2p/fetch-topics!])
-                     (mod/dispatch [:p2p/fetch-events!]))})
+                     (mod/dispatch [:p2p/fetch-events!])
+                     (mod/dispatch [:p2p/fetch-global-availability!]))})

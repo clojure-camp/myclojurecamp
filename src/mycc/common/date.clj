@@ -1,5 +1,6 @@
 (ns mycc.common.date
   (:refer-clojure :exclude [format])
+  (:require [clojure.set :as set])
   (:import
     (java.time DayOfWeek ZonedDateTime ZoneId LocalTime LocalDate)
     (java.time.temporal TemporalAdjusters)
@@ -13,6 +14,9 @@
    :friday DayOfWeek/FRIDAY
    :saturday DayOfWeek/SATURDAY
    :sunday DayOfWeek/SUNDAY})
+
+(def java-day-of-week->
+  (set/map-invert ->java-day-of-week))
 
 (defn adjust-day-of-week
   "Given a local-date, adjusts into the following day of week
@@ -38,6 +42,10 @@
 
 #_(next-monday)
 #_(previous-monday)
+
+(defn shift-zone [zoned-date-time time-zone]
+  (.withZoneSameInstant zoned-date-time
+                        (ZoneId/of time-zone)))
 
 (defn convert-time
   "Converts from [:thursday 19] + 'America/Vancouver' (user's preferences)
