@@ -97,3 +97,22 @@
   (fn [db _]
     (vals (db :db/events))))
 
+;; global availability
+
+(mod/reg-event-fx
+  :p2p/fetch-global-availability!
+  (fn [_ _]
+    {:ajax {:method :get
+            :uri "/api/global-availability"
+            :on-success (fn [data]
+                          (mod/dispatch [::store-global-availability! data]))}}))
+
+(mod/reg-event-fx
+  ::store-global-availability!
+  (fn [{db :db} [_ data]]
+    {:db (assoc db :db/global-availability data)}))
+
+(mod/reg-sub
+  :global-availability
+  (fn [db [_ date hour]]
+    (get-in db [:db/global-availability [date hour]])))
