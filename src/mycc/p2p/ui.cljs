@@ -116,7 +116,8 @@
                         :preferred "preferred"
                         :available "available"
                         nil "empty")
-               :style {:background-color (str "hsl(0 0 " (* 100 (- 1 (/ global-availability-percent 4))) "%)") }
+               #_#_:style {:background-color (str "hsl(0 0 " (* 100 (- 1 (/ global-availability-percent 4))) "%)") }
+               :style {:position "relative"}
                :on-click (fn [_]
                            (mod/dispatch [:set-availability!
                                           [day hour]
@@ -124,7 +125,56 @@
                                             :preferred nil
                                             :available :preferred
                                             nil :available)]))}
+              ;; ordered pips
+              #_[:div
+               {:style {:position "absolute"
+                        :top 0
+                        :left 0
+                        :right 0
+                        :bottom 0
+                        :text-wrap "balance"}}
+               (repeat global-availability-count
+                       [:span.pip
+                        {:style {:display "inline-block"
+                                 :background "#ccc"
+                                 :width "0.5em"
+                                 :height "0.5em"
+                                 :margin "0.1em"
+                                 :border-radius "50%"}}])]
+              ;; big oval
+              (let [size 100]
+                [:svg {:style {:position "absolute"
+                               :z-index 0
+                               :width "100%"
+                               :height "100%"}
+                       :preserve-aspect-ratio "none"
+                       :view-box (str "0 0 " size " " size)}
+                 [:circle {:cx (/ size 2)
+                           :cy (/ size 2)
+                           :r (* (/ size 2)
+                                 ;; sqrt, so that area is linear with value
+                                 (Math/sqrt global-availability-percent))
+                           :fill "#f3f3f3"}]])
+              ;; random pips
+              #_(let [w 43
+                    h 16
+                    r 1.5]
+                [:svg {:style {:position "absolute"
+                               :width "100%"
+                               :height "100%"
+                               :z-index 0
+                               :preserve-aspect-ratio "xMidYMid meet"
+                               :pointer-events "none"}
+                       :view-box (str "0 0 " w " " h)}
+                 (repeatedly global-availability-count
+                             (fn []
+                               [:circle {:cx (+ r (rand-int (- w r r)))
+                                         :cy (+ r (rand-int (- h r r)))
+                                         :r r
+                                         :fill "#eee"}]))])
               [:div.wrapper
+               {:style {:z-index 1}}
+               #_global-availability-count
                (case value
                  :preferred "P"
                  :available "A"
