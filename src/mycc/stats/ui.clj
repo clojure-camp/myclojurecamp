@@ -122,31 +122,30 @@
                      (t/< d end)))))
 
 (defn supply-and-demand-view
-  [{:keys [label users items user->item-ids item->id item->label sort]}]
-  (let [users-by-role (->> users
-                           (group-by :user/role))
-        student-item-counts (->> users-by-role
-                                 :role/student
-                                 (mapcat user->item-ids)
-                                 frequencies)
-        mentor-item-counts (->> users-by-role
-                                :role/mentor
-                                (mapcat user->item-ids)
-                                frequencies)]
+  [{:keys [label users items user->item-ids item->id item->label sort facets]}]
+  (let [facets+ (->> facets
+                     (map (fn [facet]
+                            (assoc facet :counts (->> (for [user users
+                                                            item items
+                                                            :when ((:filter-fn facet) user item)]
+                                                        (item->id item))
+                                                      frequencies)))))]
     [:table
      [:thead
       [:tr
        [:td label]
-       [:td {:colspan 2} "Student #"]
-       [:td {:colspan 2} "Mentor #"]]]
+       (for [{:keys [title]} facets+]
+         [:td {:colspan 2} title])]]
      [:tbody
       {:style {:font-weight "lighter"
                :font-variant-numeric "tabular-nums"
                :text-align "right"}}
       (let [sort-fn (case sort
                       :rank
-                      #(sort-by (juxt (comp student-item-counts item->id)
-                                      (comp mentor-item-counts item->id))
+                      #(sort-by (fn [item]
+                                  (->> facets+
+                                       (mapv (fn [facet]
+                                               ((:counts facet) (item->id item))))))
                                 %)
                       :label
                       #(sort-by item->label %))]
@@ -156,10 +155,24 @@
           ^{:key (item->id item)}
           [:tr
            [:td (item->label item)]
-           [:td (student-item-counts (item->id item))]
-           [:td [bar (:role/student color) (student-item-counts (item->id item)) 10]]
-           [:td (mentor-item-counts (item->id item))]
-           [:td [bar (:role/mentor color) (mentor-item-counts (item->id item)) 10]]]))]]))
+           (for [{:keys [color counts]} facets+]
+             [:<>
+              [:td (counts (item->id item))]
+              [:td [bar color (counts (item->id item)) 50]]])]))]]))
+
+(defn mentor-student-supply-and-demand-view [{:keys [user->item-ids] :as opts}]
+  (supply-and-demand-view (assoc opts :facets [{:title "Student #"
+                                                :filter-fn (fn [user item]
+                                                             (and (= (:user/role user)
+                                                                     :role/student)
+                                                                  ((user->item-ids user) item)))
+                                                :color (:role/student color)}
+                                               {:title "Mentor #"
+                                                :filter-fn (fn [user item]
+                                                             (and (= (:user/role user)
+                                                                     :role/mentor)
+                                                                  ((user->item-ids user) item)))
+                                                :color (:role/mentor color)}])))
 
 (defn availability-view [users]
   (let [now (t/date)
@@ -170,11 +183,11 @@
                           (mapcat (fn [u]
                                     (->> u
                                          (x/transform [:user/availability x/MAP-KEYS]
-                                           (fn [x]
-                                             (date/convert-time x (:user/time-zone u) now)))
+                                                      (fn [x]
+                                                        (date/convert-time x (:user/time-zone u) now)))
                                          (x/transform [:user/availability]
-                                           (fn [x]
-                                             (filter second x)))
+                                                      (fn [x]
+                                                        (filter second x)))
                                          :user/availability
                                          keys)))
                           frequencies))
@@ -310,42 +323,52 @@
      :item->id :topic/id
      :item->label :topic/name
      :users users
-     :user->item-ids (fn [u]
-                       (-> (:user/topics u)
-                           keys))}]
+     :facets [{:title "All"
+               :filter-fn (fn [user item]
+                            (get-in user [:user/topics (:topic/id item)]))
+               :color "blue"}
+              {:title "Beginner"
+               :filter-fn (fn [user item]
+                            (= (get-in user [:user/topics (:topic/id item)])
+                               :level/beginner))
+               :color "blue"}
+              {:title "Intermediate"
+               :filter-fn (fn [user item]
+                            (= (get-in user [:user/topics (:topic/id item)])
+                               :level/intermediate))
+               :color "blue"}
+              {:title "Expert"
+               :filter-fn (fn [user item]
+                            (= (get-in user [:user/topics (:topic/id item)])
+                               :level/expert))
+               :color "blue"}]}]
 
-   [supply-and-demand-view
+   [mentor-student-supply-and-demand-view
     {:label "Primary Language"
      :items (->> users
-                 (mapcat (fn [x]
-                           (concat (:user/primary-languages x)
-                                   #_(:user/secondary-languages x))))
+                 (mapcat :user/primary-languages)
                  distinct)
      :sort :rank
      :item->id identity
      :item->label identity
      :users users
      :user->item-ids (fn [u]
-                       (concat (:user/primary-languages u)
-                               #_(:user/secondary-languages u)))}]
+                       (set (:user/primary-languages u)))}]
 
-   [supply-and-demand-view
+   [mentor-student-supply-and-demand-view
     {:label "Secondary Language"
      :items (->> users
-                 (mapcat (fn [x]
-                           (concat #_(:user/primary-languages x)
-                                   (:user/secondary-languages x))))
+                 (mapcat :user/secondary-languages)
                  distinct)
      :sort :rank
      :item->id identity
      :item->label identity
      :users users
      :user->item-ids (fn [u]
-                       (concat #_(:user/primary-languages u)
-                               (:user/secondary-languages u)))}]
+                       (set (:user/secondary-languages u)))}]
 
    (let [offsets (time-zone-offsets users)]
-     [supply-and-demand-view
+     [mentor-student-supply-and-demand-view
       {:label "Time Zone"
        :items (->> users
                    (map :user/time-zone)
@@ -356,9 +379,6 @@
        :item->label identity
        :users users
        :user->item-ids (fn [u]
-                         [(offsets (:user/time-zone u))])}])
+                         #{(offsets (:user/time-zone u))})}])
 
-   [p2p-user-participation-view users events]
-   ])
-
-
+   [p2p-user-participation-view users events]])
