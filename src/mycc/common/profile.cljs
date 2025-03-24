@@ -86,14 +86,14 @@
 (defn topics-view []
   [ui/row
    {:title "Learning Topics"
-    :subtitle [:div {:tw "space-y-1"}
+    :subtitle [:div {:tw "space-y-2 mt-2"}
                [:p "Topics you are interested in learning or teaching. "]
                [:p "For every topic, you can indicate your level: "]
                [:ul {:tw "space-y-1 pointer-events-none ml-2"}
                 (for [[level text] [[nil "not interested"]
-                                    [1 "beginner - I want to learn this, but I'm just starting out"]
-                                    [2 "intermediate - I understand the basics, and can help beginners, but still want to learn more"]
-                                    [3 "expert - I know this very well, and I'm here to teach it"]]]
+                                    [1 [:span [:span {:tw "font-medium"} "beginner"] " - I want to learn this, but I'm just starting out"]]
+                                    [2 [:span [:span {:tw "font-medium"} "intermediate"] " - I know enough to help beginners, but still want to learn more"]]
+                                    [3 [:span [:span {:tw "font-medium"} "expert"] " - I know this very well, and I'm here to teach it"]]]]
                   [:li {:tw ""}
                    [multi-state-checkbox {:value level
                                           :states [1 2 3]
@@ -125,7 +125,9 @@
                                                 k])))]
          ^{:key (or category "other")}
          [:section {:tw "space-y-3"}
-          [:h1 (or category "other")]
+          [:h1 {:tw "font-medium text-xl"
+                :style {:font-variant "small-caps"}}
+           (or category "other")]
           [multi-state-checkbox-list
            {:choices
             (->> topics
