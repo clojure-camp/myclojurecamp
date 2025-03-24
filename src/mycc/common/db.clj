@@ -5,6 +5,7 @@
     [clojure.string :as string]
     [time-literals.read-write :as tl]
     [bloom.commons.uuid :as uuid]
+    [bloom.commons.file-db :as fdb]
     [bloom.commons.thread-safe-io :as io]
     ;; TODO using directly b/c of circular dependency
     ;; parts of this namespace should be moved under modulo anyway
@@ -47,7 +48,7 @@
   "Write content to file-path. (If parent directory doesn't exist, it will be created.)"
   [file-path content]
   (.mkdirs (.getParentFile (java.io/file file-path)))
-  (io/spit file-path content))
+  (io/spit file-path (fdb/->edn content)))
 
 ;; user
 

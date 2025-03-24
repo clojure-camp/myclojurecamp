@@ -10,7 +10,7 @@
                  [org.clojure/math.combinatorics "0.1.6"]
                  [org.clojure/data.csv "1.0.0"]
                  ;; these we get from omni, override some:
-                 [io.bloomventures/commons "0.14.1"]
+                 [io.bloomventures/commons "0.15.0"]
                  ;; [garden/garden "1.3.10"]
                  ;; [reagent/reagent "0.10.0"]
                  ;; [org.clojure/clojurescript "1.10.764"]
