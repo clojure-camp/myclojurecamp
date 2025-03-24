@@ -49,3 +49,65 @@
                   monday)))
          (map (fn [t]
                 (tick.core/in t (tick.core/zone to-time-zone))))))
+
+;; resave all users
+#_(->> (mycc.common.db/get-users)
+      (map mycc.common.db/save-user!)
+      doall)
+
+;; resave all topics
+#_(->> (mycc.p2p.db/get-topics)
+       (map mycc.p2p.db/save-topic!)
+       doall)
+
+(defn merge-topics!
+  [keep-topic-title remove-topic-title]
+  (let [topics (mycc.common.db/get-entities :topic)
+        keep-topic (->> topics
+                        (filter (fn [t]
+                                  (= (:topic/name t) keep-topic-title)))
+                        first)
+        remove-topic (->> topics
+                         (filter (fn [t]
+                                   (= (:topic/name t) remove-topic-title)))
+                         first)
+        _ (assert keep-topic)
+        _ (assert remove-topic)
+        users (mycc.common.db/get-users)]
+
+    ;; update users with remove-topic to have keep-topic
+    (->> users
+         (filter (fn [user]
+                   (contains? (:user/topics user) (:topic/id remove-topic))))
+         (map (fn [user]
+                (let [remove-topic-level (get-in user [:user/topics (:topic/id remove-topic)])]
+                  (-> user
+                      (update :user/topics dissoc (:topic/id remove-topic))
+                      (update-in [:user/topics (:topic/id keep-topic)]
+                                 (fn [keep-topic-level]
+                                   ;; keep the highest
+                                   (max-key {nil 0
+                                             :level/beginner 1
+                                             :level/intermediate 2
+                                             :level/expert 3}
+                                            keep-topic-level
+                                            remove-topic-level)))))))
+         (map mycc.common.db/save-user!)
+         doall)
+
+    ;; delete remove-topic
+    (clojure.java.io/delete-file (mycc.common.db/->path :topic (:topic/id remove-topic)))))
+
+#_(merge-topics! "datomic" "Datomic")
+
+;; topics by alpha and # of uses
+#_(let [topic-freqs (->> (mycc.common.db/get-users)
+                         (mapcat (fn [user]
+                                   (->> (:user/topics user)
+                                        (filter val)
+                                        (map key))))
+                         frequencies)]
+    (->> (mycc.common.db/get-entities :topic)
+         (sort-by (comp clojure.string/lower-case :topic/name))
+         (map (juxt :topic/name (fn [t] (topic-freqs (:topic/id t)))))))
+
