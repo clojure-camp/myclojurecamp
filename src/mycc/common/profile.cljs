@@ -104,12 +104,14 @@
                  [multi-state-checkbox {:value nil :states [1] :label nil :on-change (fn [])}]]
                 " multiple times to set your level."]]}
    [:div {:tw "space-y-5"}
-    (let [category-order ["clojure concepts"
-                          "general programming concepts"
+    (let [category-order ["general programming concepts"
+                          "clojure concepts"
                           "clojure libraries and related"
                           "programming practices"
                           "programming domains"
                           "web dev related"
+                          "databases"
+                          "scicloj"
                           nil]
           user-topics @(mod/subscribe [:user-profile-value :user/topics])]
       (doall
