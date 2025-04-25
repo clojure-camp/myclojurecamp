@@ -15,6 +15,15 @@
    [:auth-cookie-secret string?]
    [:auth-token-secret string?]
    [:data-path string?]
+   [:meetups
+    [:vector
+     [:map
+      [:meetup/title :string]
+      [:meetup/day [:enum :monday :tuesday :wednesday :thursday :friday :saturday :sunday]]
+      [:meetup/week [:enum -4 -3 -2 -1 1 2 3 4]]
+      [:meetup/timezone :string]
+      [:meetup/start-hour [:int {:min 0 :max 23}]]
+      [:meetup/duration-hours :int]]]]
    [:smtp-credentials
     [:map
      [:port integer?]
