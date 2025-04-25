@@ -1,20 +1,21 @@
 (ns mycc.p2p.match-email-job
   (:require
-    [clojure.string :as string]
-    [clojure.set :as set]
-    [bloom.commons.uuid :as uuid]
-    [chime.core :as chime]
-    [pairing-scheduler.core :as ps]
-    [mycc.p2p.util :as util]
-    [mycc.common.email :as email]
-    [mycc.common.db :as db]
-    [mycc.common.date :as date]
-    [mycc.p2p.db :as p2p.db]
-    [modulo.api :as mod])
+   [clojure.string :as string]
+   [clojure.set :as set]
+   [bloom.commons.uuid :as uuid]
+   [chime.core :as chime]
+   [pairing-scheduler.core :as ps]
+   [mycc.p2p.util :as util]
+   [mycc.common.email :as email]
+   [mycc.common.db :as db]
+   [mycc.common.date :as date]
+   [mycc.p2p.db :as p2p.db]
+   [mycc.p2p.meetups :as meetups]
+   [modulo.api :as mod])
   (:import
-    (java.time Period DayOfWeek ZonedDateTime ZoneId LocalTime LocalDate)
-    (java.time.format DateTimeFormatter)
-    (java.time.temporal ChronoUnit)))
+   (java.time Period DayOfWeek ZonedDateTime ZoneId LocalTime LocalDate)
+   (java.time.format DateTimeFormatter)
+   (java.time.temporal ChronoUnit)))
 
 (defn mapify
   [kf vf coll]
@@ -25,7 +26,7 @@
   (java.util.Date/from (.toInstant zoned-date-time)))
 
 (defn prep-input-for-schedule
-  [users local-date-start-of-week]
+  [users local-date-start-of-week meetup-insts]
   {:times-to-pair 1
    :max-events-per-day (mapify :user/id :user/max-pair-per-day users)
    :max-events-per-week (mapify :user/id :user/max-pair-per-week users)
@@ -33,73 +34,78 @@
    :topics (mapify :user/id :user/topics users)
    :timezones (mapify :user/id :user/time-zone users)
    #_#_:roles (-> (mapify :user/id :user/role users)
-              (update-vals (fn [role]
-                             #{role})))
+                  (update-vals (fn [role]
+                                 #{role})))
    :primary-languages (mapify :user/id :user/primary-languages users)
    :secondary-languages (mapify :user/id :user/secondary-languages users)
    :user-deny-list (mapify :user/id :user/user-pair-deny-list users)
    #_#_:roles-to-pair-with (mapify :user/id
-                               (fn [user]
-                                 (case (:user/role user)
-                                   ;; mentors are only paired with students
-                                   :role/mentor
-                                   {:preferred #{:role/student}
-                                    :acceptable #{:role/student}}
-                                   ;; students have more choice
-                                   :role/student
-                                   (case (:user/pair-with user)
-                                     :pair-with/only-mentors
-                                     {:preferred #{:role/mentor}
-                                      :acceptable #{:role/mentor}}
-                                     :pair-with/prefer-mentors
-                                     {:preferred #{:role/mentor}
-                                      :acceptable #{:role/mentor :role/student}}
-                                     nil
-                                     {:preferred #{:role/mentor :role/student}
-                                      :acceptable #{:role/mentor :role/student}}
-                                     :pair-with/prefer-students
-                                     {:preferred #{:role/student}
-                                      :acceptable #{:role/mentor :role/student}}
-                                     :pair-with/only-students
-                                     {:preferred #{:role/student}
-                                      :acceptable #{:role/student}})))
-                               users)
+                                   (fn [user]
+                                     (case (:user/role user)
+                                       ;; mentors are only paired with students
+                                       :role/mentor
+                                       {:preferred #{:role/student}
+                                        :acceptable #{:role/student}}
+                                       ;; students have more choice
+                                       :role/student
+                                       (case (:user/pair-with user)
+                                         :pair-with/only-mentors
+                                         {:preferred #{:role/mentor}
+                                          :acceptable #{:role/mentor}}
+                                         :pair-with/prefer-mentors
+                                         {:preferred #{:role/mentor}
+                                          :acceptable #{:role/mentor :role/student}}
+                                         nil
+                                         {:preferred #{:role/mentor :role/student}
+                                          :acceptable #{:role/mentor :role/student}}
+                                         :pair-with/prefer-students
+                                         {:preferred #{:role/student}
+                                          :acceptable #{:role/mentor :role/student}}
+                                         :pair-with/only-students
+                                         {:preferred #{:role/student}
+                                          :acceptable #{:role/student}})))
+                                   users)
    :availabilities (mapify :user/id
                            ;; stored as {[:monday 10] :available
                            ;;            [:tuesday 10] :preferred
                            ;;            [:wednesday 10] nil)
-                           ;; but need #{[:monday 10 :available]
-                           ;;            [:tuesday 10 :preferred]}
+                           ;; but need #{[#inst "2025-04..." :available]
+                           ;;            [#inst "2025-04..." :preferred]}
                            ;; also, remove when value is nil
                            (fn [user]
                              (->> (:user/availability user)
                                   (filter (fn [[_ v]] v))
                                   (map (fn [[k v]]
-                                          [(->inst (date/convert-time k (:user/time-zone user) local-date-start-of-week)) v]))
+                                         [(->inst (date/convert-time k (:user/time-zone user) local-date-start-of-week)) v]))
+                                  ;; remove times conflicting with scheduled event
+                                  (remove (fn [[inst _availability]]
+                                            (contains? meetup-insts inst)))
+                                  
                                   set))
                            users)})
 
-#_(prep-input-for-schedule (db/get-users) (LocalDate/now))
+#_(-> (prep-input-for-schedule (db/get-users) (LocalDate/now) #{#inst "2025-04-29T13:00:00.000-00:00"})
+      :availabilities)
 
 (defn generate-schedule
   "Returns a list of maps, with :event/guest-ids, :day-of-week and :Time-of-day,
     ex.
     [{:event/guest-ids #{123 456}
       :event/at #inst \"...\"} ...]"
-  [users local-date-start-of-week]
+  [users local-date-start-of-week meetup-insts]
   (if (empty? users)
-   []
-   (->> (assoc (prep-input-for-schedule users local-date-start-of-week)
-          :report-fn println)
-        (ps/schedule)
-        :schedule
-        (map (fn [event]
-              (-> event
-                  (set/rename-keys {:at :event/at
-                                    :guest-ids :event/guest-ids})
-                  (assoc :event/id (uuid/random))))))))
+    []
+    (->> (assoc (prep-input-for-schedule users local-date-start-of-week meetup-insts)
+                :report-fn println)
+         (ps/schedule)
+         :schedule
+         (map (fn [event]
+                (-> event
+                    (set/rename-keys {:at :event/at
+                                      :guest-ids :event/guest-ids})
+                    (assoc :event/id (uuid/random))))))))
 
-#_(generate-schedule (db/get-users) (LocalDate/now))
+#_(generate-schedule (db/get-users) (LocalDate/now) #{})
 
 (defn group-by-guests
   [schedule]
@@ -305,8 +311,10 @@
       db/save-user!))
 
 (defn send-sunday-emails! []
-  (let [users-to-match (filter :user/pair-next-week? (db/get-users))
-        events (generate-schedule users-to-match (LocalDate/now))
+  (let [local-date-start-of-week (LocalDate/now)
+        meetup-insts (meetups/all-meetup-insts local-date-start-of-week (mod/config :meetups))
+        users-to-match (filter :user/pair-next-week? (db/get-users))
+        events (generate-schedule users-to-match local-date-start-of-week meetup-insts)
         user-id->events (group-by-guests events)
         opted-in-user-ids (set (map :user/id users-to-match))
         matched-user-ids (set (keys user-id->events))
