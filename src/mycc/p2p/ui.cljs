@@ -125,9 +125,20 @@
                                             :preferred nil
                                             :available :preferred
                                             nil :available)]))}
+              (when (contains? @(mod/subscribe [:next-meetups]) [day hour])
+                [:div {:style {:position "absolute"
+                               :top 0
+                               :left 5
+                               :right 5
+                               :color "white"
+                               :font-size "0.75em"
+                               :text-transform "uppercase"
+                               :background "#318a3a"
+                               :z-index 100}}
+                 "Event"])
               ;; ordered pips
               #_[:div
-               {:style {:position "absolute"
+                 {:style {:position "absolute"
                         :top 0
                         :left 0
                         :right 0
@@ -398,4 +409,5 @@
    :page/on-enter! (fn []
                      (mod/dispatch [:p2p/fetch-topics!])
                      (mod/dispatch [:p2p/fetch-events!])
-                     (mod/dispatch [:p2p/fetch-global-availability!]))})
+                     (mod/dispatch [:p2p/fetch-global-availability!])
+                     (mod/dispatch [:p2p/next-week-meetups-in-user-time-zone!]))})

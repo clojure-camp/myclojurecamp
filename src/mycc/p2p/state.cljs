@@ -116,3 +116,29 @@
   :global-availability
   (fn [db [_ date hour]]
     (get-in db [:db/global-availability [date hour]])))
+
+;; next meetups
+
+(mod/reg-event-fx
+  :p2p/next-week-meetups-in-user-time-zone!
+  (fn [_ _]
+    {:ajax {:method :get
+            :uri "/api/p2p/next-week-meetups-in-user-time-zone"
+            :on-success (fn [data]
+                          (mod/dispatch [::store-next-meetups! data]))}}))
+
+(mod/reg-event-fx
+  ::store-next-meetups!
+  (fn [{db :db} [_ data]]
+    {:db (assoc db :db/next-meetups data)}))
+
+(mod/reg-sub
+  :next-meetups
+  (fn [db _]
+    (get-in db [:db/next-meetups])))
+
+(add-watch (mod/subscribe [:user-profile-value :user/time-zone])
+           :update-next-meetups-on-time-zone-change
+           (fn [_ _ _ _]
+             ;; set timeout to give the backend a chance to get the latest value
+             (js/setTimeout #(mod/dispatch [:p2p/next-week-meetups-in-user-time-zone!]) 500)))
