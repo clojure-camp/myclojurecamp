@@ -52,3 +52,40 @@
                                                 :meetup/duration-hours 2}])
 
 #_(all-meetup-insts (java.time.LocalDate/now) (modulo.api/config :meetups))
+
+(defn next-week-meetups-in-local-time
+  [time-zone meetups]
+  (let [start-of-week (date/next-monday)
+        start-of-next-week (.with
+                            start-of-week
+                            (TemporalAdjusters/next (date/->java-day-of-week :monday)))]
+    (->> (all-meetup-insts start-of-week meetups)
+         (map (fn [inst]
+                (ZonedDateTime/ofInstant (.toInstant inst)
+                                         (ZoneId/of time-zone))))
+         ;; filter out events more than a week in the future
+         (filter (fn [zdt]
+                   (.isBefore zdt (.atZone (.atStartOfDay start-of-next-week)
+                                           (ZoneId/of time-zone)))))
+         (map (fn [zdt]
+                [(-> (.getDayOfWeek zdt)
+                     (date/java-day-of-week->))
+                 (.getHour zdt)]))
+         set)))
+
+#_(next-week-meetups-in-local-time
+   "America/Vancouver"
+   [{:meetup/title "Mob w/ Raf"
+     :meetup/day :wednesday
+     :meetup/week 1
+     :meetup/timezone "America/Toronto"
+     :meetup/start-hour 18
+     :meetup/duration-hours 2}
+    {:meetup/title "Mob w/ Raf"
+     :meetup/day :wednesday
+     :meetup/week 2
+     :meetup/timezone "America/Toronto"
+     :meetup/start-hour 18
+     :meetup/duration-hours 2}])
+
+;; #{[:wednesday 15] [:wednesday 16]}

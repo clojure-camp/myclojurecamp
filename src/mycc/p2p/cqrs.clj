@@ -3,6 +3,7 @@
     [clojure.string :as string]
     [mycc.common.db :as db]
     [mycc.p2p.availability :as p2p.availability]
+    [mycc.p2p.meetups :as p2p.meetups]
     [mycc.p2p.db :as p2p.db]
     [mycc.p2p.util :as util]
     [mycc.common.date :as date]
@@ -132,6 +133,18 @@
     (fn [{:keys [user-id]}]
       (p2p.availability/global-availability user-id))}
 
+   {:id :next-week-meetups-in-user-time-zone
+    :route [:get "/api/p2p/next-week-meetups-in-user-time-zone"]
+    :params {:user-id uuid?}
+    :conditions
+    (fn [{:keys [user-id]}]
+      [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]])
+    :return
+    (fn [{:keys [user-id]}]
+      (p2p.meetups/next-week-meetups-in-local-time
+       (:user/time-zone (db/get-user user-id))
+       (mod/config :meetups)))}
+
    {:id :events
     :route [:get "/api/events"]
     :params {:user-id uuid?}
@@ -143,12 +156,12 @@
       (->> (p2p.db/get-events-for-user user-id)
            ;; enhance event objects with extra info the client needs
            (map (fn [event]
-                 (assoc event :event/other-guest
-                   (-> (:event/guest-ids event)
-                       (disj user-id)
-                       first
-                       db/get-user
-                       (select-keys [:user/id :user/name :user/email])))))))} ])
+                  (assoc event :event/other-guest
+                         (-> (:event/guest-ids event)
+                             (disj user-id)
+                             first
+                             db/get-user
+                             (select-keys [:user/id :user/name :user/email])))))))} ])
 
 (mod/register-cqrs! :p2p/commands commands)
 (mod/register-cqrs! :p2p/queries queries)
