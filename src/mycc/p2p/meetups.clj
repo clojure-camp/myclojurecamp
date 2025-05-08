@@ -1,21 +1,51 @@
 (ns mycc.p2p.meetups
   (:require
+   [hyperfiddle.rcf :as rcf]
    [mycc.common.date :as date])
   (:import
+   (java.util Date)
    (java.time LocalTime ZoneId ZonedDateTime)
    (java.time.temporal TemporalAdjusters)))
 
 (defn next-meetup-insts
   [now-inst {:meetup/keys [_title day week timezone start-hour duration-hours]}]
-  (let [start (.with
-               (.adjustInto (LocalTime/of start-hour 0)
-                            (ZonedDateTime/ofInstant (.toInstant now-inst)
-                                                     (ZoneId/of timezone)))
-               (TemporalAdjusters/dayOfWeekInMonth week (date/->java-day-of-week day)))]
+  (let [now-zdt (.adjustInto (LocalTime/of start-hour 0)
+                             (ZonedDateTime/ofInstant (.toInstant now-inst)
+                                                      (ZoneId/of timezone)))
+        start (.with now-zdt
+                     (TemporalAdjusters/dayOfWeekInMonth week (date/->java-day-of-week day)))
+        ;; above might generate a date in the past
+        start (if (.before (Date/from (.toInstant start)) now-inst)
+                (.with (.plusMonths now-zdt 1)
+                       (TemporalAdjusters/dayOfWeekInMonth week (date/->java-day-of-week day)))
+                start)]
     (->> (range duration-hours)
          (map (fn [plus-hours]
                 (.plusHours start plus-hours)))
-         (map #(java.util.Date/from (.toInstant %))))))
+         (map #(Date/from (.toInstant %))))))
+
+(rcf/tests
+ (next-meetup-insts
+  #inst "2025-05-01"
+  {:meetup/day :wednesday
+   :meetup/week 1
+   :meetup/timezone "America/Toronto"
+   :meetup/start-hour 18
+   :meetup/duration-hours 2})
+ :=
+ [#inst "2025-05-07T22:00:00.000-00:00"
+  #inst "2025-05-07T23:00:00.000-00:00"]
+
+ (next-meetup-insts
+  #inst "2025-05-12"
+  {:meetup/day :wednesday
+   :meetup/week 1
+   :meetup/timezone "America/Toronto"
+   :meetup/start-hour 18
+   :meetup/duration-hours 2})
+ :=
+ [#inst "2025-06-04T22:00:00.000-00:00"
+  #inst "2025-06-04T23:00:00.000-00:00"])
 
 (defn local-date->inst
   [local-date]
@@ -52,6 +82,10 @@
                                                 :meetup/duration-hours 2}])
 
 #_(all-meetup-insts (java.time.LocalDate/now) (modulo.api/config :meetups))
+
+#_(let [now (local-date->inst (java.time.LocalDate/now))]
+    (->> (modulo.api/config :meetups)
+         (map (juxt :meetup/title (partial next-meetup-insts now)))))
 
 (defn next-week-meetups-in-local-time
   [time-zone meetups]
