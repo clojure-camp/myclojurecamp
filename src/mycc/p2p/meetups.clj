@@ -123,3 +123,6 @@
      :meetup/duration-hours 2}])
 
 ;; #{[:wednesday 15] [:wednesday 16]}
+
+
+(defn all [] (modulo.api/config :meetups))

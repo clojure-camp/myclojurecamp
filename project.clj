@@ -7,6 +7,7 @@
                  [re-frame/re-frame "0.10.5"]
                  [com.lambdaisland/hiccup "0.0.33"]
                  [com.hyperfiddle/rcf "20220926-202227"]
+                 [zprint "1.3.0"]
                  ;; pairing algorithm
                  [org.clojure/math.combinatorics "0.1.6"]
                  [org.clojure/data.csv "1.0.0"]
