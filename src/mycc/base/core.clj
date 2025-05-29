@@ -15,6 +15,7 @@
    [:auth-cookie-secret string?]
    [:auth-token-secret string?]
    [:data-path string?]
+   [:google-api-key string?]
    [:discord [:map [:id :int] [:token :string] [:public-key :string]]]
    [:meetups
     [:vector

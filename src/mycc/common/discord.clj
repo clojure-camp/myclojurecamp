@@ -16,8 +16,7 @@
    (if (<= 200 (:status res) 299)
      (-> res
          :body
-         (json/parse-string true)
-         ))))
+         (json/parse-string true)))))
 
 (defn list-guilds []
   (discord-request {:url "/users/@me/guilds"}))

@@ -2,6 +2,7 @@
   (:require
    [bloom.commons.html :as html]
    [mycc.common.discord :as discord]
+   [mycc.common.gcal :as gcal]
    [mycc.p2p.meetups :as meetups]
    [zprint.core :as zprint])
   (:import
@@ -21,10 +22,34 @@
      :meetup/start-hour (.getHour start)
      :meetup/duration-hours 2}))
 
+(defn gcal-event->meetup [{:keys [recurrence start] :as event}]
+  (let [{:keys [day week]} (let [[_ week day] (re-matches #".*BYDAY=(\d)(\w+)"
+                                                          (first recurrence))]
+                             {:week (parse-long week)
+                              :day ({"SU" :sunday
+                                     "MO" :monday
+                                     "TU" :tuesday
+                                     "WE" :wednesday
+                                     "TH" :thursday
+                                     "FR" :friday
+                                     "SA" :saturday} day)})
+        time-zone (:timeZone start)
+        start-time (-> start
+                       :dateTime
+                       ZonedDateTime/parse
+                       (.withZoneSameInstant (ZoneId/of time-zone)))]
+    {:meetup/title (:summary event)
+     :meetup/day day
+     :meetup/week week
+     :meetup/timezone time-zone
+     :meetup/start-hour (.getHour start-time)
+     ;; could figure out, but meh.
+     :meetup/duration-hours 2}))
+
 (defn match-by [f item coll]
   (some (fn [i] (when (= (f item) (f i)) i)) coll))
 
-(defn format [x]
+(defn format-event [x]
   [:pre
    (zprint/zprint-str x 80 {:style [:community :hiccup]
                             :map {:comma? false
@@ -42,21 +67,32 @@
                             (filter :recurrence_rule)
                             (map discord-event->meetup)
                             (sort-by (juxt :meetup/week :meetup/day)))
+        gcal-events (->> (gcal/calendar-events
+                          {:calendar-id "admin@clojure.camp"})
+                         (map gcal-event->meetup)
+                         (sort-by (juxt :meetup/week :meetup/day)))
         meetup-events (sort-by (juxt :meetup/week :meetup/day) (meetups/all))
         f (fn [event] (dissoc event :meetup/title))]
     [:table
-     [:tr [:th "Meet-Up"] [:th "Discord Events"]]
+     [:tr [:th "Meet-Up"] [:th "Discord Events"] [:th "G Calendar"]]
      (for [event meetup-events]
        [:tr
-        [:td (format event)]
-        [:td (format (match-by f event discord-events))]])
+        [:td (format-event event)]
+        [:td (format-event (match-by f event discord-events))]
+        [:td (format-event (match-by f event gcal-events))]])
      [:tr
       [:td {:col-span 2
             :style {:border-bottom "1px solid black"}} "Not Matching"]]
      (for [event (remove (fn [ev] (match-by f ev meetup-events)) discord-events)]
        [:tr
         [:td]
-        [:td (format event)]])]))
+        [:td (format-event event)]
+        [:td]])
+     (for [event (remove (fn [ev] (match-by f ev meetup-events)) gcal-events)]
+       [:tr
+        [:td]
+        [:td]
+        [:td (format-event event)]])]))
 
 (comment
   (spit "table.html" (html/render (check)))
