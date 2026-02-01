@@ -30,6 +30,7 @@
    ;; profile
    [:user/name NonBlankString]
    [:user/created-at inst?]
+   [:user/last-visited-at inst?]
    [:user/role
     [:enum
      :role/student

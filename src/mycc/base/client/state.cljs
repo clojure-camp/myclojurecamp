@@ -50,6 +50,7 @@
             :uri "/api/user"
             :on-success (fn [data]
                           (dispatch [::handle-user-data! data])
+                          (dispatch [::mark-visited!])
                           (dispatch [::mark-auth-completed!]))
             :on-error (fn [_]
                        (dispatch [::mark-auth-completed!]))}}))
@@ -58,6 +59,12 @@
   ::mark-auth-completed!
   (fn [{db :db} _]
     {:db (assoc db :db/checked-auth? true)}))
+
+(reg-event-fx
+  ::mark-visited!
+  (fn [_ _]
+    {:ajax {:method :put
+            :uri "/api/user/visited"}}))
 
 (reg-event-fx
   :log-in!

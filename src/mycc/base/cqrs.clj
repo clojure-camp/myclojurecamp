@@ -35,6 +35,18 @@
     (fn [{:keys [user-id k v]}]
       (some-> (db/get-user user-id)
               (assoc k v)
+              db/save-user!))}
+
+   {:id :mark-visited!
+    :route [:put "/api/user/visited"]
+    :params {:user-id uuid?}
+    :conditions
+    (fn [{:keys [user-id]}]
+      [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]])
+    :effect
+    (fn [{:keys [user-id]}]
+      (some-> (db/get-user user-id)
+              (assoc :user/last-visited-at (java.util.Date.))
               db/save-user!))}])
 
 (def queries
