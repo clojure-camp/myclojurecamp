@@ -31,6 +31,12 @@
    [:user/name NonBlankString]
    [:user/created-at inst?]
    [:user/last-visited-at inst?]
+   [:user/events-interested-in
+    [:maybe
+     [:set
+      [:enum
+       :event/mob-sessions
+       :event/pairing]]]]
    [:user/role
     [:enum
      :role/student
