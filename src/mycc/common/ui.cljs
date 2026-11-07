@@ -40,10 +40,16 @@
          (when info
            [popover-view info])])
       (when subtitle
-        [:div {:tw "font-light mt-1 italic text-gray-600"}
+        [:div {:tw "font-light text-sm mt-1 text-gray-600"}
          subtitle])])
    (into [:div.content {:tw "font-light space-y-3"}]
          content)])
+
+(defn section-header-view
+  [text]
+  [:div {:tw "w-full max-w-100vw px-4 pt-8 pb-3 bg-indigo-50 border-t-1 border-b-1 border-clojure-camp-blue-lighter"}
+   [:h2 {:tw "text-xl font-bold text-clojure-camp-blue"}
+    text]])
 
 (defn checkbox-list
   [{:keys [value choices on-change direction]}]

@@ -3,4 +3,5 @@
     #?@(:clj
          [[mycc.profile.cqrs]]
          :cljs
-         [[mycc.profile.ui]])))
+         [[mycc.profile.state]
+          [mycc.profile.ui]])))

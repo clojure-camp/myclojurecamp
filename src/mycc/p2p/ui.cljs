@@ -202,7 +202,8 @@
       [opt-in-view]
       [warning-view]
       [common.profile/time-zone-view]
-      [availability/availability-view {:show-events? false}]
+      [availability/availability-view {:show-events? false
+                                        :show-global-availability? true}]
       [max-limit-preferences-view]
       [ui/row {}
        [:p {:tw "italic"} "The following fields from your profile affect who you are matched with:"]]
@@ -221,7 +222,7 @@
    :page/view #'p2p-page-view
    :page/styles styles/styles
    :page/on-enter! (fn []
-                     (mod/dispatch [:p2p/fetch-topics!])
+                     (mod/dispatch [:profile/fetch-topics!])
                      (mod/dispatch [:p2p/fetch-events!])
                      (mod/dispatch [:p2p/fetch-global-availability!])
                      (mod/dispatch [:p2p/next-week-meetups-in-user-time-zone!]))})

@@ -5,7 +5,8 @@
     [tada.events.core :as tada]
     [modulo.cqrs-registry :as cqrs]
     ;; TODO db should be under modulo, or passed in via opts to modulo.api/start!
-    [mycc.common.db :as db]))
+    [mycc.common.db :as db]
+    [mycc.common.return-to :as return-to]))
 
 (defonce dynamic-cqrs-handler
   (atom (fn [_request])))
@@ -14,8 +15,9 @@
   (fn [request]
     ;; TADA wants a :params key on requests
     (handler (assoc request :params
-              (assoc (:body-params request)
-                     :user-id (get-in request [:session :user-id]))))))
+              (merge (update-keys (:query-params request) keyword)
+                     (:body-params request)
+                     {:user-id (get-in request [:session :user-id])})))))
 
 (defonce watcher
   (cqrs/watch!
@@ -41,8 +43,11 @@
               (db/get-user)
               (assoc :user/email-validated? true)
               db/save-user!)
-      {:status 302
-       :headers {"Location" "/"}})]
+      (let [return-path (get-in request [:query-params "return-to"])]
+        {:status 302
+         :headers {"Location" (if (return-to/safe? return-path)
+                                return-path
+                                "/")}}))]
 
    [[:delete "/api/session"]
     (fn [_]

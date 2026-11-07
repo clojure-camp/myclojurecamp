@@ -1,8 +1,8 @@
 (ns mycc.common.email
   (:require
-    [postal.core :as postal]
-    [hiccup.core :as hiccup]
-    [modulo.api :as mod]))
+    [lambdaisland.hiccup :as hiccup]
+    [modulo.api :as mod]
+    [postal.core :as postal]))
 
 (defn strip-classes-and-ids [k]
   (keyword (first (clojure.string/split (name k) #"[.#]"))))
@@ -34,19 +34,25 @@
     content))
 
 (defn send!
-  [{:keys [to unsubscribe-user-id subject body attachments]}]
+  [{:keys [to reply-to message-id headers unsubscribe-user-id subject body attachments]}]
   (println (textify body))
   (try
     (postal/send-message
       (mod/config :smtp-credentials)
-      (merge {:from (:from (mod/config :smtp-credentials))
+      (merge headers
+             (when reply-to
+               {:reply-to reply-to})
+             (when message-id
+               ;; postal expects a fn
+               {:message-id (constantly message-id)})
+             {:from (:from (mod/config :smtp-credentials))
               :to to
               :subject subject
               :body (concat [[:alternative
                               {:type "text/plain; charset=utf-8"
                                :content (textify body)}
                               {:type "text/html; charset=utf-8"
-                               :content (hiccup/html [:html [:body body]])}]]
+                               :content (hiccup/render [:html [:body body]] {:doctype? false})}]]
                             attachments)}
              (if unsubscribe-user-id
                {:List-Unsubscribe

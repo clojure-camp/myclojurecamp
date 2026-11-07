@@ -139,4 +139,4 @@
    :page/nav-label "Profile"
    :page/styles [:.page.profile]
    :page/on-enter! (fn []
-                     (mod/dispatch [:p2p/fetch-topics!]))})
+                     (mod/dispatch [:profile/fetch-topics!]))})

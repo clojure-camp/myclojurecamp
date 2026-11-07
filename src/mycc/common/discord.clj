@@ -6,9 +6,11 @@
 
 (def base-url "https://discord.com/api/v10")
 
-(defn discord-request [{:keys [url]}]
-  (let [req {:method  :get
+(defn discord-request [{:keys [method url body]}]
+  (let [req {:method (or method :get)
              :url (str base-url url)
+             :body (when body
+                     (json/generate-string body))
              :headers {"Authorization" (str "Bot " (mod/config [:discord :token]))
                        "Content-Type" "application/json"
                        "User-Agent" "Discord Bot (http://localhost, 0.1)"}}
@@ -23,6 +25,11 @@
 
 (defn list-guild-events [guild-id]
   (discord-request {:url (str "/guilds/" guild-id "/scheduled-events")}))
+
+(defn post-message! [channel-id content]
+  (discord-request {:method :post
+                    :url (str "/channels/" channel-id "/messages")
+                    :body {:content content}}))
 
 (comment
   (map #(select-keys % [:name :id :scheduled_start_time :recurrence_rule])

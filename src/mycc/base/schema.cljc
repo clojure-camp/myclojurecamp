@@ -18,6 +18,13 @@
    :string
    [:fn #(not (string/blank? %))]])
 
+(def SingleLineString
+  ;; control chars (ex. newlines) in names could inject email headers or ICS properties
+  [:and
+   NonBlankString
+   [:fn (fn [value]
+          (not (re-find #"[\x00-\x1F\x7F]" value)))]])
+
 (def Language
   [:and
    :keyword
@@ -28,7 +35,7 @@
   [:map
    [:user/id uuid?]
    ;; profile
-   [:user/name NonBlankString]
+   [:user/name SingleLineString]
    [:user/created-at inst?]
    [:user/last-visited-at inst?]
    [:user/events-interested-in
@@ -82,6 +89,9 @@
    [:user/secondary-languages [:set Language]]
    [:user/subscribed? :boolean]
    [:user/pair-next-week? :boolean]
+   [:user/pairwithme-show-profile? {:optional true} :boolean]
+   ;; "I'd like to pair on..."
+   [:user/pairwithme-topics {:optional true} [:maybe :string]]
    [:user/pair-opt-in-history [:set
                                #?(:clj :time/local-date
                                   :cljs :any)]]

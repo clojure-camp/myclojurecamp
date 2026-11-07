@@ -56,8 +56,8 @@
       doall)
 
 ;; resave all topics
-#_(->> (mycc.p2p.db/get-topics)
-       (map mycc.p2p.db/save-topic!)
+#_(->> (mycc.profile.db/get-topics)
+       (map mycc.profile.db/save-topic!)
        doall)
 
 (defn merge-topics!

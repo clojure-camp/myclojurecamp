@@ -1,0 +1,62 @@
+(ns mycc.profile.db
+  (:require
+    [clojure.java.io :as java.io]
+    [bloom.commons.uuid :as uuid]
+    [mycc.common.db :as db]))
+
+;; topic
+
+(defn get-topic
+  "Return topic matching topic-id (without :topic/user-count)"
+  [topic-id]
+  (when topic-id
+    (db/parse-file (db/->path :topic topic-id))))
+
+(defn user-topic-frequencies
+  "Returns a map of topic-id->user-count"
+  []
+  (->> (db/get-users)
+       (mapcat (fn [u]
+                 (->> u
+                      :user/topics
+                      (map first))))
+       frequencies))
+
+(defn get-topics-raw
+  "Return topics (without :topic/user-count)"
+  []
+  (db/get-entities :topic))
+
+(defn get-topics
+  "Return topics, with :topic/user-count"
+  []
+  (let [topic-id->count (user-topic-frequencies)]
+    (->> (get-topics-raw)
+         (map (fn [topic]
+                (assoc topic :topic/user-count
+                  (or (topic-id->count (:topic/id topic))
+                      0)))))))
+
+(defn topic-name-exists?
+  "Returns true if any topic already has name"
+  [name]
+  (->> (get-topics)
+       (some (fn [topic]
+               (= (:topic/name topic) name)))))
+
+(defn save-topic!
+  [topic]
+  (db/save! (db/->path :topic (:topic/id topic)) topic))
+
+(defn create-topic!
+  "Given topic name, create and save map of topic details."
+  [name]
+  (let [topic {:topic/id (uuid/random)
+               :topic/name name
+               :topic/user-count 0}]
+    (save-topic! topic)
+    topic))
+
+(defn delete-topic!
+  [topic-id]
+  (java.io/delete-file (db/->path :topic topic-id)))

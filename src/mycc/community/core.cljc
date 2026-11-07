@@ -42,7 +42,7 @@
     (for [[label f] [["Name" (fn [u]
                                [:div {:style {:font-weight "bold"}}
                                 (:user/name u)])]
-                     ["Role" (comp name :user/role)]
+                     #_["Role" (comp name :user/role)]
                      ["Time Zone" :user/time-zone]
                      ["Languages" (fn [u]
                                     (when (seq (concat (:user/primary-languages u) (:user/secondary-languages u)))
@@ -89,6 +89,31 @@
 #?(:clj
    (do
      (defn community-page-view []
+       (let [topics (db/get-entities :topic)
+             id->topic (zipmap (map :topic/id topics)
+                               topics)
+             users (->> (db/get-users)
+                        (sort-by (fn [user]
+                                   (or (:user/last-visited-at user)
+                                       (java.util.Date. 0)))
+                                 (fn [a b]
+                                   (compare b a))))]
+         [:<>
+          [:table {:style {:margin-top "3em"}}
+           (for [user users]
+             [user-tbody-view user id->topic])]
+          ;; highlight and scroll a user profile based on url fragment
+          ;; can't rely on vanilla css (:target) because it only applies immediately after page load
+          ;; but this content is being loaded after with ajax
+          ;; also, using img + on-error for running the js to hack around react
+          ;; because it elides script tags in dangerouslySetInnerHTML components
+          [:img  {:src "data:null;,"
+                  :style {:display "none"}
+                  :on-error (str "el = document.getElementById(window.location.hash.substr(1));\n"
+                                 "el.scrollIntoViewIfNeeded(true);\n"
+                                 "el.style.background = '#bcdeff';")}]]))
+
+     (defn -community-page-view []
        (let [topics (db/get-entities :topic)
              id->topic (zipmap (map :topic/id topics)
                                topics)

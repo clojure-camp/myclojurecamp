@@ -2,7 +2,7 @@
   (:require
    [bloom.commons.uuid :as uuid]
    [mycc.p2p.util :as util]
-   [mycc.p2p.db :as p2p.db]
+   [mycc.profile.db :as profile.db]
    [mycc.common.db :as db]))
 
 (def topics
@@ -70,6 +70,6 @@
                 :user/role :role/mentor
                 :user/availability (util/random-availability)}]]
     (doseq [topic topics]
-      (p2p.db/save-topic! topic))
+      (profile.db/save-topic! topic))
     (doseq [user users]
       (db/save-user! user))))

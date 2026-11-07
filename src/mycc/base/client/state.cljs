@@ -71,7 +71,8 @@
   (fn [_ [_ email]]
     {:ajax {:method :put
             :uri "/api/request-login-link-email"
-            :params {:email email}
+            :params {:email email
+                     :return-to js/window.location.pathname}
             :on-success (fn [data])}}))
 
 (reg-event-fx

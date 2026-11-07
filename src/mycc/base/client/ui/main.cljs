@@ -16,7 +16,7 @@
 (defn ajax-status-view []
   (let [saved? (empty? @state/ajax-state)]
     [:div.ajax-status
-     {:tw "pointer-events-none fixed inset-x-0 bottom-0.5em flex justify-center"
+     {:tw "pointer-events-none fixed inset-x-0 bottom-0.5em flex justify-center z-9999"
       :style (when saved?
                {:animation "fade-out 2s forwards ease-in-out"})}
      [:div {:tw "text-white bg-clojure-camp-blue-lighter rounded-full p-1 pr-3 flex gap-1 items-center"}

@@ -7,9 +7,11 @@
    [pairing-scheduler.core :as ps]
    [mycc.p2p.util :as util]
    [mycc.common.email :as email]
+   [mycc.common.ical :as ical]
    [mycc.common.db :as db]
    [mycc.common.date :as date]
    [mycc.p2p.db :as p2p.db]
+   [mycc.profile.db :as profile.db]
    [mycc.p2p.meetups :as meetups]
    [modulo.api :as mod])
   (:import
@@ -175,7 +177,7 @@
                        (name (:level (second sorted-users-levels)))
                        ") "
                        "on '"
-                       (:topic/name (p2p.db/get-topic topic-id))
+                       (:topic/name (profile.db/get-topic topic-id))
                        "'.")))))))
 
 #_(->topics {:event/guest-ids #{(:user/id (first (db/get-users)))
@@ -199,38 +201,18 @@
 (defn event->ical
   [{:event/keys [guest-ids at id] :as event}]
   (let [guests (map db/get-user guest-ids)
-        ;; iCAL expects datetimes in the form: "20211108T140000Z"
-        format  (fn [t]
-                  (string/replace t #"-|:|(\.\d+)" ""))
-        start (.toInstant at)
-        end (.plus start 1 ChronoUnit/HOURS)]
-   (->> [["BEGIN" "VCALENDAR"]
-         ["VERSION" "2.0"]
-         ["PRODID" "CLOJURE.CAMP"]
-         ["CALSCALE" "GREGORIAN"]
-         ["METHOD" "PUBLISH"]
-         ["BEGIN" "VEVENT"]
-         ["SUMMARY" (str "Clojure Camp " (:user/name (first guests))
-                         " and " (:user/name (last guests)))]
-         ["ORGANIZER" "mailto:bot@clojure.camp"]
-         ["ATTENDEE" (str "mailto:" (:user/email (first guests)))]
-         ["ATTENDEE" (str "mailto:" (:user/email (last guests)))]
-         ["UID" id]
-         ["DESCRIPTION" (str "Potential topics:\\n"
-                             (string/join "\\n" (->topics event)))]
-         ["LOCATION" (util/->event-url event)]
-         ["DTSTART" (format start)]
-         ["DTEND" (format end)]
-         ["DTSTAMP" (format (.toInstant (java.util.Date.)))]
-         ["END" "VEVENT"]
-         ["END" "VCALENDAR"]]
-        (map (fn [[a b]] (str a ":" b)))
-        ;; maximum line length is 75
-        (map (fn [s]
-               (->> (partition-all 74 s)
-                    (map (partial apply str))
-                    (string/join "\r\n "))))
-        (string/join "\n"))))
+        start (.toInstant at)]
+    (ical/->ics
+      {:uid id
+       :summary (str "Clojure Camp " (:user/name (first guests))
+                     " and " (:user/name (last guests)))
+       :attendee-emails [(:user/email (first guests))
+                         (:user/email (last guests))]
+       :description (str "Potential topics:\n"
+                         (string/join "\n" (->topics event)))
+       :location (util/->event-url event)
+       :start start
+       :end (.plus start 1 ChronoUnit/HOURS)})))
 
 #_(last (db/get-users))
 #_(event->ical {:event/guest-ids #{(:user/id (first (db/get-users)))
@@ -290,7 +272,7 @@
                "Where: Discord"
                #_[:a {:href (util/->event-url event)} "Meeting Link"]])
             [:p "If you can't make a session, be sure to let your partner know!"]
-            [:p "The default 'location' is Discord, but you can coordinate with your partner and use an alternative with better pairing support like Zoom or Pop.com"]
+            [:p "The default 'location' is Discord, but you can coordinate with your partner and use an alternative with better pairing support like Tuple (reccomended, but no Linux support), Pop.com or Zoom"]
             [:p "- Clojure Camp Bot"]]}))
 
 #_(email/send! (matched-email-template

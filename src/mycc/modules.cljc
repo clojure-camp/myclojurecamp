@@ -4,5 +4,5 @@
     [mycc.events.core]
     [mycc.community.core]
     [mycc.profile.core]
-    [mycc.p2p.core]))
+    [mycc.pairwithme.core]))
 

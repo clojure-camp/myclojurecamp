@@ -1,7 +1,6 @@
 (ns mycc.common.availability
   (:require
    [clojure.string :as string]
-   [garden.color :refer [darken]]
    [reagent.core :as r]
    [modulo.api :as mod]
    [mycc.common.colors :as colors]
@@ -29,48 +28,45 @@
      :transform "translateY(-0.5rem)"}]
 
    [:td
-    {:padding 0}
+    {:padding "0.125rem"}
 
     [:>button
      {:width "100%"
-      :border "none"
+      :height "2rem"
+      :padding 0
+      :border-width "1px"
+      :border-style "solid"
+      :border-radius "0.25rem"
       :cursor "pointer"
-      :padding "1em"
-      :height "3em"
+      :font-size "0.75rem"
       :display "flex"
       :justify-content "center"
-      :align-items "center"}
-
-     [:>.wrapper
-      {:height "2em"
-       :width "100%"
-       :line-height "2em"}]
+      :align-items "center"
+      :overflow "hidden"}
 
      [:&.empty
       {:background "#fff"
+       :border "1px dashed #ccc"
        :color "#aaa"}
 
-      [:>.wrapper
-       {:border "1px dashed #ccc"}]
-
       [:&:hover
-       {:background (darken "#fff" 10)}]]
+       {:background "#f3f4f6"}]]
 
      [:&.preferred
-      [:>.wrapper
-       {:background colors/accent-dark
-        :color "white"}]
+      {:background "#93c5fd"
+       :border-color "#60a5fa"
+       :color colors/accent-dark}
 
       [:&:hover
-       {:background (darken colors/accent-dark 10)}]]
+       {:background "#60a5fa"}]]
 
      [:&.available
-      [:>.wrapper
-       {:background colors/accent-light
-        :color "white"}]
+      {:background "#dbeafe"
+       :border-color "#bfdbfe"
+       :color colors/accent-dark}
 
       [:&:hover
-       {:background (darken colors/accent-light 10)}]]]]])
+       {:background "#bfdbfe"}]]]]])
 
 (defn next-day-of-week
   "Calculates next date with day of week as given"
@@ -104,7 +100,7 @@
            date))
 
 (defn hour-rows-view
-  [availability hours show-events?]
+  [availability hours {:keys [show-events? show-global-availability?]}]
   [:tbody
    (doall
     (for [hour hours]
@@ -116,7 +112,8 @@
           ^{:key day}
           [:td
            (let [value (availability [day hour])
-                 global-availability-percent @(mod/subscribe [:global-availability day hour])]
+                 global-availability-percent (when show-global-availability?
+                                               @(mod/subscribe [:global-availability day hour]))]
              [:button
               {:class (case value
                         :preferred "preferred"
@@ -160,19 +157,20 @@
                                  :margin "0.1em"
                                  :border-radius "50%"}}])]
               ;; big oval
-              (let [size 100]
-                [:svg {:style {:position "absolute"
-                               :z-index 0
-                               :width "100%"
-                               :height "100%"}
-                       :preserve-aspect-ratio "none"
-                       :view-box (str "0 0 " size " " size)}
-                 [:circle {:cx (/ size 2)
-                           :cy (/ size 2)
-                           :r (* (/ size 2)
-                                 ;; sqrt, so that area is linear with value
-                                 (Math/sqrt global-availability-percent))
-                           :fill "#f3f3f3"}]])
+              (when global-availability-percent
+                (let [size 100]
+                  [:svg {:style {:position "absolute"
+                                 :z-index 0
+                                 :width "100%"
+                                 :height "100%"}
+                         :preserve-aspect-ratio "none"
+                         :view-box (str "0 0 " size " " size)}
+                   [:circle {:cx (/ size 2)
+                             :cy (/ size 2)
+                             :r (* (/ size 2)
+                                   ;; sqrt, so that area is linear with value
+                                   (Math/sqrt global-availability-percent))
+                             :fill "#f3f3f3"}]]))
               ;; random pips
               #_(let [w 43
                     h 16
@@ -199,7 +197,7 @@
                  nil "")]])]))]))])
 
 (defn availability-view
-  [{:keys [show-events?]}]
+  [opts]
   (r/with-let [force-show-early? (r/atom false)
                force-show-late? (r/atom false)]
     [ui/row
@@ -235,7 +233,7 @@
              [:tbody
               [:tr ;; filler row, so that header doesn't cover the offset hour label
                [:td {:col-span 8 :tw "h-1em"} ""]]]
-             [hour-rows-view availability util/early-hours show-events?]]
+             [hour-rows-view availability util/early-hours opts]]
             [:tbody
              [:tr
               [:td]
@@ -244,12 +242,12 @@
                 [ui/secondary-button {:on-click (fn []
                                                   (reset! force-show-early? true))}
                  "Show earlier hours"]]]]])
-          [hour-rows-view availability util/hours show-events?]
+          [hour-rows-view availability util/hours opts]
           (if (or @force-show-late?
                   (some availability (for [hour util/late-hours
                                            day util/days]
                                        [day hour])))
-            [hour-rows-view availability util/late-hours show-events?]
+            [hour-rows-view availability util/late-hours opts]
             [:tbody
              [:tr
               [:td]
