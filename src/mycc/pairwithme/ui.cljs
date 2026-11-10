@@ -149,26 +149,37 @@
                  (mod/dispatch [:pairwithme/open-modal! {:other-user profile}]))}
     "Let's Pair"]])
 
+(defn profiles-list-view
+  [profiles]
+  [:div
+   (for [profile profiles]
+     ^{:key (:user/id profile)}
+     [profile-view profile])])
+
 (defn profiles-view []
-  (r/with-let [only-overlapping? (r/atom (has-availability?))]
-    [ui/row
-     {}
-     [:label {:tw "flex gap-1 items-center text-sm cursor-pointer"}
-      [:input {:type "checkbox"
-               :checked @only-overlapping?
-               :on-change (fn [_]
-                            (swap! only-overlapping? not))}]
-      "Only show people with overlapping availability"]
-     (let [profiles (cond->> @(mod/subscribe [:pairwithme/profiles])
-                      @only-overlapping?
-                      (filter (fn [profile]
-                                (pos? (:overlap-count profile)))))]
-       (if (seq profiles)
-         [:div
-          (for [profile profiles]
-            ^{:key (:user/id profile)}
-            [profile-view profile])]
-         [:p {:tw "italic"} "(No one yet)"]))]))
+  (r/with-let [show-other? (r/atom false)]
+    (let [profiles @(mod/subscribe [:pairwithme/profiles])
+          {overlapping true other false} (group-by (fn [profile]
+                                                     (pos? (:overlap-count profile)))
+                                                   profiles)]
+      [ui/row
+       {}
+       (if (empty? profiles)
+         [:p {:tw "italic"} "(No one yet)"]
+         [:<>
+          (if (seq overlapping)
+            [profiles-list-view overlapping]
+            [:p {:tw "italic"} "(No one with overlapping availability)"])
+          (when (seq other)
+            [:<>
+             [:button {:tw "text-sm cursor-pointer underline"
+                       :on-click (fn [_]
+                                   (swap! show-other? not))}
+              (if @show-other?
+                "Hide people without overlapping availability"
+                (str "Show people without overlapping availability (" (count other) ")"))]
+             (when @show-other?
+               [profiles-list-view other])])])])))
 
 (defn cell-view
   [{:keys [slot viewer-value other-value]} selected-slots]
