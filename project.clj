@@ -3,7 +3,7 @@
                  [jarohen/chime "0.3.2"]
                  [com.draines/postal "2.0.5"]
                  [io.bloomventures/omni "0.34.0"]
-                 [tada/tada "0.2.2"]
+                 [tada/tada "0.3.1"]
                  [re-frame/re-frame "0.10.5"]
                  [com.lambdaisland/hiccup "0.0.33"]
                  [com.hyperfiddle/rcf "20220926-202227"]

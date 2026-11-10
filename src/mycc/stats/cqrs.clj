@@ -8,7 +8,7 @@
 (def queries
   [{:id :stats/all
     :route [:get "/api/stats/all"]
-    :params {:user-id uuid?}
+    :params {:user-id :uuid}
     :conditions
     (fn [{:keys [user-id]}]
       [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]])

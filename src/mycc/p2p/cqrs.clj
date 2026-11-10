@@ -10,8 +10,8 @@
 (def commands
   [{:id :opt-in-for-pairing!
     :route [:put "/api/user/opt-in-for-pairing"]
-    :params {:user-id uuid?
-             :value boolean?}
+    :params {:user-id :uuid
+             :value :boolean}
     :conditions
     (fn [{:keys [user-id]}]
       [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]])
@@ -25,9 +25,9 @@
 
    {:id :avoid-user!
     :route [:put "/api/p2p/avoid-user"]
-    :params {:user-id uuid?
-             :avoid-user-id uuid?
-             :value boolean?}
+    :params {:user-id :uuid
+             :avoid-user-id :uuid
+             :value :boolean}
     :conditions
     (fn [{:keys [user-id avoid-user-id]}]
       [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]
@@ -42,7 +42,7 @@
 (def queries
   [{:id :all-user-availability
     :route [:get "/api/global-availability"]
-    :params {:user-id uuid?}
+    :params {:user-id :uuid}
     :conditions
     (fn [{:keys [user-id]}]
       [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]])
@@ -52,7 +52,7 @@
 
    {:id :next-week-meetups-in-user-time-zone
     :route [:get "/api/p2p/next-week-meetups-in-user-time-zone"]
-    :params {:user-id uuid?}
+    :params {:user-id :uuid}
     :conditions
     (fn [{:keys [user-id]}]
       [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]])
@@ -64,7 +64,7 @@
 
    {:id :events
     :route [:get "/api/events"]
-    :params {:user-id uuid?}
+    :params {:user-id :uuid}
     :conditions
     (fn [{:keys [user-id]}]
       [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]])

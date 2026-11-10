@@ -23,16 +23,16 @@
   (cqrs/watch!
     :mycc.base.routes
     (fn [commands-and-queries]
-      (tada/register! commands-and-queries)
+      (tada/register! cqrs/t commands-and-queries)
       (reset! dynamic-cqrs-handler
               (omni.ring/->handler
                 (->> commands-and-queries
                      (map (fn [{:keys [id route]}]
                             [route
-                             (tada.events.ring/route id)
+                             (tada.events.ring/route cqrs/t id)
                              [params-middleware]]))))))))
 
-#_(tada/do :request-login-link-email! {:email "foo@example.com"})
+#_(tada/do! cqrs/t :request-login-link-email! {:email "foo@example.com"})
 
 (def routes
   [[[:get "/validate"]

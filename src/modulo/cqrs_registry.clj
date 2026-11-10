@@ -1,4 +1,9 @@
-(ns modulo.cqrs-registry)
+(ns modulo.cqrs-registry
+  (:require
+    [tada.events.core :as tada]))
+
+(defonce t
+  (tada/init :malli))
 
 (defonce cqrs-registry
   (atom {}))
