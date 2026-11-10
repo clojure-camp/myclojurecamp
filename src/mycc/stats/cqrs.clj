@@ -8,7 +8,6 @@
 
 (def queries
   [{:id :stats/all
-    :route [:get "/api/stats/all"]
     :params {:user-id :user/id}
     :conditions
     (fn [{:keys [user-id]}]

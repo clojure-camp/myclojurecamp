@@ -177,7 +177,6 @@
      (mod/register-cqrs!
       :community/queries
       [{:id :community/html
-        :route [:get "/api/community"]
         :params {:user-id :user/id}
         :conditions
         (fn [{:keys [user-id]}]
@@ -191,7 +190,7 @@
      (defn community-page-view
        []
        [ui/server-html-view
-        {:route "/api/community"}])
+        {:event [:community/html]}])
 
      (mod/register-page!
       {:page/id :page.id/community

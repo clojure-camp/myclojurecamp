@@ -2,16 +2,10 @@
   (:require
     [clojure.pprint :as pprint]
     [reagent.core :as r]
-    [re-frame.core :refer [reg-sub subscribe]]))
+    [mycc.base.client.state :as state]))
 
 (def debug?
   ^boolean js/goog.DEBUG)
-
-(when debug?
-  (reg-sub
-    :db
-    (fn [db _]
-      db)))
 
 (defonce open? (r/atom false))
 
@@ -29,7 +23,7 @@
                     :z-index 100
                     :padding "1em"}}
       (with-out-str
-        (pprint/pprint @(subscribe [:db])))]
+        (pprint/pprint @state/user))]
     [:button {:style {:position "fixed"
                       :z-index 101
                       :color "white"

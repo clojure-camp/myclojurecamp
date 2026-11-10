@@ -9,7 +9,6 @@
 
 (def commands
   [{:id :request-login-link-email!
-    :route [:put "/api/request-login-link-email"]
     :params {:email [:re #"^.*@.*\..*$"]
              :return-to [:maybe [:fn return-to/safe?]]}
     :effect
@@ -20,7 +19,6 @@
           (emails.login-link/login-email-template user return-to))))}
 
    {:id :set-profile-value!
-    :route [:put "/api/user/set-profile-value"]
     :params {:user-id :user/id
              :k [:fn (fn [k]
                        (schema/allowed-key? :entity/user k))]
@@ -38,7 +36,6 @@
               db/save-user!))}
 
    {:id :mark-visited!
-    :route [:put "/api/user/visited"]
     :params {:user-id :user/id}
     :conditions
     (fn [{:keys [user-id]}]
@@ -66,7 +63,6 @@
 
 (def queries
   [{:id :user
-    :route [:get "/api/user"]
     :params {:user-id :user/id}
     :conditions
     (fn [{:keys [user-id]}]

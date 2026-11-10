@@ -10,7 +10,6 @@
 
 (def commands
   [{:id :opt-in-for-pairing!
-    :route [:put "/api/user/opt-in-for-pairing"]
     :params {:user-id :user/id
              :value :boolean}
     :conditions
@@ -25,7 +24,6 @@
               db/save-user!))}
 
    {:id :avoid-user!
-    :route [:put "/api/p2p/avoid-user"]
     :params {:user-id :user/id
              :avoid-user-id :user/id
              :value :boolean}
@@ -42,7 +40,6 @@
 
 (def queries
   [{:id :all-user-availability
-    :route [:get "/api/global-availability"]
     :params {:user-id :user/id}
     :conditions
     (fn [{:keys [user-id]}]
@@ -52,7 +49,6 @@
       (p2p.availability/global-availability user-id))}
 
    {:id :next-week-meetups-in-user-time-zone
-    :route [:get "/api/p2p/next-week-meetups-in-user-time-zone"]
     :params {:user-id :user/id}
     :conditions
     (fn [{:keys [user-id]}]
@@ -64,7 +60,6 @@
        (mod/config :meetups)))}
 
    {:id :events
-    :route [:get "/api/events"]
     :params {:user-id :user/id}
     :conditions
     (fn [{:keys [user-id]}]

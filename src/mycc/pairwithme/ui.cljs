@@ -2,9 +2,11 @@
   (:require
     [reagent.core :as r]
     [modulo.api :as mod]
+    [mycc.base.client.state :as state]
     [mycc.common.availability :as availability]
     [mycc.common.profile :as common.profile]
-    [mycc.common.ui :as ui]))
+    [mycc.common.ui :as ui]
+    [mycc.pairwithme.state :as pairwithme.state]))
 
 (def styles
   [:div.page.pairwithme
@@ -19,12 +21,12 @@
                   :day "numeric"
                   :hour "numeric"
                   :minute "2-digit"
-                  :timeZone (or @(mod/subscribe [:user-profile-value :user/time-zone])
+                  :timeZone (or (state/user-value :user/time-zone)
                                 "UTC")})
            slot))
 
 (defn has-availability? []
-  (->> @(mod/subscribe [:user-profile-value :user/availability])
+  (->> (state/user-value :user/availability)
        vals
        (some some?)
        boolean))
@@ -55,7 +57,7 @@
       "This proposal was not found.")))
 
 (defn banner-view []
-  (when-let [banner @(mod/subscribe [:pairwithme/banner])]
+  (when-let [banner @pairwithme.state/banner]
     [ui/row {}
      [:div {:tw ["p-4 rounded border flex justify-between gap-4"
                  (if (:error banner)
@@ -64,7 +66,7 @@
       [:div (banner-message banner)]
       [ui/secondary-button
        {:on-click (fn [_]
-                    (mod/dispatch [:pairwithme/clear-banner!]))}
+                    (pairwithme.state/clear-banner!))}
        "Close"]]]))
 
 (defn explainer-view []
@@ -80,20 +82,19 @@
     [ui/radio-list
      {:choices [[true "Yes"]
                 [false "No"]]
-      :value (boolean @(mod/subscribe [:user-profile-value :user/pairwithme-show-profile?]))
+      :value (boolean (state/user-value :user/pairwithme-show-profile?))
       :on-change (fn [value]
-                   (mod/dispatch [:set-user-value! :user/pairwithme-show-profile? (boolean value)]))}]
-    (when (and @(mod/subscribe [:user-profile-value :user/pairwithme-show-profile?])
+                   (state/set-user-value! :user/pairwithme-show-profile? (boolean value)))}]
+    (when (and (state/user-value :user/pairwithme-show-profile?)
                (not (has-availability?)))
       [ui/warning {} "Others can't see your profile until you add some availability below."])]
    [ui/row
     {:title "I'd like to pair on..."
      :subtitle [:span "A bullet list of what you'd like to pair on." [:br] "Ex. Advent of Code, learning reagent, contributing to Jank, etc."]}
     [ui/textarea
-     {:default-value @(mod/subscribe [:user-profile-value :user/pairwithme-topics])
+     {:default-value (state/user-value :user/pairwithme-topics)
       :on-change (fn [e]
-                   (mod/dispatch
-                     [:debounced-set-user-value! :user/pairwithme-topics (.. e -target -value)]))}]]
+                   (state/debounced-set-user-value! :user/pairwithme-topics (.. e -target -value)))}]]
    [common.profile/time-zone-view]
    [availability/availability-view {:show-events? false}]])
 
@@ -118,12 +119,12 @@
    (when (= :respond status)
      [ui/secondary-button
       {:on-click (fn [_]
-                   (mod/dispatch [:pairwithme/open-modal! {:other-user other-user
-                                                           :session-id (:pairwithme-session/id session)}]))}
+                   (pairwithme.state/open-modal! {:other-user other-user
+                                                  :session-id (:pairwithme-session/id session)}))}
       "Propose other times"])])
 
 (defn sessions-view []
-  (when-let [sessions (seq @(mod/subscribe [:pairwithme/sessions]))]
+  (when-let [sessions (seq @pairwithme.state/sessions)]
     [ui/row
      {:title "Upcoming Pairing Sessions"}
      [:div {:tw "space-y-2"}
@@ -146,7 +147,7 @@
         topics]])]
    [ui/button
     {:on-click (fn [_]
-                 (mod/dispatch [:pairwithme/open-modal! {:other-user profile}]))}
+                 (pairwithme.state/open-modal! {:other-user profile}))}
     "Let's Pair"]])
 
 (defn profiles-list-view
@@ -157,8 +158,9 @@
      [profile-view profile])])
 
 (defn profiles-view []
-  (r/with-let [show-other? (r/atom false)]
-    (let [profiles @(mod/subscribe [:pairwithme/profiles])
+  (r/with-let [show-other? (r/atom false)
+               all-profiles (mod/tada-atom [:pairwithme/profiles])]
+    (let [profiles @all-profiles
           {overlapping true other false} (group-by (fn [profile]
                                                      (pos? (:overlap-count profile)))
                                                    profiles)]
@@ -199,7 +201,7 @@
                 :else
                 "bg-blue-100 border-blue-200 hover:bg-blue-200")]
          :on-click (fn [_]
-                     (mod/dispatch [:pairwithme/toggle-slot! slot-ms]))}
+                     (pairwithme.state/toggle-slot! slot-ms))}
         (cond
           selected?
           "✓"
@@ -258,18 +260,18 @@
 
 (defn modal-view []
   (when-let [{:keys [other-user schedule selected-slots sending? error]}
-             @(mod/subscribe [:pairwithme/modal])]
+             @pairwithme.state/modal]
     [:div {:tw "fixed inset-0 z-1000 flex items-center justify-center p-4"
            :style {:background "rgba(0,0,0,0.5)"}
            :on-click (fn [e]
                        (when (= (.-target e) (.-currentTarget e))
-                         (mod/dispatch [:pairwithme/close-modal!])))}
+                         (pairwithme.state/close-modal!)))}
      [:div {:tw "bg-white rounded p-4 max-w-3xl w-full max-h-full overflow-y-auto space-y-3"}
       [:div {:tw "flex justify-between items-baseline gap-4"}
        [:h1 {:tw "font-bold"}
         "Pick 1 - 3 times to suggest to " (:user/name other-user)]
        [:div {:tw "text-xs text-gray-600"}
-        (or @(mod/subscribe [:user-profile-value :user/time-zone])
+        (or (state/user-value :user/time-zone)
             "UTC")]]
       (if schedule
         [schedule-grid-view schedule selected-slots]
@@ -290,13 +292,13 @@
        [:div {:tw "flex gap-2"}
         [ui/secondary-button
          {:on-click (fn [_]
-                      (mod/dispatch [:pairwithme/close-modal!]))}
+                      (pairwithme.state/close-modal!))}
          "Cancel"]
         [ui/button
          {:disabled (or sending?
                         (empty? selected-slots))
           :on-click (fn [_]
-                      (mod/dispatch [:pairwithme/propose!]))}
+                      (pairwithme.state/propose!))}
          (str "Send proposal (" (count selected-slots) ")")]]]]]))
 
 (defn pairwithme-page-view [_]
@@ -322,8 +324,7 @@
    :page/view #'pairwithme-page-view
    :page/styles styles
    :page/on-enter! (fn [[_ {:keys [session]}]]
-                     (mod/dispatch [:pairwithme/fetch-profiles!])
-                     (mod/dispatch [:pairwithme/fetch-sessions! {:open-counter-for session}]))})
+                     (pairwithme.state/fetch-sessions! {:open-counter-for session}))})
 
 (mod/register-page!
   {:page/id :page.id/pairwithme-accept
@@ -335,5 +336,4 @@
    :page/view #'pairwithme-page-view
    :page/styles styles
    :page/on-enter! (fn [[_ params]]
-                     (mod/dispatch [:pairwithme/fetch-profiles!])
-                     (mod/dispatch [:pairwithme/accept! params]))})
+                     (pairwithme.state/accept! params))})

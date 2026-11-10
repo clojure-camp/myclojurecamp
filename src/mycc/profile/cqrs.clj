@@ -8,7 +8,6 @@
 
 (def commands
   [{:id :create-topic!
-    :route [:put "/api/topics"]
     :params {:user-id :user/id
              :name :topic/name}
     :conditions
@@ -21,7 +20,6 @@
     :return :tada/effect-return}
 
    {:id :set-topic-level!
-    :route [:put "/api/user/set-topic-level"]
     :params {:user-id :user/id
              :topic-id :topic/id
              :level [:maybe [:enum :level/beginner :level/intermediate :level/expert]]}
@@ -36,7 +34,6 @@
               db/save-user!))}
 
    {:id :clear-availability!
-    :route [:put "/api/user/clear-availability"]
     :params {:user-id :user/id}
     :conditions
     (fn [{:keys [user-id]}]
@@ -48,7 +45,6 @@
               db/save-user!))}
 
    {:id :update-availability!
-    :route [:put "/api/user/update-availability"]
     :params {:user-id :user/id
              :hour (into [:enum] (concat util/early-hours util/hours util/late-hours))
              :day (into [:enum] util/days)
@@ -64,7 +60,6 @@
 
 (def queries
   [{:id :topics
-    :route [:get "/api/topics"]
     :params {:user-id :user/id}
     :conditions
     (fn [{:keys [user-id]}]

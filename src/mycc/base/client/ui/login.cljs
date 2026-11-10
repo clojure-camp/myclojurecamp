@@ -2,7 +2,7 @@
   (:require
     [clojure.string :as string]
     [reagent.core :as r]
-    [re-frame.core :refer [dispatch]]))
+    [mycc.base.client.state :as state]))
 
 (defn rand-in-range [low high]
   (+ low (rand (- high low))))
@@ -49,7 +49,7 @@
         {:on-submit (fn [e]
                       (let [email (.. e -target -elements -email -value)]
                         (.preventDefault e)
-                        (dispatch [:log-in! email])
+                        (state/log-in! email)
                         (reset! sent-email email)))}
         [:label
          "Enter your email:"

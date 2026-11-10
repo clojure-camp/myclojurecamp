@@ -3,9 +3,11 @@
    [clojure.string :as string]
    [reagent.core :as r]
    [modulo.api :as mod]
+   [mycc.base.client.state :as state]
    [mycc.common.colors :as colors]
+   [mycc.common.ui :as ui]
    [mycc.p2p.util :as util]
-   [mycc.common.ui :as ui]))
+   [mycc.profile.state :as profile.state]))
 
 (def styles
   [:table.availability
@@ -100,7 +102,7 @@
            date))
 
 (defn hour-rows-view
-  [availability hours {:keys [show-events? show-global-availability?]}]
+  [availability hours {:keys [show-events? show-global-availability? global-availability next-meetups]}]
   [:tbody
    (doall
     (for [hour hours]
@@ -113,7 +115,7 @@
           [:td
            (let [value (availability [day hour])
                  global-availability-percent (when show-global-availability?
-                                               @(mod/subscribe [:global-availability day hour]))]
+                                               (get @global-availability [day hour]))]
              [:button
               {:class (case value
                         :preferred "preferred"
@@ -122,14 +124,14 @@
                #_#_:style {:background-color (str "hsl(0 0 " (* 100 (- 1 (/ global-availability-percent 4))) "%)") }
                :style {:position "relative"}
                :on-click (fn [_]
-                           (mod/dispatch [:set-availability!
-                                          [day hour]
-                                          (case value
-                                            :preferred nil
-                                            :available :preferred
-                                            nil :available)]))}
+                           (profile.state/set-availability!
+                            [day hour]
+                            (case value
+                              :preferred nil
+                              :available :preferred
+                              nil :available)))}
               (when (and show-events?
-                         (contains? @(mod/subscribe [:next-meetups]) [day hour]))
+                         (contains? @next-meetups [day hour]))
                 [:div {:style {:position "absolute"
                                :top 0
                                :left 5
@@ -197,9 +199,27 @@
                  nil "")]])]))]))])
 
 (defn availability-view
-  [opts]
+  [{:keys [show-events? show-global-availability?] :as opts}]
   (r/with-let [force-show-early? (r/atom false)
-               force-show-late? (r/atom false)]
+               force-show-late? (r/atom false)
+               global-availability (when show-global-availability?
+                                     (mod/tada-atom [:all-user-availability]))
+               next-meetups (when show-events?
+                              (mod/tada-atom [:next-week-meetups-in-user-time-zone]))
+               time-zone-tracker (when next-meetups
+                                   (let [last-time-zone (atom (state/user-value :user/time-zone))]
+                                     (r/track!
+                                      (fn []
+                                        (let [time-zone (state/user-value :user/time-zone)]
+                                          (when (not= @last-time-zone time-zone)
+                                            (reset! last-time-zone time-zone)
+                                            ;; give the backend a chance to save the latest value
+                                            (js/setTimeout (fn []
+                                                             (mod/refresh! next-meetups))
+                                                           500)))))))
+               hour-opts (assoc opts
+                           :global-availability global-availability
+                           :next-meetups next-meetups)]
     [ui/row
      {:title "Availability"
       :info [:<>
@@ -208,11 +228,11 @@
      [:<>
       [:div {:tw "absolute right-4 top-4 flex gap-4 items-center"}
        [ui/secondary-button {:on-click (fn [_]
-                                         (mod/dispatch [:clear-availability!]))} "Clear all"]
+                                         (profile.state/clear-availability!))} "Clear all"]
        #_[:div {:tw "flex gap-1 items-center"}
         [fa/fa-globe-solid {:tw "w-4 h-4"}]
-        @(mod/subscribe [:user-profile-value :user/time-zone])]]
-      (when-let [availability @(mod/subscribe [:user-profile-value :user/availability])]
+        (state/user-value :user/time-zone)]]
+      (when-let [availability (state/user-value :user/availability)]
         [:div {:tw "max-h-100vh overflow-x-auto mt-4"}
          [:table.availability
           [:thead
@@ -233,7 +253,7 @@
              [:tbody
               [:tr ;; filler row, so that header doesn't cover the offset hour label
                [:td {:col-span 8 :tw "h-1em"} ""]]]
-             [hour-rows-view availability util/early-hours opts]]
+             [hour-rows-view availability util/early-hours hour-opts]]
             [:tbody
              [:tr
               [:td]
@@ -242,12 +262,12 @@
                 [ui/secondary-button {:on-click (fn []
                                                   (reset! force-show-early? true))}
                  "Show earlier hours"]]]]])
-          [hour-rows-view availability util/hours opts]
+          [hour-rows-view availability util/hours hour-opts]
           (if (or @force-show-late?
                   (some availability (for [hour util/late-hours
                                            day util/days]
                                        [day hour])))
-            [hour-rows-view availability util/late-hours opts]
+            [hour-rows-view availability util/late-hours hour-opts]
             [:tbody
              [:tr
               [:td]
@@ -255,4 +275,6 @@
                [:div {:tw "flex justify-center"}
                 [ui/secondary-button {:on-click (fn []
                                                   (reset! force-show-late? true))}
-                 "Show later hours"]]]]])]])]]))
+                 "Show later hours"]]]]])]])]]
+    (finally
+      (some-> time-zone-tracker r/dispose!))))

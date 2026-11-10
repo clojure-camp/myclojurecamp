@@ -1,9 +1,9 @@
 (ns mycc.base.client.ui.app
   (:require
     [garden.core :as garden]
-    [re-frame.core :refer [subscribe]]
     [modulo.api :as mod]
     [mycc.common.colors :as colors]
+    [mycc.base.client.state :as state]
     [mycc.base.client.styles :refer [styles]]
     [mycc.base.client.ui.main :refer [main-view]]
     [mycc.base.client.ui.login :refer [login-view]]))
@@ -25,9 +25,9 @@
     (colors/tailwind-color-styles)]
 
    (cond
-     @(subscribe [:user])
+     @state/user
      [main-view]
 
-     @(subscribe [:checked-auth?])
+     @state/checked-auth?
      [login-view])])
 

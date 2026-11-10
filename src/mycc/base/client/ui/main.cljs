@@ -1,6 +1,5 @@
 (ns mycc.base.client.ui.main
   (:require
-    [re-frame.core :refer [dispatch]]
     [bloom.commons.fontawesome :as fa]
     [mycc.base.client.ui.debug :as debug]
     [mycc.base.client.state :as state]
@@ -14,7 +13,7 @@
     content]])
 
 (defn ajax-status-view []
-  (let [saved? (empty? @state/ajax-state)]
+  (let [saved? (mod/saved?)]
     [:div.ajax-status
      {:tw "pointer-events-none fixed inset-x-0 bottom-0.5em flex justify-center z-9999"
       :style (when saved?
@@ -48,7 +47,7 @@
       :title "Log Out"
       :on-click (fn []
                   (when (js/confirm "Are you sure you want to log out?")
-                    (dispatch [:log-out!])))}
+                    (state/log-out!)))}
      [fa/fa-sign-out-alt-solid {:tw "w-1em h-1em"}]]]])
 
 (defn nav-view []

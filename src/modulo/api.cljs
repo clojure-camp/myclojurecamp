@@ -1,15 +1,29 @@
 (ns modulo.api
   (:require
-    [re-frame.core :as re-frame]
     [modulo.client.pages :as pages]
     [modulo.client.core :as core]
-    [modulo.schema :as schema]))
+    [modulo.schema :as schema]
+    [modulo.client.tada :as tada]))
 
 ;; root
 
 (defn initialize! [root-view]
   (reset! core/root-view root-view)
   (core/init))
+
+;; tada
+
+(defn tada! [& args]
+  (apply tada/tada! args))
+
+(defn tada-atom [& args]
+  (apply tada/tada-atom args))
+
+(defn refresh! [& args]
+  (apply tada/refresh! args))
+
+(defn saved? []
+  (tada/saved?))
 
 ;; schema
 
@@ -32,17 +46,3 @@
 
 (defn current-page-view [& args]
   (apply pages/current-page-view args))
-
-;; re-frame
-
-(defn reg-sub [& args]
-  (apply re-frame/reg-sub args))
-
-(defn reg-event-fx [& args]
-  (apply re-frame/reg-event-fx args))
-
-(defn dispatch [& args]
-  (apply re-frame/dispatch args))
-
-(defn subscribe [& args]
-  (apply re-frame/subscribe args))

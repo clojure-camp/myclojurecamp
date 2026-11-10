@@ -7,7 +7,7 @@
 ;; to not leak user info unnecessarily
 (defn stats-page-view []
   [ui/server-html-view
-   {:route "/api/stats/all"}])
+   {:event [:stats/all]}])
 
 (mod/register-page!
   {:page/id :page.id/stats
