@@ -239,7 +239,11 @@
              hour ":00"]
             (for [{:keys [local-date]} dates]
               ^{:key local-date}
-              [cell-view (get cells [local-date hour]) selected-slots])])]]])))
+              [cell-view (get cells [local-date hour]) selected-slots])])
+         [:tr
+          [:td {:tw "text-right pr-4 align-top font-light"
+                :style {:transform "translateY(-0.5rem)"}}
+           (inc (last hours)) ":00"]]]]])))
 
 (defn modal-view []
   (when-let [{:keys [other-user schedule selected-slots sending? error]}
