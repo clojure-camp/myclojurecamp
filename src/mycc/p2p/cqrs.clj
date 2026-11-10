@@ -4,13 +4,14 @@
     [mycc.p2p.availability :as p2p.availability]
     [mycc.p2p.meetups :as p2p.meetups]
     [mycc.p2p.db :as p2p.db]
+    [mycc.p2p.schema]
     [mycc.common.date :as date]
     [modulo.api :as mod]))
 
 (def commands
   [{:id :opt-in-for-pairing!
     :route [:put "/api/user/opt-in-for-pairing"]
-    :params {:user-id :uuid
+    :params {:user-id :user/id
              :value :boolean}
     :conditions
     (fn [{:keys [user-id]}]
@@ -25,8 +26,8 @@
 
    {:id :avoid-user!
     :route [:put "/api/p2p/avoid-user"]
-    :params {:user-id :uuid
-             :avoid-user-id :uuid
+    :params {:user-id :user/id
+             :avoid-user-id :user/id
              :value :boolean}
     :conditions
     (fn [{:keys [user-id avoid-user-id]}]
@@ -42,7 +43,7 @@
 (def queries
   [{:id :all-user-availability
     :route [:get "/api/global-availability"]
-    :params {:user-id :uuid}
+    :params {:user-id :user/id}
     :conditions
     (fn [{:keys [user-id]}]
       [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]])
@@ -52,7 +53,7 @@
 
    {:id :next-week-meetups-in-user-time-zone
     :route [:get "/api/p2p/next-week-meetups-in-user-time-zone"]
-    :params {:user-id :uuid}
+    :params {:user-id :user/id}
     :conditions
     (fn [{:keys [user-id]}]
       [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]])
@@ -64,7 +65,7 @@
 
    {:id :events
     :route [:get "/api/events"]
-    :params {:user-id :uuid}
+    :params {:user-id :user/id}
     :conditions
     (fn [{:keys [user-id]}]
       [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]])

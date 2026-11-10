@@ -1,17 +1,10 @@
 (ns mycc.base.schema
   (:require
     [clojure.string :as string]
-    [malli.util :as mu]
     [malli.core :as m]
-    #?@(:clj
-         [[malli.registry :as mr]
-          [malli.experimental.time :as mt]])))
-
-#?(:clj
-   (mr/set-default-registry!
-     (mr/composite-registry
-       (m/default-schemas)
-       (mt/schemas))))
+    [malli.util :as mu]
+    [modulo.api :as mod]
+    [mycc.p2p.util :as p2p.util]))
 
 (def NonBlankString
   [:and
@@ -31,71 +24,88 @@
    [:fn (fn [k]
           (= "language" (namespace k)))]])
 
-(def User
-  [:map
-   [:user/id uuid?]
+(mod/register-entity!
+  :entity/user
+  [[:user/id :uuid]
+   [:user/email NonBlankString]
+   [:user/email-validated? {:optional true} :boolean]
    ;; profile
-   [:user/name SingleLineString]
+   [:user/name {:user-editable? true} SingleLineString]
    [:user/created-at inst?]
    [:user/last-visited-at inst?]
-   [:user/events-interested-in
+   [:user/events-interested-in {:user-editable? true}
     [:maybe
      [:set
       [:enum
        :event/mob-sessions
        :event/pairing]]]]
-   [:user/role
+   [:user/role {:user-editable? true}
     [:enum
      :role/student
      :role/mentor]]
-   [:user/github-user
+   [:user/github-user {:user-editable? true}
     [:maybe NonBlankString]]
-   [:user/discord-user
+   [:user/discord-user {:user-editable? true}
     [:maybe NonBlankString]]
-   [:user/profile-motivation
+   [:user/profile-motivation {:user-editable? true}
     [:maybe [:enum
              :motivation/job
              :motivation/job-leaning
              :motivation/balanced
              :motivation/hobby-leaning
              :motivation/hobby]]]
-   [:user/profile-experience-programming
+   [:user/profile-experience-programming {:user-editable? true}
     [:maybe [:and :int [:>= 0] [:<= 3]]]]
-   [:user/profile-experience-clojure
+   [:user/profile-experience-clojure {:user-editable? true}
     [:maybe [:and :int [:>= 0] [:<= 3]]]]
-   [:user/profile-experience-programming-example
+   [:user/profile-experience-programming-example {:user-editable? true}
     [:maybe [:and :int [:>= 0] [:<= 2]]]]
-   [:user/profile-experience-clojure-example
+   [:user/profile-experience-clojure-example {:user-editable? true}
     [:maybe [:and :int [:>= 0] [:<= 2]]]]
-   [:user/profile-short-term-milestone
+   [:user/profile-short-term-milestone {:user-editable? true}
     [:maybe NonBlankString]]
-   [:user/profile-long-term-milestone
+   [:user/profile-long-term-milestone {:user-editable? true}
     [:maybe NonBlankString]]
    ;; pairing
-   [:user/pair-with
+   [:user/pair-with {:user-editable? true}
     [:enum
      :pair-with/only-mentors
      :pair-with/prefer-mentors
      nil
      :pair-with/prefer-students
      :pair-with/only-students]]
-   [:user/max-pair-per-day
+   [:user/max-pair-per-day {:user-editable? true}
     [:and :int [:>= 1] [:<= 24]]]
-   [:user/max-pair-per-week
+   [:user/max-pair-per-week {:user-editable? true}
     [:and :int [:>= 1] [:<= (* 24 7)]]]
-   [:user/max-pair-same-user
+   [:user/max-pair-same-user {:user-editable? true}
     [:and :int [:>= 1] [:<= 50]]]
-   [:user/primary-languages [:set Language]]
-   [:user/secondary-languages [:set Language]]
-   [:user/subscribed? :boolean]
+   [:user/primary-languages {:user-editable? true} [:set Language]]
+   [:user/secondary-languages {:user-editable? true} [:set Language]]
+   [:user/subscribed? {:user-editable? true} :boolean]
    [:user/pair-next-week? :boolean]
-   [:user/pairwithme-show-profile? {:optional true} :boolean]
+   [:user/pairwithme-show-profile? {:user-editable? true :optional true} :boolean]
    ;; "I'd like to pair on..."
-   [:user/pairwithme-topics {:optional true} [:maybe :string]]
+   [:user/pairwithme-topics {:user-editable? true :optional true} [:maybe :string]]
+   [:user/topics {:optional true}
+    [:map-of
+     :uuid
+     [:maybe
+      [:enum
+       :level/beginner
+       :level/intermediate
+       :level/expert]]]]
+   [:user/availability {:optional true}
+    [:map-of
+     [:tuple
+      (into [:enum] p2p.util/days)
+      (into [:enum] (concat p2p.util/early-hours p2p.util/hours p2p.util/late-hours))]
+     [:maybe (into [:enum] (remove nil? p2p.util/availability-values))]]]
+   [:user/user-pair-deny-list {:optional true} [:set :user/id]]
    [:user/pair-opt-in-history [:set
                                #?(:clj :time/local-date
                                   :cljs :any)]]
-   [:user/time-zone
+   [:user/time-zone {:user-editable? true}
     [:and
      :string
      [:fn
@@ -107,16 +117,24 @@
              (catch Exception _
                false))))]]]])
 
+(defn ->map-schema
+  ;; entity keywords are registry refs; malli.util needs the :map itself
+  [schema]
+  (m/deref-all (m/schema schema)))
+
 (defn allowed-key?
   [schema k]
-  (boolean (mu/get schema k)))
+  (-> (mu/find (->map-schema schema) k)
+      second
+      :user-editable?
+      boolean))
 
 (defn valid-key-value?
   [schema k v]
-  (m/validate (mu/get schema k) v))
+  (m/validate (mu/get (->map-schema schema) k) v))
 
-#_(valid-key-value? User :user/name "")
-#_(valid-key-value? User :user/max-pair-per-week 0)
-#_(valid-key-value? User :user/time-zone "America/Toronto")
-#_(valid-key-value? User :user/created-at (java.util.Date.))
-#_(valid-key-value? User :user/pair-opt-in-history #{(java.time.LocalDate/now)})
+#_(valid-key-value? :entity/user :user/name "")
+#_(valid-key-value? :entity/user :user/max-pair-per-week 0)
+#_(valid-key-value? :entity/user :user/time-zone "America/Toronto")
+#_(valid-key-value? :entity/user :user/created-at (java.util.Date.))
+#_(valid-key-value? :entity/user :user/pair-opt-in-history #{(java.time.LocalDate/now)})

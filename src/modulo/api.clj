@@ -3,10 +3,14 @@
     [modulo.cqrs-registry :as cqrs]
     [modulo.jobs :as jobs]
     [modulo.config :as config]
+    [modulo.schema :as schema]
     [modulo.system :as system]))
 
 (defn register-cqrs! [& args]
   (apply cqrs/register-cqrs! args))
+
+(defn register-entity! [& args]
+  (apply schema/register-entity! args))
 
 (defn config [& args]
   (apply config/config args))

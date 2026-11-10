@@ -86,8 +86,8 @@
 (def commands
   [{:id :pairwithme/propose!
     :route [:put "/api/pairwithme/propose"]
-    :params {:user-id :uuid
-             :other-user-id :uuid
+    :params {:user-id :user/id
+             :other-user-id :user/id
              :slots [:sequential inst?]}
     :conditions
     (fn [{:keys [user-id other-user-id] :as params}]
@@ -102,8 +102,8 @@
 
    {:id :pairwithme/counter-propose!
     :route [:put "/api/pairwithme/counter-propose"]
-    :params {:user-id :uuid
-             :session-id :uuid
+    :params {:user-id :user/id
+             :session-id :pairwithme-session/id
              :slots [:sequential inst?]}
     :conditions
     (fn [{:keys [user-id session-id] :as params}]
@@ -120,9 +120,9 @@
    ;; errors are returned (not thrown), so the page can show them
    {:id :pairwithme/accept!
     :route [:put "/api/pairwithme/accept"]
-    :params {:user-id :uuid
-             :session-id :uuid
-             :proposal-id :uuid
+    :params {:user-id :user/id
+             :session-id :pairwithme-session/id
+             :proposal-id :proposal/id
              :slot-index :int}
     :conditions
     (fn [{:keys [user-id]}]
@@ -133,7 +133,7 @@
 (def queries
   [{:id :pairwithme/profiles
     :route [:get "/api/pairwithme/profiles"]
-    :params {:user-id :uuid}
+    :params {:user-id :user/id}
     :conditions
     (fn [{:keys [user-id]}]
       [(user-exists?-condition user-id)])
@@ -160,8 +160,8 @@
 
    {:id :pairwithme/schedule
     :route [:get "/api/pairwithme/schedule"]
-    :params {:user-id :uuid
-             :other-user-id :uuid}
+    :params {:user-id :user/id
+             :other-user-id :user/id}
     :conditions
     (fn [{:keys [user-id other-user-id] :as params}]
       [(user-exists?-condition user-id)
@@ -176,7 +176,7 @@
 
    {:id :pairwithme/sessions
     :route [:get "/api/pairwithme/sessions"]
-    :params {:user-id :uuid}
+    :params {:user-id :user/id}
     :conditions
     (fn [{:keys [user-id]}]
       [(user-exists?-condition user-id)])

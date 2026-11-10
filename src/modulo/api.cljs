@@ -2,13 +2,19 @@
   (:require
     [re-frame.core :as re-frame]
     [modulo.client.pages :as pages]
-    [modulo.client.core :as core]))
+    [modulo.client.core :as core]
+    [modulo.schema :as schema]))
 
 ;; root
 
 (defn initialize! [root-view]
   (reset! core/root-view root-view)
   (core/init))
+
+;; schema
+
+(defn register-entity! [& args]
+  (apply schema/register-entity! args))
 
 ;; pages
 

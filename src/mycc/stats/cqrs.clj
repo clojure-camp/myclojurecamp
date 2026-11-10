@@ -1,6 +1,7 @@
 (ns mycc.stats.cqrs
   (:require
     [modulo.api :as mod]
+    [mycc.base.schema]
     [mycc.common.db :as db]
     [mycc.stats.ui :as ui]
     [lambdaisland.hiccup :as h]))
@@ -8,7 +9,7 @@
 (def queries
   [{:id :stats/all
     :route [:get "/api/stats/all"]
-    :params {:user-id :uuid}
+    :params {:user-id :user/id}
     :conditions
     (fn [{:keys [user-id]}]
       [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]])
