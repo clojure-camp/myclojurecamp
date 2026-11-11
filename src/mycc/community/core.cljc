@@ -110,8 +110,10 @@
           [:img  {:src "data:null;,"
                   :style {:display "none"}
                   :on-error (str "el = document.getElementById(window.location.hash.substr(1));\n"
-                                 "el.scrollIntoViewIfNeeded(true);\n"
-                                 "el.style.background = '#bcdeff';")}]]))
+                                 "if (el) {\n"
+                                 "  el.scrollIntoView({block: 'center'});\n"
+                                 "  el.style.background = '#bcdeff';\n"
+                                 "}")}]]))
 
      (defn -community-page-view []
        (let [topics (db/get-entities :topic)
@@ -166,8 +168,10 @@
           [:img  {:src "data:null;,"
                   :style {:display "none"}
                   :on-error (str "el = document.getElementById(window.location.hash.substr(1));\n"
-                                 "el.scrollIntoViewIfNeeded(true);\n"
-                                 "el.style.background = '#bcdeff';")}]]))
+                                 "if (el) {\n"
+                                 "  el.scrollIntoView({block: 'center'});\n"
+                                 "  el.style.background = '#bcdeff';\n"
+                                 "}")}]]))
 
      (mod/register-cqrs!
       :community/queries
