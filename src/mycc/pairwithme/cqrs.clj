@@ -60,7 +60,7 @@
                                          :now now}))]
     (pairwithme.db/save-session! session)
     (email/send! (pairwithme.email/proposal-email session))
-    (:pairwithme-session/id session)))
+    {:session-id (:pairwithme-session/id session)}))
 
 (defn accept!
   [{:keys [user-id session-id proposal-id slot-index]}]
