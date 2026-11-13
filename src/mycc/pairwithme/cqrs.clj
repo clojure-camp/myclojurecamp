@@ -59,8 +59,7 @@
                                          :slots slots
                                          :now now}))]
     (pairwithme.db/save-session! session)
-    (email/send! (pairwithme.email/proposal-email session))
-    {:session-id (:pairwithme-session/id session)}))
+    (email/send! (pairwithme.email/proposal-email session))))
 
 (defn accept!
   [{:keys [user-id session-id proposal-id slot-index]}]
@@ -103,8 +102,7 @@
         :not-allowed "This user is not open to pairing."]
        [#(valid-slots? params)
         :incorrect "Times must be 1-3 different slots when the other person is available, in the next 7 days, at least 12h from now."]])
-    :effect propose!
-    :return :tada/effect-return}
+    :effect propose!}
 
    {:id :pairwithme/counter-propose!
     :route [:put "/api/pairwithme/counter-propose"]
@@ -121,8 +119,7 @@
         :not-allowed "Can't propose times in this session."]
        [#(valid-slots? params)
         :incorrect "Times must be 1-3 different slots when the other person is available, in the next 7 days, at least 12h from now."]])
-    :effect propose!
-    :return :tada/effect-return}
+    :effect propose!}
 
    ;; errors are returned (not thrown), so the page can show them
    {:id :pairwithme/accept!
