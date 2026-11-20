@@ -22,7 +22,7 @@
                    (clojure.string/includes? (:user/email u)
                                              "jf")))
        (map (fn [u]
-              (if-let [e (malli.error/humanize (malli.core/explain mycc.base.schema/User u))]
+              (if-let [e (malli.error/humanize (malli.core/explain :entity/user u))]
                 [(:user/email u) e]
                 )))
        first)

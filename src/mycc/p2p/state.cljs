@@ -1,88 +1,21 @@
 (ns mycc.p2p.state
   (:require
-    [modulo.api :as mod]))
+    [reagent.core :as r]
+    [modulo.api :as mod]
+    [mycc.base.client.state :as state]))
 
-(defn key-by [f coll]
-  (zipmap (map f coll)
-          coll))
+(defonce events (r/atom nil))
 
-(mod/reg-event-fx
-  :p2p/fetch-events!
-  (fn [_ _]
-    {:ajax {:method :get
-            :uri "/api/events"
-            :on-success (fn [events]
-                          (mod/dispatch [::store-events! events]))}}))
+(defn fetch-events! []
+  (-> (mod/tada! [:events] :quiet? true)
+      (.then (fn [data]
+               (reset! events data)))))
 
-(mod/reg-event-fx
-  ::store-events!
-  (fn [{db :db} [_ events]]
-    {:db (update db :db/events merge (key-by :event/id events))}))
+(defn opt-in-for-pairing! [bool]
+  (swap! state/user assoc :user/pair-next-week? bool)
+  (mod/tada! [:opt-in-for-pairing! {:value bool}]))
 
-(mod/reg-event-fx
-  :opt-in-for-pairing!
-  (fn [{db :db} [_ bool]]
-    {:db (assoc-in db [:db/user :user/pair-next-week?] bool)
-     :ajax {:method :put
-            :uri "/api/user/opt-in-for-pairing"
-            :params {:value bool}}}))
-
-(mod/reg-event-fx
-  :avoid-user!
-  (fn [{db :db} [_ user-id bool]]
-    {:db (update-in db [:db/user :user/user-pair-deny-list] (if bool conj disj) user-id)
-     :ajax {:method :put
-            :uri "/api/p2p/avoid-user"
-            :params {:avoid-user-id user-id
-                     :value bool}}}))
-
-(mod/reg-sub
-  :events
-  (fn [db _]
-    (vals (db :db/events))))
-
-;; global availability
-
-(mod/reg-event-fx
-  :p2p/fetch-global-availability!
-  (fn [_ _]
-    {:ajax {:method :get
-            :uri "/api/global-availability"
-            :on-success (fn [data]
-                          (mod/dispatch [::store-global-availability! data]))}}))
-
-(mod/reg-event-fx
-  ::store-global-availability!
-  (fn [{db :db} [_ data]]
-    {:db (assoc db :db/global-availability data)}))
-
-(mod/reg-sub
-  :global-availability
-  (fn [db [_ date hour]]
-    (get-in db [:db/global-availability [date hour]])))
-
-;; next meetups
-
-(mod/reg-event-fx
-  :p2p/next-week-meetups-in-user-time-zone!
-  (fn [_ _]
-    {:ajax {:method :get
-            :uri "/api/p2p/next-week-meetups-in-user-time-zone"
-            :on-success (fn [data]
-                          (mod/dispatch [::store-next-meetups! data]))}}))
-
-(mod/reg-event-fx
-  ::store-next-meetups!
-  (fn [{db :db} [_ data]]
-    {:db (assoc db :db/next-meetups data)}))
-
-(mod/reg-sub
-  :next-meetups
-  (fn [db _]
-    (get-in db [:db/next-meetups])))
-
-(add-watch (mod/subscribe [:user-profile-value :user/time-zone])
-           :update-next-meetups-on-time-zone-change
-           (fn [_ _ _ _]
-             ;; set timeout to give the backend a chance to get the latest value
-             (js/setTimeout #(mod/dispatch [:p2p/next-week-meetups-in-user-time-zone!]) 500)))
+(defn avoid-user! [user-id bool]
+  (swap! state/user update :user/user-pair-deny-list (if bool conj disj) user-id)
+  (mod/tada! [:avoid-user! {:avoid-user-id user-id
+                            :value bool}]))

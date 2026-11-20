@@ -2,7 +2,7 @@
   (:require
     [malli.core :as m]
     [mycc.common.db :as db]
-    [mycc.pairwithme.schema :as schema]))
+    [mycc.pairwithme.schema]))
 
 (defn get-session
   [session-id]
@@ -20,7 +20,7 @@
 
 (defn save-session!
   [session]
-  (when-not (m/validate schema/PairwithmeSession session)
+  (when-not (m/validate :entity/pairwithme-session session)
     (throw (ex-info "Invalid pairwithme session"
-                    {:errors (m/explain schema/PairwithmeSession session)})))
+                    {:errors (m/explain :entity/pairwithme-session session)})))
   (db/save! (db/->path :pairwithme-session (:pairwithme-session/id session)) session))

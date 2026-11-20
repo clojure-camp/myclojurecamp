@@ -1,102 +1,100 @@
 (ns mycc.profile.ui
   (:require
-    [mycc.common.ui :as ui]
+    [modulo.api :as mod]
+    [mycc.base.client.state :as state]
     [mycc.common.profile :as common.profile]
-    [modulo.api :as mod]))
+    [mycc.common.ui :as ui]))
 
 (defn name-view []
   [ui/row {:title "Name"}
    [ui/input
     {:type "text"
-     :default-value @(mod/subscribe [:user-profile-value :user/name])
+     :default-value (state/user-value :user/name)
      :on-change (fn [e]
-                  (mod/dispatch
-                    [:debounced-set-user-value! :user/name (.. e -target -value)]))}]])
+                  (state/debounced-set-user-value! :user/name (.. e -target -value)))}]])
 
 (defn github-username-view []
   [ui/row {:title "Github Username"}
    [ui/input
     {:type "text"
-     :default-value @(mod/subscribe [:user-profile-value :user/github-user])
+     :default-value (state/user-value :user/github-user)
      :on-change (fn [e]
-                  (mod/dispatch
-                    [:debounced-set-user-value! :user/github-user (.. e -target -value)]))}]])
+                  (state/debounced-set-user-value! :user/github-user (.. e -target -value)))}]])
 
 (defn discord-username-view []
   [ui/row {:title "Discord Username"}
    [ui/input
     {:type "text"
-     :default-value @(mod/subscribe [:user-profile-value :user/discord-user])
+     :default-value (state/user-value :user/discord-user)
      :on-change (fn [e]
-                  (mod/dispatch
-                    [:debounced-set-user-value! :user/discord-user (.. e -target -value)]))}]])
+                  (state/debounced-set-user-value! :user/discord-user (.. e -target -value)))}]])
 
 (defn learner-questions-view []
-  (when (= :role/student @(mod/subscribe [:user-profile-value :user/role]))
+  (when (= :role/student (state/user-value :user/role))
     [:<>
      [ui/row {:title "Motivation"
               :subtitle "Are you learning Clojure for career/job reasons (ex. to get a software development job, get better at your job...), or more for hobby/personal-interest reasons (ex. to build personal projects, contribute to open-source...)"}
       [ui/radio-list
-       {:value @(mod/subscribe [:user-profile-value :user/profile-motivation])
+       {:value (state/user-value :user/profile-motivation)
         :choices [[:motivation/job "Just Job"]
                   [:motivation/job-leaning "Mostly Job"]
                   [:motivation/balanced "50/50"]
                   [:motivation/hobby-leaning "Mostly hobby"]
                   [:motivation/hobby "Just Hobby"]]
         :on-change (fn [value]
-                     (mod/dispatch [:set-user-value! :user/profile-motivation value]))}]]
+                     (state/set-user-value! :user/profile-motivation value))}]]
 
      [ui/row {:title "General Programming Experience"
               :subtitle "Which of these statements best describes your experience with programming in general?"}
       [ui/radio-list
-       {:value @(mod/subscribe [:user-profile-value :user/profile-experience-programming])
+       {:value (state/user-value :user/profile-experience-programming)
         :choices [[0 "I have none"]
                   [1 "I have written a few lines now and again"]
                   [2 "I have written programs for my own use that are a couple of pages long"]
                   [3 "I have written and maintained larger pieces of software"]]
         :direction :vertical
         :on-change (fn [value]
-                     (mod/dispatch [:set-user-value! :user/profile-experience-programming value]))}]]
+                     (state/set-user-value! :user/profile-experience-programming value))}]]
 
-     (when (< 1 @(mod/subscribe [:user-profile-value :user/profile-experience-programming]))
+     (when (< 1 (state/user-value :user/profile-experience-programming))
        [ui/row {:title "General Programming Experience - Follow Up"
                 :subtitle [:<>
                            "Which of these statements best describes how easily you could write a program to do the following (in any language):"
                            [:div {:tw "mt-1 italic"} "Identify all airports more than 4 connections away from a given airport. You are provided an API that returns airports and flights between them."]]}
         [ui/radio-list
-         {:value @(mod/subscribe [:user-profile-value :user/profile-experience-programming-example])
+         {:value (state/user-value :user/profile-experience-programming-example)
           :choices [[0 "I wouldn’t know where to start."]
                     [1 "I could struggle through by trial and error, with a lot of web searches or ChatGPT."]
                     [2 "I could do it quickly with little or no use of external help."]]
           :direction :vertical
           :on-change (fn [value]
-                       (mod/dispatch [:set-user-value! :user/profile-experience-programming-example value]))}]])
+                       (state/set-user-value! :user/profile-experience-programming-example value))}]])
 
      [ui/row {:title "Clojure Programming Experience"
               :subtitle [:span "Which of these statements best describes your experience with programming " [:em "in Clojure or Clojurescript?"]]}
       [ui/radio-list
-       {:value @(mod/subscribe [:user-profile-value :user/profile-experience-clojure])
+       {:value (state/user-value :user/profile-experience-clojure)
         :choices [[0 "I have none"]
                   [1 "I have written a few lines now and again"]
                   [2 "I have written programs for my own use that are a couple of pages long"]
                   [3 "I have written and maintained larger pieces of software"]]
         :direction :vertical
         :on-change (fn [value]
-                     (mod/dispatch [:set-user-value! :user/profile-experience-clojure value]))}]]
+                     (state/set-user-value! :user/profile-experience-clojure value))}]]
 
-     (when (< 1 @(mod/subscribe [:user-profile-value :user/profile-experience-clojure]))
+     (when (< 1 (state/user-value :user/profile-experience-clojure))
        [ui/row {:title "Clojure Programming Experience - Follow Up"
                 :subtitle [:<>
                            "Which of these statements best describes how easily you could write a program to do the following (in Clojure):"
                            [:div {:tw "mt-1 italic"} "Identify all airports more than 4 connections away from a given airport. You are provided an API that returns airports and flights between them."]]}
         [ui/radio-list
-         {:value @(mod/subscribe [:user-profile-value :user/profile-experience-clojure-example])
+         {:value (state/user-value :user/profile-experience-clojure-example)
           :choices [[0 "I wouldn’t know where to start."]
                     [1 "I could struggle through by trial and error, with a lot of web searches or ChatGPT."]
                     [2 "I could do it quickly with little or no use of external help."]]
           :direction :vertical
           :on-change (fn [value]
-                       (mod/dispatch [:set-user-value! :user/profile-experience-clojure-example value]))}]])
+                       (state/set-user-value! :user/profile-experience-clojure-example value))}]])
 
      (doall
        (for [[title subtitle k]
@@ -110,10 +108,9 @@
          [ui/row {:title title
                   :subtitle subtitle}
           [ui/textarea
-           {:default-value @(mod/subscribe [:user-profile-value k])
+           {:default-value (state/user-value k)
             :on-change (fn [e]
-                         (mod/dispatch
-                           [:debounced-set-user-value! k (.. e -target -value)]))}]]))]))
+                         (state/debounced-set-user-value! k (.. e -target -value)))}]]))]))
 
 (defn profile-page-view []
   [:div.page.profile
@@ -137,6 +134,4 @@
    :page/path "/"
    :page/view #'profile-page-view
    :page/nav-label "Profile"
-   :page/styles [:.page.profile]
-   :page/on-enter! (fn []
-                     (mod/dispatch [:profile/fetch-topics!]))})
+   :page/styles [:.page.profile]})

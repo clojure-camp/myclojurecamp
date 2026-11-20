@@ -23,16 +23,34 @@
   (cqrs/watch!
     :mycc.base.routes
     (fn [commands-and-queries]
-      (tada/register! commands-and-queries)
+      (tada/register! cqrs/t commands-and-queries)
       (reset! dynamic-cqrs-handler
               (omni.ring/->handler
                 (->> commands-and-queries
+                     (filter :route)
                      (map (fn [{:keys [id route]}]
                             [route
-                             (tada.events.ring/route id)
+                             (tada.events.ring/route cqrs/t id)
                              [params-middleware]]))))))))
 
-#_(tada/do :request-login-link-email! {:email "foo@example.com"})
+#_(tada/do! cqrs/t :request-login-link-email! {:email "foo@example.com"})
+
+(defn tada-handler
+  [request]
+  (let [{:tada.event/keys [id params]} (request :body-params)]
+    (if (and (keyword? id)
+             (map? params))
+      (-> (tada.events.ring/ring-dispatch-event!
+            cqrs/t
+            id
+            (assoc params :user-id (get-in request [:session :user-id])))
+          ((fn [response]
+             (if (string? (:body response))
+               (assoc-in response [:headers "Content-Type"] "text/plain")
+               response))))
+      {:status 400
+       :headers {"Content-Type" "text/plain"}
+       :body "Incorrect TADA event"})))
 
 (def routes
   [[[:get "/validate"]
@@ -48,6 +66,10 @@
          :headers {"Location" (if (return-to/safe? return-path)
                                 return-path
                                 "/")}}))]
+
+   ;; suffix is only for readability in logs and devtools
+   [[:post "/api/tada/*"]
+    tada-handler]
 
    [[:delete "/api/session"]
     (fn [_]

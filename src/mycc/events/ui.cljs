@@ -1,6 +1,7 @@
 (ns mycc.events.ui
   (:require
    [modulo.api :as mod]
+   [mycc.base.client.state :as state]
    [mycc.common.profile :as common.profile]
    [mycc.common.ui :as ui]
    [mycc.common.availability :as availability]))
@@ -17,12 +18,12 @@
                 "This lets us know which events to notify you about and to help schedule events."]}
     [:div
      [ui/checkbox-list
-      {:value (or @(mod/subscribe [:user-profile-value :user/events-interested-in]) #{})
+      {:value (or (state/user-value :user/events-interested-in) #{})
        :choices [[:event/mob-sessions "Mob Sessions"]
                  [:event/pairing "1-on-1 Pairing"]]
        :on-change (fn [value]
-                    (mod/dispatch [:set-user-value!
-                                  :user/events-interested-in value]))}]]]
+                    (state/set-user-value!
+                     :user/events-interested-in value))}]]]
    [ui/row
     {}
     [:div {:tw "text-sm space-y-2"}

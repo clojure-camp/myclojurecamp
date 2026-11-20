@@ -9,12 +9,8 @@
 
 (def commands
   [{:id :request-login-link-email!
-    :route [:put "/api/request-login-link-email"]
-    :params {:email (and string?
-                      #(re-matches #".*@.*\..*" %))
-             :return-to (fn [value]
-                          (or (nil? value)
-                              (return-to/safe? value)))}
+    :params {:email [:re #"^.*@.*\..*$"]
+             :return-to [:maybe [:fn return-to/safe?]]}
     :effect
     (fn [{:keys [email return-to]}]
       (let [user (or (db/get-user-by-email email)
@@ -23,15 +19,14 @@
           (emails.login-link/login-email-template user return-to))))}
 
    {:id :set-profile-value!
-    :route [:put "/api/user/set-profile-value"]
-    :params {:user-id uuid?
-             :k (fn [k]
-                  (schema/allowed-key? schema/User k))
-             :v any?}
+    :params {:user-id :user/id
+             :k [:fn (fn [k]
+                       (schema/allowed-key? :entity/user k))]
+             :v :any}
     :conditions
     (fn [{:keys [user-id k v]}]
       [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]
-       [#(schema/valid-key-value? schema/User k v)
+       [#(schema/valid-key-value? :entity/user k v)
         :not-allowed
         "Value is of wrong type."]])
     :effect
@@ -41,8 +36,7 @@
               db/save-user!))}
 
    {:id :mark-visited!
-    :route [:put "/api/user/visited"]
-    :params {:user-id uuid?}
+    :params {:user-id :user/id}
     :conditions
     (fn [{:keys [user-id]}]
       [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]])
@@ -57,7 +51,7 @@
    {:id :email-unsubscribe!
     :route [:post "/api/p2p/unsubscribe"]
     ;; uid coming via url param
-    :params {:uid uuid?}
+    :params {:uid :user/id}
     :conditions
     (fn [{:keys [user-id]}]
       [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]])
@@ -69,8 +63,7 @@
 
 (def queries
   [{:id :user
-    :route [:get "/api/user"]
-    :params {:user-id uuid?}
+    :params {:user-id :user/id}
     :conditions
     (fn [{:keys [user-id]}]
       [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]])

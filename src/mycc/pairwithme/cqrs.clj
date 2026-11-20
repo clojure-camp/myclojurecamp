@@ -12,10 +12,6 @@
 (defn user-exists?-condition [user-id]
   [#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."])
 
-(defn slots-param? [value]
-  (and (sequential? value)
-       (every? inst? value)))
-
 (defn can-view-schedule?
   ;; unlisted users are visible only to people they have a session with
   [{:keys [user-id other-user-id]}]
@@ -89,10 +85,9 @@
 
 (def commands
   [{:id :pairwithme/propose!
-    :route [:put "/api/pairwithme/propose"]
-    :params {:user-id uuid?
-             :other-user-id uuid?
-             :slots slots-param?}
+    :params {:user-id :user/id
+             :other-user-id :user/id
+             :slots [:sequential inst?]}
     :conditions
     (fn [{:keys [user-id other-user-id] :as params}]
       [(user-exists?-condition user-id)
@@ -105,10 +100,9 @@
     :effect propose!}
 
    {:id :pairwithme/counter-propose!
-    :route [:put "/api/pairwithme/counter-propose"]
-    :params {:user-id uuid?
-             :session-id uuid?
-             :slots slots-param?}
+    :params {:user-id :user/id
+             :session-id :pairwithme-session/id
+             :slots [:sequential inst?]}
     :conditions
     (fn [{:keys [user-id session-id] :as params}]
       [(user-exists?-condition user-id)
@@ -123,11 +117,10 @@
 
    ;; errors are returned (not thrown), so the page can show them
    {:id :pairwithme/accept!
-    :route [:put "/api/pairwithme/accept"]
-    :params {:user-id uuid?
-             :session-id uuid?
-             :proposal-id uuid?
-             :slot-index int?}
+    :params {:user-id :user/id
+             :session-id :pairwithme-session/id
+             :proposal-id :proposal/id
+             :slot-index :int}
     :conditions
     (fn [{:keys [user-id]}]
       [(user-exists?-condition user-id)])
@@ -136,8 +129,7 @@
 
 (def queries
   [{:id :pairwithme/profiles
-    :route [:get "/api/pairwithme/profiles"]
-    :params {:user-id uuid?}
+    :params {:user-id :user/id}
     :conditions
     (fn [{:keys [user-id]}]
       [(user-exists?-condition user-id)])
@@ -163,9 +155,8 @@
                                                                     :other user}))))))))}
 
    {:id :pairwithme/schedule
-    :route [:get "/api/pairwithme/schedule"]
-    :params {:user-id uuid?
-             :other-user-id uuid?}
+    :params {:user-id :user/id
+             :other-user-id :user/id}
     :conditions
     (fn [{:keys [user-id other-user-id] :as params}]
       [(user-exists?-condition user-id)
@@ -179,8 +170,7 @@
                             :other (db/get-user other-user-id)}))}
 
    {:id :pairwithme/sessions
-    :route [:get "/api/pairwithme/sessions"]
-    :params {:user-id uuid?}
+    :params {:user-id :user/id}
     :conditions
     (fn [{:keys [user-id]}]
       [(user-exists?-condition user-id)])

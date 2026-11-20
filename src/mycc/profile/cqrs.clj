@@ -1,16 +1,15 @@
 (ns mycc.profile.cqrs
   (:require
-    [clojure.string :as string]
     [modulo.api :as mod]
     [mycc.common.db :as db]
     [mycc.p2p.util :as util]
-    [mycc.profile.db :as profile.db]))
+    [mycc.profile.db :as profile.db]
+    [mycc.profile.schema]))
 
 (def commands
   [{:id :create-topic!
-    :route [:put "/api/topics"]
-    :params {:user-id uuid?
-             :name (and string? (complement string/blank?))}
+    :params {:user-id :user/id
+             :name :topic/name}
     :conditions
     (fn [{:keys [user-id name]}]
       [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]
@@ -21,11 +20,9 @@
     :return :tada/effect-return}
 
    {:id :set-topic-level!
-    :route [:put "/api/user/set-topic-level"]
-    :params {:user-id uuid?
-             :topic-id uuid?
-             :level (fn [value]
-                      (contains? #{:level/beginner :level/intermediate :level/expert nil} value))}
+    :params {:user-id :user/id
+             :topic-id :topic/id
+             :level [:maybe [:enum :level/beginner :level/intermediate :level/expert]]}
     :conditions
     (fn [{:keys [user-id topic-id]}]
       [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]
@@ -37,8 +34,7 @@
               db/save-user!))}
 
    {:id :clear-availability!
-    :route [:put "/api/user/clear-availability"]
-    :params {:user-id uuid?}
+    :params {:user-id :user/id}
     :conditions
     (fn [{:keys [user-id]}]
       [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]])
@@ -49,11 +45,10 @@
               db/save-user!))}
 
    {:id :update-availability!
-    :route [:put "/api/user/update-availability"]
-    :params {:user-id uuid?
-             :hour (fn [h] (contains? (set (concat util/early-hours util/hours util/late-hours)) h))
-             :day (fn [d] (contains? (set util/days) d))
-             :value (fn [v] (contains? util/availability-values v))}
+    :params {:user-id :user/id
+             :hour (into [:enum] (concat util/early-hours util/hours util/late-hours))
+             :day (into [:enum] util/days)
+             :value [:maybe (into [:enum] (remove nil? util/availability-values))]}
     :conditions
     (fn [{:keys [user-id]}]
       [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]])
@@ -65,8 +60,7 @@
 
 (def queries
   [{:id :topics
-    :route [:get "/api/topics"]
-    :params {:user-id uuid?}
+    :params {:user-id :user/id}
     :conditions
     (fn [{:keys [user-id]}]
       [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]])

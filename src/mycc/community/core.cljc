@@ -3,7 +3,8 @@
     [clojure.string :as string]
     [modulo.api :as mod]
     #?@(:clj
-         [[mycc.common.db :as db]
+         [[mycc.base.schema]
+          [mycc.common.db :as db]
           [mycc.common.date :as date]
           [lambdaisland.hiccup :as h]]
          :cljs
@@ -176,8 +177,7 @@
      (mod/register-cqrs!
       :community/queries
       [{:id :community/html
-        :route [:get "/api/community"]
-        :params {:user-id uuid?}
+        :params {:user-id :user/id}
         :conditions
         (fn [{:keys [user-id]}]
           [[#(db/entity-file-exists? :user user-id) :not-allowed "User with this ID does not exist."]])
@@ -190,7 +190,7 @@
      (defn community-page-view
        []
        [ui/server-html-view
-        {:route "/api/community"}])
+        {:event [:community/html]}])
 
      (mod/register-page!
       {:page/id :page.id/community
